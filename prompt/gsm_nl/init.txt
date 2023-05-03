@@ -1,0 +1,30 @@
+# Q: Jason had 20 lollipops. He gave Denny some lollipops. Now Jason has 12 lollipops. How many lollipops did Jason give to Denny?
+
+# A: Let's break down this problem: 1. How many lollipos jason gave to denny?
+1. Jason gave 20 - 12 = 8 lollipops to Denny.
+The answer is 8.
+
+# Q: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
+
+# A: Let's break down this problem: 1. How many trees were already present in the grove? 2. How many trees are there after new trees are planted? 3. How many trees were planted today?
+1. There were 15 trees in the grove.
+2. After the new trees are planted, there will be 21 trees in the grove.
+3. The new trees planted today are 21 - 15 = 6 trees.
+The answer is 6.
+
+# Q: Shawn has five toys. For Christmas, he got two toys each from his mom and dad. How many toys does he have now?
+
+# A: Let's break down this problem: 1. How many toys did Shawn have before Christmas? 2. How many toys did Shawn get on Christmas? 3. How many toys does Shawn have now?
+1. Shawn had 5 toys before Christmas.
+2. Shawn got 2 toys each from his mom and dad. So, he got 2 + 2 = 4 toys on Christmas.
+3. Shawn has 5 + 4 = 9 toys.
+The answer is 9.
+
+# Q: Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?
+
+# A: Let's break down this probelm: 1. How many cards had the letter A on them? 2. How many cards had the letter B on them? 3. How many cards had the letter C on them? 4. How many cards had the letter D on them?
+1. 2/5 of the cards had the letter A on them. So, 2/5 * 80 = 32 cards had the letter A on them. Remaining cards are 80 - 32 = 48 cards.
+2. 1/2 of the remaining cards had the letter B on them. So, 1/2 * 48 = 24 cards had the letter B on them. Remaining cards are 48 - 24 = 24 cards.
+3. 5/8 of the remaining cards had the letter C on them. So, 5/8 * 24 = 15 cards had the letter C on them. Remaining cards are 24 - 15 = 9 cards.
+4. The remaining cards had the letter D on them. So, 9 cards had the letter D on them.
+The answer is 9.
