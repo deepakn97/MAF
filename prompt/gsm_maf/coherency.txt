@@ -1,0 +1,85 @@
+def solution():
+    """Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?"""
+    
+    bacon = 5
+    bacon_cost = 10
+    chicken_packs = 6
+    chicken_total_cost = chicken_packs * chicken_cost
+    chicken_cost = 2 * bacon_cost
+    strawberry_packs = 3
+    strawberry_cost = 4
+    budget = 65
+    apple_packs = 7
+    apple_cost = strawberry_cost / 2
+    total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
+    result = total_cost
+    money_left = budget - total_cost
+    result = money_left
+    return result
+
+# Check the code for any coherency errors and suggest fixes. Coherency errors are steps that contradict each other or do not follow a cohesive story. Ignore all other types of errors.
+
+# Let us go through the code step-by-step
+    bacon = 5
+    bacon_total_cost = 10
+# looks good
+
+# Let's check other parts
+    chicken_packs = 6
+    chicken_total_cost = chicken_packs * chicken_cost
+    chicken_cost = 2 * bacon_cost
+# chicken_cost is used before being assigned. move the calculation of chicken_total_cost after the calculation of chicken_cost
+
+# let's check other parts
+    strawberries = 3
+    strawberry_cost = 4
+# looks good
+
+# let's check other parts
+    budget = 65
+# budget variable is randomly assigned in the middle of calulating the cost of each item. Move the budget assignment to before or after the cost calculations.
+
+# Let's check other parts
+    apples = 7
+    apple_cost = strawberry_cost / 2
+# looks good
+
+# Let's check other parts
+    total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
+    result = total_cost
+    money_left = budget - total_cost
+    result = money_left
+    return result
+# result is first assigned with the value of total_cost and then later reassigned the value of money_left, contradicting itself. 
+
+### END ###
+
+def solution():
+    """Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Calculate the total cost of buying each cup."""
+    plates = 6
+    plate_cost = 6000
+    cups = 12 * 20
+    cup_cost = plate_cost
+    cup_cost = cup_cost / cups
+    result = cup_cost
+    return result
+
+# Check the code for any coherency errors and suggest fixes. Coherency errors are steps that contradict each other or do not follow a cohesive story. Ignore all other types of errors.
+
+# Let us go through each variable step-by-step
+    plates = 6
+    plate_cost = 6000
+# looks good
+
+# Let's check other parts
+    cups = 12 * 20
+    cup_cost = plate_cost
+    cup_cost = cup_cost / cups
+# Assuming that the cup_cost is referring to the total cost of all cups, the last step where you divide cup_cost by the number of cups does not make sense.
+
+# Let's check other parts
+    result = cup_cost
+    return result
+# looks good
+
+### END ###
