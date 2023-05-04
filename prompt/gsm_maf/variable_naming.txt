@@ -14,7 +14,7 @@ def solution():
     result = money_left
     return result
 
-# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. Also point out any missing variables. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors.
+# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors.
 
 # Let us go through each variable step-by-step
     budget = 65
@@ -87,7 +87,7 @@ def solution():
     result = cup_cost
     return result
 
-# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. Also point out any missing variables. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors.
+# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors.
 
 # Let us go through each variable step-by-step
     plates = 6
