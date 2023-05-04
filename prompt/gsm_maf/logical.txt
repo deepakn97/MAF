@@ -4,7 +4,7 @@ def solution():
     bacon_packs = 5
     bacon_total_cost = 10
     chicken_packs = 6
-    chicken_cost = 2 * bacon_cost
+    chicken_cost = 2 * bacon_total_cost
     strawberry_packs = 3
     strawberry_cost = 4
     apple_packs = 7
@@ -14,7 +14,7 @@ def solution():
     result = money_left
     return result
 
-# Check each semantically complete block of code for any missing steps and suggest the correct way to add them. Ignore all the other types of errors.
+# Check each semantically complete block of the code to check for any logical reasoning errors. Logical reasoning errors may include errors in the mathematical calculations, errors in the order of the steps, or errors in the assumptions made. State the assumptions you made clearly. Ignore all the other types of errors.
 
 # Let us go through the code step-by-step
     budget = 65
@@ -27,54 +27,53 @@ def solution():
 
 # Let's check other parts
     chicken_packs = 6
-    chicken_cost = 2 * bacon_cost
-# wrong! bacon_cost is missing. Let's add it.
-# wrong! we need the total cost of chicken to calculate remaining budget. Let's add it.
+    chicken_cost = 2 * bacon_total_cost
+# wrong! according to the context, the cost of each packet of chicken is twice the cost of 1 packet of bacon. We should use bacon_cost in place of bacon_total_cost to calculate the chicken pack cost correctly. Let's fix it.
 
 # Let's check other parts
     strawberry_packs
     strawberry_cost = 4
-# wrong! we need the total cost of strawberries to calculate remaining budget. Let's add it.
+# looks good
 
 # Let's check other parts
     apple_packs = 7
     apple_cost = strawberry_cost / 2
-# wrong! we need the total cost of apples to calculate remaining budget. Let's add it.
+# looks good
 
 # Let's check other parts
     total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
     money_left = budget - total_cost
     result = money_left
     return result
-# looks good
+# wrong! we want to calculate the total cost of buying all the items so we should use the total cost of each item instead of cost of 1 pack of each item. Let's fix it.
 
 ### END ###
 
 def solution():
     """Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Calculate the total cost of buying each cup."""
-    plates = 6
+    plates = 0.5
     plate_cost = 6000
     cups = 12 * 20
     cups_total_cost = plate_cost
     result = cup_cost
     return result
 
-# Check each semantically complete block of code for any missing steps and suggest the correct way to add them. Ignore all the other types of errors.
+# Check each semantically complete block of the code to check for any logical reasoning errors. Logical reasoning errors may include errors in the mathematical calculations, errors in the order of the steps, or errors in the assumptions made. State the assumptions you made clearly. Ignore all the other types of errors.
 
 # Let us go through the code step-by-step
-    plates = 6
+    plates = 0.5
     plate_cost = 6000
-# wrong! we need to calculate the total cost of plates to calculate the cost of each cup. Let's add it.
+# wrong! The number of plates is wrong. The question mentions half a dozen plates. A dozen is 12. So half a dozen is 6. Let's fix it.
 
 # Let's check other parts
     cups = 12 * 20
     cup_total_cost = plate_cost
-# looks good
+# wrong! the questions mentions total cost of all cups is 1200 less than total cost of plates. So we should use plate_total_cost instead of plate_cost and subtract 1200 from it. Let's fix it.
 
 # Let's check other parts
     result = cup_cost
     return result
-# wrong! we need to calculate the cost of each cup to answer the question. Let's add it.
+# looks good
 
 ### END ###
 
@@ -90,7 +89,7 @@ def solution():
     result = cards_d
     return result
 
-# Check each semantically complete block of code for any missing steps and suggest the correct way to add them. Ignore all the other types of errors.
+# Check each semantically complete block of the code to check for any logical reasoning errors. Logical reasoning errors may include errors in the mathematical calculations, errors in the order of the steps, or errors in the assumptions made. State the assumptions you made clearly. Ignore all the other types of errors.
 
 # Let us go through the code step-by-step
     cards_initial = 80
@@ -116,6 +115,6 @@ def solution():
     return result
 # looks good
 
-There are no missing steps in the code! It is correct! 
+There are no logical errors in the code! It is correct!
 
 ### END ###

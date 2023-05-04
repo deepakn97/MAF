@@ -1,5 +1,7 @@
+from abc import ABCMeta, abstractmethod
 from time import time
 import traceback
+from typing import Callable, Dict, Union
 
 class Prompt:
     def __init__(
@@ -23,27 +25,37 @@ class Prompt:
             f"{prompt}{self.question_prefix}{question}{self.intra_example_sep}{self.answer_prefix}"
         )
 
-class LLMFeedback(Prompt):
+class Feedback(metaclass=ABCMeta):
     def __init__(
         self, 
-        question_prefix: str,
-        answer_prefix: str,
-        intra_example_sep: str,
-        inter_example_sep: str,
-        engine: str = None,
-        temperature: float = None,
-        max_tokens: int = 300,
-    ) -> None:
-        super().__init__(
-            question_prefix=question_prefix,
-            answer_prefix=answer_prefix,
-            intra_example_sep=intra_example_sep,
-            inter_example_sep=inter_example_sep,
-            engine=engine,
-            temperature=temperature,
-        )
-        self.instruction = """There is an error in the code above because of lack of understanding of the question. What is the error? To find the error, go through semantically complete blocks of the code, and check if everything looks good."""
-        self.max_tokens = max_tokens
+        **kwargs
+    ):
+        pass
+    
+    @abstractmethod
+    def make_query(self, solution: str, **kwargs) -> str:
+        pass
+
+    @abstractmethod
+    def setup_prompt_from_examples_file(self, examples_path: str, **kwargs) -> str:
+        pass
+
+    @abstractmethod
+    def __call__(self, solution: str, **kwargs) -> Union[str, Dict[str, str]]:
+        pass
+    
+class FeedbackFactory:
+    """ The factory class for feedback generation. """
+    registry = {}
+
+    @classmethod
+    def create_feedback(cls, name: str, **kwargs) -> 'Feedback':
+        pass
+
+    @classmethod
+    def register(cls, name: str) -> Callable:
+        pass
+
 
 def retry_parse_fail_prone_cmd(
     func,

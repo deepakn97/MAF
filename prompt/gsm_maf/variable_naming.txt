@@ -58,7 +58,7 @@ def solution():
     result = money_left
 # looks good
 
-# Okay, here's the rewrite
+# Okay, here's the rewrite:
 
 def solution():
     """Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?"""
@@ -106,7 +106,7 @@ def solution():
     return result
 # looks good
 
-# Okay, here is the rewrite
+# Okay, here is the rewrite:
 
 def solution():
     """Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Calculate the total cost of buying each cup."""
@@ -117,4 +117,58 @@ def solution():
     result = cup_cost
     return result
     
+### END ###
+
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
+    return result
+
+# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors.
+
+# Let us go through the variables step-by-step
+    cards_initial = 80
+# looks good
+
+# Let's check the other parts
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+# looks good
+
+# Let's check the other parts
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+# looks good
+
+# Let's check the other parts
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+# looks good
+
+# Let's check the other parts
+    result = cards_d
+    return result
+# looks good
+
+There is no variable naming error in the code! It is correct! Here is the rewrite (for the sake of completeness):
+
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
+    return result
+
 ### END ###

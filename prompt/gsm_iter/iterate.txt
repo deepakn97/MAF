@@ -48,7 +48,7 @@ def solution():
 money_left = budget - total_cost
 # looks good
 
-# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback.
+# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
 
 Okay! Here is the rewrite:
 
@@ -91,7 +91,7 @@ def solution():
     cup_cost = plate_cost
 # wrong! The cost of a cup is not the same as the cost of a plate. The cost of a cup is $1200 less than the total cost of half a dozen plates sold at $6000 each. So we need to calculate the cost of a cup first (total cost of half a dozen plates sold at $6000 each - $1200) and use that.
 
-# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback.
+# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
 
 Okay! Here is the rewrite:
 
@@ -143,7 +143,7 @@ def solution():
     return result
 # looks good
 
-# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback.
+# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
 
 There is no error in the code! It is correct! Here is the rewrite (for the sake of completeness):
 
@@ -194,7 +194,7 @@ def solution():
     chips_available = bags * chips_per_bag
 # wrong! 12 chips per *sqare inch*, not per inch. Need to calculate square inches he can build with chips_available. Then, divide that by the desired height to get the length. That will be chips_needed, not chips_available. The rest of the code is incorrect as a result.
 
-# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback.
+# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
 
 Okay! Here is the rewrite:
 

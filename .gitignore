@@ -131,7 +131,7 @@ dmypy.json
 *.code-workspace
 .vscode/
 data/
-output/
+outputs/
 models/
 adversarial_triggers/models/
 *.json

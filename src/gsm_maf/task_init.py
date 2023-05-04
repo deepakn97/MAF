@@ -43,7 +43,7 @@ class GSMInit(Prompt):
 
 def test():
     task_init = GSMInit(
-        prompt_examples="data/prompt/gsm_iter/init.txt",
+        prompt_examples="prompt/gsm_maf/init.txt",
         engine="text-davinci-002",
         temperature=0.0,
     )
