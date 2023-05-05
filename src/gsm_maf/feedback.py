@@ -1,4 +1,5 @@
 import sys
+import time
 from typing import Dict
 import pandas as pd
 from prompt_lib.backends import openai_api
@@ -35,13 +36,21 @@ class MissingStepFeedback(Prompt):
     
     def __call__(self, solution: str):
         generation_query = self.make_query(solution=solution)
-        output = openai_api.OpenaiAPIWrapper.call(
-            prompt = generation_query,
-            engine=self.engine,
-            max_tokens=self.max_tokens,
-            stop_token="### END",
-            temperature=self.temperature,
-        ) 
+        success = False
+        while not success:
+            try:
+                output = openai_api.OpenaiAPIWrapper.call(
+                    prompt = generation_query,
+                    engine=self.engine,
+                    max_tokens=self.max_tokens,
+                    stop_token="### END",
+                    temperature=self.temperature,
+                ) 
+                success = True
+            except Exception as e:
+                success = False
+                print(e)
+                time.sleep(60)
 
         entire_output = openai_api.OpenaiAPIWrapper.get_first_response(output)
         if "### END" in entire_output:
@@ -79,13 +88,21 @@ class VariableNameFeedback(Prompt):
     
     def __call__(self, solution: str) -> Dict[str, str]:
         generation_query = self.make_query(solution=solution)
-        output = openai_api.OpenaiAPIWrapper.call(
-            prompt = generation_query,
-            engine=self.engine,
-            max_tokens=self.max_tokens,
-            stop_token="### END",
-            temperature=self.temperature,
-        ) 
+        success = False
+        while not success:
+            try:
+                output = openai_api.OpenaiAPIWrapper.call(
+                    prompt = generation_query,
+                    engine=self.engine,
+                    max_tokens=self.max_tokens,
+                    stop_token="### END",
+                    temperature=self.temperature,
+                ) 
+                success = True
+            except Exception as e:
+                success = False
+                print(e)
+                time.sleep(60)
 
         entire_output = openai_api.OpenaiAPIWrapper.get_first_response(output)
         if "### END" in entire_output:
@@ -130,14 +147,22 @@ class LogicalFeedback(Prompt):
         return f"{self.prompt}{solution}"
     
     def __call__(self, solution: str):
-        generation_query = self.make_query(solution=solution)
-        output = openai_api.OpenaiAPIWrapper.call(
-            prompt = generation_query,
-            engine=self.engine,
-            max_tokens=self.max_tokens,
-            stop_token="### END",
-            temperature=self.temperature,
-        ) 
+        success = False
+        while not success:
+            try:
+                generation_query = self.make_query(solution=solution)
+                output = openai_api.OpenaiAPIWrapper.call(
+                    prompt = generation_query,
+                    engine=self.engine,
+                    max_tokens=self.max_tokens,
+                    stop_token="### END",
+                    temperature=self.temperature,
+                ) 
+                success = True
+            except Exception as e:
+                success = False
+                print(e)
+                time.sleep(60)
 
         entire_output = openai_api.OpenaiAPIWrapper.get_first_response(output)
         if "### END" in entire_output:

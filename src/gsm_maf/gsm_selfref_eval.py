@@ -121,7 +121,7 @@ def print_reports(reports, report_file):
             f.write("\nPrevious solution:\n")
             f.write(report["previous_solution"])
             f.write("\n\nFeedback:\n")
-            f.write(report["feedback"])
+            f.write(str(report["feedback"]))
             f.write("\n\nNext solution:\n")
             f.write(report["next_solution"])
             f.write("\n\n" + "=" * 80 + "\n\n")

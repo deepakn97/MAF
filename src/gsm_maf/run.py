@@ -41,6 +41,7 @@ def iterative_gsm(question: str, max_attempts: int, temperature: float):
     ms_feedback = ""
     logical_feedback = ""
     feedback = {"Missing Step Feedback": ms_feedback, "Logical Reasoning Feedback": logical_feedback}
+    vn_feedback_and_soln = {"feedback": "", "solution": ""}
     solution = ""
     ms_retry = True
     logical_retry = True

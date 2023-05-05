@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from time import time
+import time
 import traceback
 from typing import Callable, Dict, Union
 
@@ -59,7 +59,7 @@ class FeedbackFactory:
 
 def retry_parse_fail_prone_cmd(
     func,
-    max_retries: int = 3,
+    max_retries: int = 100,
     exceptions=(
         ValueError,
         KeyError,
@@ -76,7 +76,6 @@ def retry_parse_fail_prone_cmd(
 
                 retries -= 1
                 print(f"An error occurred: {e}. {stack_trace}. Left retries: {retries}.")
-                time.sleep(60)
         return None
 
     return wrapper
