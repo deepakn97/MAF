@@ -28,13 +28,13 @@ def solution():
     bacon = 5
     bacon_total_cost = 15
     bacon_cost = bacon_total_cost / bacon
-# There is a hallucination error in the line 'bacon_total_cost = 15'. In the problem, the total cost of the bacon packs is $10, not $15. To fix this, we should set the total cost of the bacon packs to $10.
+# wrong! In the problem, the total cost of the bacon packs is $10, not $15. To fix this, we should set the total cost of the bacon packs to $10.
 
 # Let's check other parts
     chicken = 6
-    chicken_cost = 2 * bacon_total_cost
+    chicken_cost = 2 * bacon_cost
     chicken_total_cost = chicken_packs * chicken_cost
-# It is never stated that the cost of each single chicken is twice the total cost of all the bacon. Set the cost of each chicken equal to double the cost of a single bacon.
+# Looks good
 
 # let's check other parts
     strawberry_packs = 3
@@ -44,8 +44,8 @@ def solution():
 
 # Let's check other parts
     apples = 3
-    apple_cost = strawberry_cost / 2
-# It is never stated that Kelly purchases 3 packs of apples. Set the number of apples purchased to 7.
+    apple_cost = strawberry_cost / 3
+# wrong! The problem states that each apple costs half of what each pack of strawberries costs, not one third. The value of apple_cost should be set to straweberry_cost / 3.
 
 # Let's check other parts
     total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
@@ -72,10 +72,10 @@ def solution():
     plate_cost = 6000
 # looks good
 
-# Let's check other parts
+# Let's check other parts 
     cups = 12 * 20
     cup_cost = plate_cost
-# It is not stated that the total cost of the cups is equal to the total cost of the clips. Set the cost of the cups equal to the cost of the plates minus $1200.
+# wrong! The problem does not state that the total cost of the cups is equal to the total cost of the plates. Set the cost of the cups equal to the cost of the plates minus $1200.
 
 # Let's check other parts
     result = cup_cost

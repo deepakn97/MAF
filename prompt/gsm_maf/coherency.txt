@@ -37,7 +37,7 @@ def solution():
 
 # let's check other parts
     budget = 65
-# budget variable is randomly assigned in the middle of calulating the cost of each item. Move the budget assignment to before or after the cost calculations.
+# budget variable is randomly assigned in the middle of calulating the cost of each item. Move the budget assignment to before or after the cost calculations for increased coherency.
 
 # Let's check other parts
     apples = 7
@@ -56,10 +56,8 @@ def solution():
 
 def solution():
     """Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Calculate the total cost of buying each cup."""
-    plates = 6
-    plate_cost = 6000
     cups = 12 * 20
-    cup_cost = plate_cost
+    cup_cost = 6000 - 1200
     cup_cost = cup_cost / cups
     result = cup_cost
     return result
@@ -67,15 +65,12 @@ def solution():
 # Check the code for any coherency errors and suggest fixes. Coherency errors are steps that contradict each other or do not follow a cohesive story. Ignore all other types of errors.
 
 # Let us go through each variable step-by-step
-    plates = 6
-    plate_cost = 6000
-# looks good
 
 # Let's check other parts
     cups = 12 * 20
-    cup_cost = plate_cost
+    cup_cost = 6000 - 1200
     cup_cost = cup_cost / cups
-# Assuming that the cup_cost is referring to the total cost of all cups, the last step where you divide cup_cost by the number of cups does not make sense.
+# The line 'cup_cost = 6000 - 1200' is not very coherent because it is unclear where the 6000 figure comes from. We should introduce a separate variables to store the $6000 as the cost of the plates. Additionally, assuming that the cup_cost is referring to the total cost of all cups, the last step where you divide cup_cost by the number of cups does not make sense.
 
 # Let's check other parts
     result = cup_cost
