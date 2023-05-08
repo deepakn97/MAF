@@ -3,6 +3,7 @@ import time
 import traceback
 from typing import Callable, Dict, Union
 
+
 class Prompt:
     def __init__(
         self,
@@ -25,13 +26,14 @@ class Prompt:
             f"{prompt}{self.question_prefix}{question}{self.intra_example_sep}{self.answer_prefix}"
         )
 
+
 class Feedback(metaclass=ABCMeta):
     def __init__(
-        self, 
+        self,
         **kwargs
     ):
         pass
-    
+
     @abstractmethod
     def make_query(self, solution: str, **kwargs) -> str:
         pass
@@ -43,7 +45,8 @@ class Feedback(metaclass=ABCMeta):
     @abstractmethod
     def __call__(self, solution: str, **kwargs) -> Union[str, Dict[str, str]]:
         pass
-    
+
+
 class FeedbackFactory:
     """ The factory class for feedback generation. """
     registry = {}
@@ -75,7 +78,15 @@ def retry_parse_fail_prone_cmd(
                 stack_trace = traceback.format_exc()
 
                 retries -= 1
-                print(f"An error occurred: {e}. {stack_trace}. Left retries: {retries}.")
+                print(
+                    f"An error occurred: {e}. {stack_trace}. Left retries: {retries}.")
         return None
 
     return wrapper
+
+
+def parse_feedback(feedback):
+    feedback = feedback.split("\n\n")
+    feedback = [f for f in feedback if f.split(
+        '\n')[-1].lower() != '# looks good']
+    return "\n\n".join(feedback)

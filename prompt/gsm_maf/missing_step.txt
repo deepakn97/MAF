@@ -30,7 +30,9 @@ def solution():
     chicken_cost = 2 * bacon_cost
 # wrong! bacon_cost is missing. Let's add it.
 # wrong! we need the total cost of chicken to calculate remaining budget. Let's add it.
-
+    chicken_packs = 6
+    chicken_cost = 2 * bacon_cost
+    
 # Let's check other parts
     strawberry_packs
     strawberry_cost = 4
