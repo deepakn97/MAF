@@ -133,7 +133,7 @@ dmypy.json
 data/
 outputs/
 models/
-adversarial_triggers/models/
+temp_result.py
 *.json
 *.eps
 *.png

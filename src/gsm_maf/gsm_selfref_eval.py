@@ -1,10 +1,16 @@
-from importlib import reload
-import pandas as pd
-from tqdm import tqdm
-from contextlib import contextmanager
-import signal
-from glob import glob
 import os
+import sys
+import signal
+import pandas as pd
+from glob import glob
+from tqdm import tqdm
+from pathlib import Path
+from importlib import reload
+from contextlib import contextmanager
+
+
+path_root = Path(__file__).parents[2]
+sys.path.append(str(path_root))
 
 # from https://stackoverflow.com/questions/492519/timeout-on-a-function-call
 @contextmanager
@@ -71,7 +77,7 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
                 reload(temp_result)
                 correct_solution = str(row["answer"])
 
-                exec(soln)
+                # exec(soln)
                 with timeout(1):
                     result = str(temp_result.solution())
                 is_corr = check_corr(result, correct_solution)
@@ -94,7 +100,9 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
                 attempt_to_acc_[iter_idx] = 0
                 prev_accuracy = is_corr
             except Exception as e:
-                print(e)
+                print(f"Error: {e}, idx = {iter_idx}")
+                # print(f"Solution:\n{soln}")
+                # print(f"Feedback:\n{feedback[iter_idx]}")
                 continue
 
         attempt_to_acc.append(attempt_to_acc_)

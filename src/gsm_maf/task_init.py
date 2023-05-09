@@ -53,11 +53,11 @@ class GSMInit(Prompt):
 def test():
     task_init = GSMInit(
         prompt_examples="prompt/gsm_maf/init.txt",
-        engine="text-davinci-002",
+        engine="text-davinci-003",
         temperature=0.0,
     )
 
-    question = "The educational shop is selling notebooks for $1.50 each and a ballpen at $0.5 each.  William bought five notebooks and a ballpen. How much did he spend in all?"
+    question = "Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?"
     print(task_init(question))
     
 

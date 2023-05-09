@@ -29,6 +29,8 @@ def solution():
     chicken_packs = 6
     chicken_cost = 2 * bacon_total_cost
 # wrong! according to the context, the cost of each packet of chicken is twice the cost of 1 packet of bacon. We should use bacon_cost in place of bacon_total_cost to calculate the chicken pack cost correctly. Let's fix it.
+    chicken_packs = 6
+    chicken_cost = 2 * bacon_cost
 
 # Let's check other parts
     strawberry_packs
