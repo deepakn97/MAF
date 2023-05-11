@@ -18,7 +18,7 @@ class MissingStepFeedback(LLMFeedback):
         prompt_examples: str,
         **kwargs
     ) -> None:
-        super().__init__(name="Missing Step Feedback", **kwargs)
+        super().__init__(name="Missing Step Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
         self.instruction = """# Check each semantically complete block of code for any missing steps and suggest the correct way to add them. Ignore all the other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
@@ -29,7 +29,7 @@ class VariableNameFeedback(LLMFeedback):
         prompt_examples: str,
         **kwargs
     ) -> None:
-        super().__init__(eager_refine=True, **kwargs)
+        super().__init__(name="Variable Naming Feedback", max_tokens=600, eager_refine=True, answer_prefix="def solution():", **kwargs)
         self.instruction = """# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
@@ -40,7 +40,7 @@ class LogicalFeedback(LLMFeedback):
         prompt_examples: str,
         **kwargs,
     ) -> None:
-        super().__init__(name="Logical Reasoning Feedback", **kwargs)
+        super().__init__(name="Logical Reasoning Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
         self.instruction = """# Check each semantically complete block of the code to check for any logical reasoning errors. Logical reasoning errors may include errors in the mathematical calculations, errors in the order of the steps, or errors in the assumptions made. State the assumptions you made clearly. Ignore all the other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
         
@@ -167,11 +167,11 @@ def test():
     #     temperature=0.7,
     # )
     print(FeedbackFactory.registry)
-    missing_step = FeedbackFactory.create_feedback('missing_step', engine='text-davinci-003', temperature=0.7, prompt_examples='prompt/gsm_maf/missing_step.txt')
+    missing_step = FeedbackFactory.create_feedback('missing_step', engine='text-davinci-003', temperature=0.7, prompt_examples='prompt/gsm_maf/missing_step.txt', answer_prefix="def solution():")
     variable_naming = FeedbackFactory.create_feedback('variable_naming', engine='text-davinci-003', temperature=0.7, prompt_examples='prompt/gsm_maf/variable_naming.txt', answer_prefix='def solution():', max_tokens=600)
     logical = FeedbackFactory.create_feedback('logical', engine='text-davinci-003', temperature=0.7, prompt_examples='prompt/gsm_maf/logical.txt', answer_prefix='def solution():')
 
-    wrong_soln = """def solution():
+    wrong_solns = ["""def solution():
     \"\"\"Milo is making a mosaic with chips of glass. It takes twelve glass chips to make every square inch of the mosaic. A bag of glass chips holds 72 chips. Milo wants his mosaic to be three inches tall. If he has two bags of glass chips, how many inches long can he make his mosaic?\"\"\"
     chips_per_inch = 12
     chips_per_bag = 72
@@ -182,16 +182,37 @@ def test():
     chips_left = chips_available - chips_needed
     length = chips_left / chips_per_inch
     result = length
+    return result""",
+    """def solution():
+    \"\"\"Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?\"\"\"
+    budget = 65
+    bacon_packs = 5
+    bacon_total_cost = 10
+    chicken_packs = 6
+    chicken_cost = 2 * bacon_cost
+    strawberry_packs = 3
+    strawberry_cost = 4
+    apple_packs = 7
+    apple_cost = strawberry_cost / 2
+    total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
+    money_left = budget - total_cost
+    result = money_left
     return result"""
-    vn_feedback_and_soln = variable_naming(wrong_soln)
-    print(f"Variable Naming Feedback:\n{vn_feedback_and_soln['feedback']}")
-    print(f"Variable Naming Solution:\n{vn_feedback_and_soln['solution']}")
+    ]
+    vn_feedback_and_solns = variable_naming(wrong_solns)
+    for i, vn_feedback_and_soln in enumerate(vn_feedback_and_solns):
+        print(f"Variable Naming Feedback {i}:\n{vn_feedback_and_soln['feedback']}")
+        print(f"Variable Naming Solution {i}:\n{vn_feedback_and_soln['solution']}")
 
-    ms_feedback = missing_step(vn_feedback_and_soln['solution'])
-    print(f"Missing Step Feedback:\n{ms_feedback}")
 
-    logical_feedback = logical(vn_feedback_and_soln['solution'])
-    print(f"Logical Feedback:\n{logical_feedback}")
+    ms_feedbacks = missing_step([x['solution'] for x in vn_feedback_and_solns])
+    print(len(ms_feedbacks))
+    for i, ms_feedback in enumerate(ms_feedbacks):
+        print(f"Missing Step Feedback {i}:\n{ms_feedback}")
+
+    logical_feedbacks = logical([x['solution'] for x in vn_feedback_and_solns])
+    for i, logical_feedback in enumerate(logical_feedbacks):
+        print(f"Logical Feedback {i}:\n{logical_feedback}")
 
 if __name__ == '__main__':
     test()

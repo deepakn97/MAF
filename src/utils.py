@@ -9,6 +9,7 @@ from typing import Callable, Dict, List, Union
 
 import numpy as np
 from prompt_lib.backends import openai_api
+from tqdm import tqdm
 
 class Prompt:
     def __init__(
@@ -97,58 +98,55 @@ class LLMFeedback(Feedback):
         solution = f"""{solution}{self.intra_example_sep}{self.instruction}"""
         return f"{self.prompt}{solution}"
     
-    @backoff.on_exception(backoff.expo, Exception, max_tries=10)
-    async def async_requests(self, queries: List[str]):
-        if "gpt" in self.engine:
-            async_responses = [
-                openai.ChatCompletion.acreate(
-                    model=self.engine,
-                    messages=query,
-                    temperature=self.temperature,
-                    max_tokens=self.max_tokens,
-                    stop="### END"
+    def __call__(self, solutions: List[str]):
+        generation_queries = [self.make_query(solution) for solution in solutions]
+        batch_size = 10
+        async_responses = []
+        for i in tqdm(range(0, len(generation_queries), batch_size), total=len(generation_queries)//batch_size):
+            batch_responses = asyncio.run(
+                acall_gpt(
+                    generation_queries[i:i+batch_size], 
+                    self.engine, 
+                    self.temperature, 
+                    self.max_tokens,
+                    stop_token="### END ###"
                 )
-                for query in queries
-            ]
-        elif "text-davinci" in self.engine:
-            async_responses = [
-                openai.Completion.acreate(
-                    model=self.engine,
-                )
-                for query in queries
-            ]
+            )
+            async_responses.extend(batch_responses)
+        entire_outputs = []
+        usage = 0
+        finish_reason_stop = 0
+        for response in async_responses:
+            if "gpt" in self.engine:
+                entire_outputs.append(response['choices'][0]['message']['content'].strip())
+            elif "text-davinci" in self.engine:
+                entire_outputs.append(response['choices'][0]['text'].strip())
+                usage += response['usage']['total_tokens']
+                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
+        print(f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(async_responses)}")
+        
+        fb_and_solns = []
+        # print(entire_outputs)
 
-        return await asyncio.gather(*async_responses)
-
-    
-    def __call__(self, solutions: List[str], batch: bool = False):
-        generation_query = self.make_query(solution=solution)
-        success = False
-
-        output = openai_api.OpenaiAPIWrapper.call(
-            prompt = generation_query,
-            engine=self.engine,
-            max_tokens=self.max_tokens,
-            stop_token="### END",
-            temperature=self.temperature,
-        ) 
-        success = True
-
-        entire_output = openai_api.OpenaiAPIWrapper.get_first_response(output)
-        if "### END" in entire_output:
-            entire_output = entire_output.split("### END")[0]
-        fb_and_maybe_soln = entire_output.strip()
-        if self.eager_refine:
-            if self.answer_prefix in fb_and_maybe_soln:
-                feedback = fb_and_maybe_soln.split(self.answer_prefix)[0].strip()
-                solution = fb_and_maybe_soln.split(self.answer_prefix)[1].rstrip()
-                solution = f"{self.answer_prefix}{solution}"
+        for entire_output in entire_outputs:
+            if "### END" in entire_output:
+                entire_output = entire_output.split("### END")[0]
+            fb_and_maybe_soln = entire_output.strip()
+            if self.eager_refine:
+                if self.answer_prefix in fb_and_maybe_soln:
+                    feedback = fb_and_maybe_soln.split(self.answer_prefix)[0].strip()
+                    solution = fb_and_maybe_soln.split(self.answer_prefix)[1].rstrip()
+                    solution = f"{self.answer_prefix}{solution}"
+                else:
+                    feedback = fb_and_maybe_soln
+                    solution = ""
             else:
                 feedback = fb_and_maybe_soln
                 solution = ""
-        
-            return {"feedback": feedback, "solution": solution}
-        return fb_and_maybe_soln
+            
+            fb_and_solns.append({"feedback": feedback, "solution": solution})
+
+        return usage, fb_and_solns
 
 def retry_parse_fail_prone_cmd(
     func,
@@ -207,3 +205,42 @@ def parse_feedback(feedback):
     feedback = [f for f in feedback if f.split(
         '\n')[-1].lower() != '# looks good']
     return "\n\n".join(feedback)
+
+def backoff_handler(details):
+    print("backoff handler: ", details)
+
+@backoff.on_exception(backoff.expo, Exception, max_tries=10, raise_on_giveup=True, on_backoff=backoff_handler)
+async def acall_gpt(
+    queries: List[str], 
+    engine: str = "text-davinci-002", 
+    temperature: float = 0.0, 
+    max_tokens: int = 300, 
+    stop_token:str = "### END"
+) -> List[Dict]:
+    if "gpt" in engine:
+        async_responses = [
+            openai.ChatCompletion.acreate(
+                model=engine,
+                messages=[{"role": "user", "content": query}],
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stop=stop_token
+            )
+            for query in queries
+        ]
+    elif "text-davinci" in engine:
+        print("Temperature: ", temperature)
+        print("Max tokens: ", max_tokens)
+        print("engine: ", engine)
+        async_responses = [
+            openai.Completion.acreate(
+                model=engine,
+                prompt=query,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stop=stop_token
+            )
+            for query in queries
+        ]
+
+    return await asyncio.gather(*async_responses)

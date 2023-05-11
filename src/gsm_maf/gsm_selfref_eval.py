@@ -45,6 +45,7 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
     attempt_to_acc = []
     num_gsm = len(data)
     reports = []  # Step 1
+    incomplete_codes = 0
     for idx, row in tqdm(data.iterrows(), total=len(data)):
         # if idx < 20:
         #     continue
@@ -59,6 +60,9 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
             solutions.append(log["solution_curr"])
         solutions.append(row["run_logs"][-1]["solution_fixed"])
         
+        if "return result" not in solutions[-1]:
+            incomplete_codes += 1
+            
         feedback = [rec["feedback"] for rec in row["run_logs"]]
 
         prev_accuracy = 0
@@ -112,6 +116,7 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
     # print(attempt_to_acc)
     for i in range(5):
         print(f"Accuracy at attempt {i} = {df[i].sum() / num_gsm:.2%} ({df[i].sum()}/{num_gsm})")
+    print(f"Number of incomplete code generations = {incomplete_codes}")
 
     df.to_json("/tmp/attempt_to_acc.jsonl", orient="records", lines=True)
 
