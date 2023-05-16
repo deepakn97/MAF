@@ -1,0 +1,113 @@
+Hypothesis: Eruptions can cause plants to die
+
+Text:
+# sent 1: eruptions emit lava
+# sent 2: plants have green leaves
+# sent 3: eruptions produce ash clouds
+# sent 4: producers will die without sunlight
+# sent 5: ash blocks sunlight
+
+Entailment Tree:
+sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
+int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
+sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
+
+# Check the above entailment tree line by line for any repetition errors and suggest fixes. Ignore all other types of errors.
+
+# Let us go through the entailment tree line by line.
+    sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
+# Looks good
+
+# Let's check other parts
+    int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
+# Looks good
+
+# Let's check other parts
+    sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
+# Int 2 "eruptions can kill plants by blocking sunlight" is just paraphrased in the hypothesis "eruptions can cause plants to die". Let's remove this repetition.
+
+# Here is the rewrite:
+    sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
+    int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> H: Eruptions can cause plants to die
+
+### END ###
+
+Hypothesis: An astronaut requires the oxygen in a spacesuit backpack to breathe
+
+Text:
+# sent 1: spacesuit backpacks contain oxygen
+# sent 2: an animal requires oxygen to breathe
+# sent 3: a vacuum does not contain oxygen
+# sent 4: an astronaut is a kind of human
+# sent 5: a human is a kind of animal
+# sent 6: space is a vacuum
+
+Entailment Tree:
+sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
+sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
+
+
+# Check the above entailment tree line by line for any repetition errors and suggest fixes. Ignore all other types of errors.
+
+# Let us go through the entailment tree line by line.
+    sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
+# Looks good
+
+# Let's check other parts
+    sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
+# Looks good
+
+# There are no repetition errors in this entailment tree! Here is the rewrite (for the sake of completeness):
+    sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
+    sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
+
+### END ###
+
+Hypothesis: evaporating and condensing can both be caused by changes in heat energy
+
+Text: 
+# sent 1: temperature is a measure of heat energy
+# sent 2: temperature changes can cause phase changes
+# sent 3: evaporating is a kind of phase change
+# sent 4: condensing is a kind of phase change
+
+Entailment Tree:
+sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
+sent 2 and sent 3: temperature changes can cause phase changes and evaporating is a kind of phase change -> int 2: temperature changes can cause evaporating
+sent 2 and sent 4: temperature changes can cause phase changes and condensing is a kind of phase change -> int 3: temperature changes can cause condensing
+sent 1 and int 2 and int 3: temperature is a measure of heat energy and temperature changes can cause evaporating and temperature changes can cause condensing -> int 4: changes in heat energy can cause evaporating and condensing
+sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> H: Evaporating can be caused by changes in heat energy
+sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> H: Condensing can be caused by changes in heat energy
+
+# Check the above entailment tree line by line for any repetition errors and suggest fixes. Ignore all other types of errors.
+
+# Let us go through the entailment tree line by line.
+    sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
+# Looks good
+
+# Let's check other parts
+    sent 2 and sent 3: temperature changes can cause phase changes and evaporating is a kind of phase change -> int 2: temperature changes can cause evaporating
+# Looks good
+
+# Let's check other parts
+    sent 2 and sent 4: temperature changes can cause phase changes and condensing is a kind of phase change -> int 3: temperature changes can cause condensing
+# Looks good
+
+# Let's check other parts
+    sent 1 and int 2 and int 3: temperature is a measure of heat energy and temperature changes can cause evaporating and temperature changes can cause condensing -> int 4: changes in heat energy can cause evaporating and condensing
+# Looks good
+
+# Let's check other parts
+    sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> H: Evaporating can be caused by changes in heat energy
+# wrong! the hypothesis "evaporating can be caused by changes in heat energy" repeats information from int 4 "changes in heat energy can cause evaporating and condensing". Let's remove this repetition.
+
+# Let's check other parts
+    sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> H: Condensing can be caused by changes in heat energy
+# wrong! the hypothesis "condensing can be caused by changes in heat energy" repeats information from int 4 "changes in heat energy can cause evaporating and condensing". Let's remove this repetition.
+
+# Here is the rewrite:
+    sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
+    sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> H: Evaporating can be caused by changes in heat energy
+    sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> H: Condensing can be caused by changes in heat energy
+
+### END ###

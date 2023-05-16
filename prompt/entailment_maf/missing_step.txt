@@ -9,7 +9,8 @@ Text:
 
 Entailment Tree:
 sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-sent 4 and int 1: producers will die without sunlight and eruptions block sunlight -> H: Eruptions can cause plants to die
+int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
+sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
 
 # Check the above entailment tree line by line for any missing steps and suggest fixes. Ignore all other types of errors.
 
@@ -18,8 +19,17 @@ sent 4 and int 1: producers will die without sunlight and eruptions block sunlig
 # Looks good
 
 # Let's check other parts
+    int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
+# Looks good
+
+# Let's check other parts
     sent 4 and int 1: producers will die without sunlight and eruptions block sunlight -> H: Eruptions can cause plants to die
 # Looks good
+
+# There are not missing step errors! Here is the rewrite (for the sake of completeness):
+    sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
+    int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
+    sent 4 and int 1: producers will die without sunlight and eruptions block sunlight -> H: Eruptions can cause plants to die
 
 ### END ###
 
@@ -52,7 +62,11 @@ sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires o
     sent 3 and sent 6: a vacuum does not contain oxygen and space is a vacuum -> int 3: there is no oxygen in space
     sent 1 and int 2 and int 3: spacesuit backpacks contain oxygen and there is no oxygen in space and an astronaut requires oxygen to breathe -> H: an astronaut requires the oxygen in spacesuit backpack to breathe
 
-
+# Okay, here is the rewrite:
+    sent 4 and sent 5: an astronaut is a kind of human and a human is a kind of animal -> int 1: an astronaut is a kind of animal
+    sent 2 and int 1: an animal requires oxygen to breathe and an astronaut is a kind of animal -> int 2: an astronaut requires oxygen to breathe
+    sent 3 and sent 6: a vacuum does not contain oxygen and space is a vacuum -> int 3: there is no oxygen in space
+    sent 1 and int 2 and int 3: spacesuit backpacks contain oxygen and there is no oxygen in space and an astronaut requires oxygen to breathe -> H: an astronaut requires the oxygen in spacesuit backpack to breathe
 
 ### END ###
 
@@ -66,6 +80,9 @@ Text:
 
 Entailment Tree:
 sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
+sent 2 and sent 3: temperature changes can cause phase changes and evaporating is a kind of phase change -> int 2: temperature changes can cause evaporating
+sent 2 and sent 4: temperature changes can cause phase changes and condensing is a kind of phase change -> int 3: temperature changes can cause condensing
+sent 1 and int 2 and int 3: temperature is a mesaure of heat energy and temperature changes can cause evaporating and temperature changes can cause condensing -> int 4: changes in heat energy can cause evaporating and condensing
 sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> H: Evaporating can be caused by changes in heat energy
 sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> H: Condensing can be caused by changes in heat energy
 
@@ -73,6 +90,18 @@ sent 4 and int 1: condensing is a kind of phase change and changes in heat energ
 
 # Let us go through the entailment tree line by line.
     sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
+# Looks good
+
+# Let's check other parts
+    sent 2 and sent 3: temperature changes can cause phase changes and evaporating is a kind of phase change -> int 2: temperature changes can cause evaporating
+# Looks good
+
+# Let's check other parts
+    sent 2 and sent 4: temperature changes can cause phase changes and condensing is a kind of phase change -> int 3: temperature changes can cause condensing
+# Looks good
+
+# Let's check other parts
+    sent 1 and int 2 and int 3: temperature is a mesaure of heat energy and temperature changes can cause evaporating and temperature changes can cause condensing -> int 4: changes in heat energy can cause evaporating and condensing
 # Looks good
 
 # Let's check other parts
@@ -85,4 +114,14 @@ sent 4 and int 1: condensing is a kind of phase change and changes in heat energ
 # wrong! The entailment tree only arrives at part of the hypothesis. The sentence 'Condensing can be caused by changes in heat energy' must be an intermediate. We can combine this with 'Evaporating can be caused by changes in heat energy' to arrive at the conclusion.
     sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> int 3: Condensing can be caused by changes in heat energy
     int 2 and int 3: evaporating can be caused by changes in heat energy and condensing can be caused by changes in heat energy -> H: evaporating and condensing can both be caused by changes in heat energy
+
+# Okay! Here is the rewrite:
+    sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
+    sent 2 and sent 3: temperature changes can cause phase changes and evaporating is a kind of phase change -> int 2: temperature changes can cause evaporating
+    sent 2 and sent 4: temperature changes can cause phase changes and condensing is a kind of phase change -> int 3: temperature changes can cause condensing
+    sent 1 and int 2 and int 3: temperature is a mesaure of heat energy and temperature changes can cause evaporating and temperature changes can cause condensing -> int 4: changes in heat energy can cause evaporating and condensing
+    sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> int 4: Evaporating can be caused by changes in heat energy
+    sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> int 5: Condensing can be caused by changes in heat energy
+    int 4 and int 5: evaporating can be caused by changes in heat energy and condensing can be caused by changes in heat energy -> H: evaporating and condensing can both be caused by changes in heat energy
+
 ### END ###
