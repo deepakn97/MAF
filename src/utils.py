@@ -6,10 +6,15 @@ import openai
 import asyncio
 import backoff
 from typing import Callable, Dict, List, Union
+from fastchat.conversation import get_conv_template
+from fastchat.serve.inference import load_model
 
 import numpy as np
-from prompt_lib.backends import openai_api
+import torch
 from tqdm import tqdm
+
+VICUNA_MODEL_PATH = "/data4/dnathani/vicuna_weights/13B"
+ALPACA_MODEL_PATH = "/data4/dnathani/alpaca-7b"
 
 class Prompt:
     def __init__(
@@ -44,7 +49,7 @@ class Feedback(metaclass=ABCMeta):
         self.name = name
 
     @abstractmethod
-    def __call__(self, solution: str, **kwargs) -> Union[str, Dict[str, str]]:
+    def __call__(self, solutions: List[str], **kwargs) -> Union[str, Dict[str, str]]:
         """Call the feedback module on the solution and return a feedback string or a dictionary of outputs."""
 
 class FeedbackFactory:
@@ -98,20 +103,34 @@ class LLMFeedback(Feedback):
         solution = f"""{solution}{self.intra_example_sep}{self.instruction}"""
         return f"{self.prompt}{solution}"
     
-    def __call__(self, solutions: List[str]):
+    def __call__(self, solutions: List[str], batch_size=10, concurrent=True):
         generation_queries = [self.make_query(solution) for solution in solutions]
-        batch_size = 10
+        if not concurrent:
+            batch_size = 1
+
         async_responses = []
+        # print("Feedback solutions length: ", len(solutions))
+        # print(len(generation_queries))
+        # print(batch_size)
         for i in tqdm(range(0, len(generation_queries), batch_size), total=len(generation_queries)//batch_size):
-            batch_responses = asyncio.run(
-                acall_gpt(
-                    generation_queries[i:i+batch_size], 
-                    self.engine, 
-                    self.temperature, 
-                    self.max_tokens,
-                    stop_token="### END ###"
+            if concurrent:
+                batch_responses = asyncio.run(
+                    acall_gpt(
+                        generation_queries[i:i+batch_size], 
+                        self.engine, 
+                        self.temperature, 
+                        self.max_tokens,
+                        stop_token="### END"
+                    )
                 )
-            )
+            else:
+                batch_responses = call_gpt(
+                    generation_queries[i:i+batch_size],
+                    self.engine,
+                    self.temperature,
+                    self.max_tokens,
+                    stop_token="### END"
+                )
             async_responses.extend(batch_responses)
         entire_outputs = []
         usage = 0
@@ -148,29 +167,121 @@ class LLMFeedback(Feedback):
 
         return usage, fb_and_solns
 
-def retry_parse_fail_prone_cmd(
-    func,
-    max_retries: int = 100,
-    exceptions=(
-        ValueError,
-        KeyError,
-        IndexError,
-    ),
-):
-    def wrapper(*args, **kwargs):
-        retries = max_retries
-        while retries:
-            try:
-                return func(*args, **kwargs)
-            except exceptions as e:
-                stack_trace = traceback.format_exc()
+class OSModel():
+    """This class is meant to implement common functions to call all Open-source based LLMs. These common functions include make_query, __call__, setup_prompt_from_examples_file, load_model"""
+    pass
 
-                retries -= 1
-                print(
-                    f"An error occurred: {e}. {stack_trace}. Left retries: {retries}.")
-        return None
+class LLMModel():
+    """This class is meant to implement common functions to call all API based LLMs. These common functions include make_query, __call__, and setup_prompt_from_examples_file"""
+    pass
 
-    return wrapper
+class OSFeedback(Feedback):
+    def __init__(self,
+        prompt_examples: str = None,
+        engine: str = "vicuna", 
+        question_prefix: str = "# Q: ",
+        intra_example_sep: str = "\n\n",
+        inter_example_sep: str = "\n\n",
+        answer_prefix: str = "# A:",
+        eager_refine: bool = False,
+        model_device: str = "cuda",
+        cuda_visible_devices: str = "0,1,2",
+        max_gpu_memory: int = None,
+        load_8bit: bool = False,
+        cpu_offloading: bool = False,
+        debug: bool = False,
+        temperature: float = 0.0, 
+        max_tokens: int = 300,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.engine = engine
+        self.temperature = temperature
+        self.question_prefix = question_prefix
+        self.answer_prefix = answer_prefix
+        self.intra_example_sep = intra_example_sep
+        self.inter_example_sep = inter_example_sep
+        self.max_tokens = max_tokens
+        self.eager_refine = eager_refine
+        self.instruction = "# There is an error in the code above because of lack of understanding of the question. What is the error? To find the error, go through semantically complete blocks of the code, and check if everything looks good."
+        self.setup_prompt_from_examples_file(prompt_examples)
+
+        self.model_path = None
+        if engine == "vicuna":
+            model_path = VICUNA_MODEL_PATH
+        elif engine == "alpaca":
+            model_path = ALPACA_MODEL_PATH
+        else:
+            raise ValueError("Model name {engine} not supported. Choose between vicuna and alpaca")
+        
+        os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
+        num_gpus = len(cuda_visible_devices.strip().split(","))
+
+        self.model, self.tokenizer = load_model(
+            model_path,
+            model_device,
+            num_gpus,
+            max_gpu_memory,
+            load_8bit,
+            cpu_offloading,
+            debug
+        )
+
+    def setup_prompt_from_examples_file(self, examples_path: str, **kwargs) -> str:
+        with open(examples_path, "r") as f:
+            self.prompt = f.read()
+    
+    def make_query(self,
+        solution:str = None, 
+    ) -> str:
+        query = f"""{self.prompt}{solution}{self.intra_example_sep}{self.instruction}"""
+        conv = get_conv_template(self.model_path)
+        conv.append_message(conv.roles[0], query)
+        conv.append_message(conv.roles[1], None)
+        query = conv.get_prompt()
+        return query 
+    
+    def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> List[str]:
+        generation_queries = [self.make_query(solution) for solution in solutions]
+        entire_outputs = []
+
+        for i in tqdm(range(len(generation_queries), total=len(generation_queries))):
+            input_ids = self.tokenizer([generation_queries[i]]).input_ids
+            output_ids = self.model.generate(
+                torch.as_tensor(input_ids).cuda(),
+                do_sample=True,
+                temperature=self.temperature,
+                max_new_tokens=self.max_tokens
+            )
+
+            if self.model.config.is_encoder_decoder:
+                output_ids = output_ids[0]
+            else:
+                output_ids = output_ids[0][len(input_ids):]
+            
+            output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
+            entire_outputs.append(output)
+
+        fb_and_solns = []
+        for entire_output in entire_outputs:
+            if "### END" in entire_output:
+                entire_output = entire_output.split("### END")[0]
+            fb_and_maybe_soln = entire_output.strip()
+            if self.eager_refine:
+                if self.answer_prefix in fb_and_maybe_soln:
+                    feedback = fb_and_maybe_soln.split(self.answer_prefix)[0].strip()
+                    solution = fb_and_maybe_soln.split(self.answer_prefix)[1].rstrip()
+                    solution = f"{self.answer_prefix}{solution}"
+                else:
+                    feedback = fb_and_maybe_soln
+                    solution = ""
+            else:
+                feedback = fb_and_maybe_soln
+                solution = ""
+            
+            fb_and_solns.append({"feedback": feedback, "solution": solution})
+
+        return fb_and_solns
 
 class Logger(object):
     def __init__(self, output_name):
@@ -207,9 +318,9 @@ def parse_feedback(feedback):
     return "\n\n".join(feedback)
 
 def backoff_handler(details):
-    print("backoff handler: ", details)
+    print(f"waiting {details['wait']} because: {details['exception']}")
 
-@backoff.on_exception(backoff.expo, Exception, max_tries=10, raise_on_giveup=True, on_backoff=backoff_handler)
+@backoff.on_exception(backoff.expo, Exception, max_tries=10, raise_on_giveup=False, on_backoff=backoff_handler)
 async def acall_gpt(
     queries: List[str], 
     engine: str = "text-davinci-002", 
@@ -229,18 +340,51 @@ async def acall_gpt(
             for query in queries
         ]
     elif "text-davinci" in engine:
-        print("Temperature: ", temperature)
-        print("Max tokens: ", max_tokens)
-        print("engine: ", engine)
+        # print("Temperature: ", temperature)
+        # print("Max tokens: ", max_tokens)
+        # print("engine: ", engine)
         async_responses = [
             openai.Completion.acreate(
                 model=engine,
                 prompt=query,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                stop=stop_token
+                stop=[stop_token]
             )
             for query in queries
         ]
 
     return await asyncio.gather(*async_responses)
+
+@backoff.on_exception(backoff.expo, Exception, max_tries=10, raise_on_giveup=False, on_backoff=backoff_handler)
+def call_gpt(
+    queries: List[str],
+    engine: str = "text-davinci-002",
+    temperature: float = 0.0,
+    max_tokens: int = 300,
+    stop_token: str = "### END"
+) -> List[Dict]:
+    responses = []
+    if "gpt" in engine:
+        queries = [{"role": "user", "content": query} for query in queries]
+        for query in queries:
+            response = openai.ChatCompletion.create(
+                model=engine,
+                messages=query,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stop=stop_token
+            )
+            responses.append(response)
+    elif "text-davinci" in engine:
+        for query in queries:
+            response = openai.Completion.create(
+                model=engine,
+                prompt=query,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stop=[stop_token]
+            )
+            responses.append(response)
+
+    return responses

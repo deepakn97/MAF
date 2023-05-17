@@ -101,10 +101,12 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
                     for j in range(iter_idx, 5):
                         attempt_to_acc_[j] = 1
                     break
+                else:
+                    print(f"Example Idx: {idx}, idx = {iter_idx}, actual answer: {correct_solution}, result: {result.strip()}")
                 attempt_to_acc_[iter_idx] = 0
                 prev_accuracy = is_corr
             except Exception as e:
-                print(f"Error: {e}, idx = {iter_idx}")
+                print(f"Example Idx: {idx}, Error: {e}, idx = {iter_idx}")
                 # print(f"Solution:\n{soln}")
                 # print(f"Feedback:\n{feedback[iter_idx]}")
                 continue

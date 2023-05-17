@@ -1,3 +1,6 @@
+import argparse
+import json
+import os
 import sys
 import pandas as pd
 from tqdm import tqdm
@@ -9,7 +12,7 @@ sys.path.append(str(path_root))
 from src.gsm_maf.task_init import GSMInit
 from src.gsm_maf.feedback import VariableNameFeedback, MissingStepFeedback, LogicalFeedback
 from src.gsm_maf.task_iterate import GSMIterate
-from src.utils import retry_parse_fail_prone_cmd, FeedbackFactory
+from src.utils import Logger, retry_parse_fail_prone_cmd, FeedbackFactory
 
 CODEX = "code-davinci-002"
 GPT3 = "text-davinci-002"
@@ -24,16 +27,16 @@ def iterative_gsm(question: str, max_attempts: int, temperature: float, engine: 
     # initialize all the required components
 
     # generation of the first fast version
-    task_init = GSMInit(engine=engine, prompt_examples="prompt/gsm_maf/init.txt", temperature=temperature, max_tokens = 300)
+    task_init = GSMInit(engine=engine, prompt_examples="prompt/gsm_maf/init.txt", temperature=temperature)
 
     # getting feedback
-    variable_name = VariableNameFeedback(engine=engine, prompt_examples="prompt/gsm_maf/variable_naming.txt", temperature=0.7, max_tokens = 600, answer_prefix="def solution():")
+    variable_name = VariableNameFeedback(engine=engine, prompt_examples="prompt/gsm_maf/variable_naming.txt", temperature=0.7)
 
-    missing_step = MissingStepFeedback(engine=engine, prompt_examples="prompt/gsm_maf/missing_step.txt", temperature=0.7, max_tokens = 300, answer_prefix="def solution():")
+    missing_step = MissingStepFeedback(engine=engine, prompt_examples="prompt/gsm_maf/missing_step.txt", temperature=0.7)
 
-    logical = LogicalFeedback(engine=engine, prompt_examples="prompt/gsm_maf/logical.txt", temperature=0.7, max_tokens = 300, answer_prefix="def solution():")
+    logical = LogicalFeedback(engine=engine, prompt_examples="prompt/gsm_maf/logical.txt", temperature=0.7)
 
-    task_iterate = GSMIterate(engine=engine, prompt_examples="prompt/gsm_maf/iterate.txt", temperature=temperature, max_tokens = 300)
+    task_iterate = GSMIterate(engine=engine, prompt_examples="prompt/gsm_maf/iterate.txt", temperature=temperature)
 
     n_attempts = 0
 
@@ -50,32 +53,34 @@ def iterative_gsm(question: str, max_attempts: int, temperature: float, engine: 
     while n_attempts < max_attempts:
 
         if n_attempts == 0:
-            solution = task_init(solution=question)
+            usage, solution = task_init(solutions=[question], concurrent=False)
 
-        solution_fixed = solution
+        solution_fixed = [soln for soln in solution]
 
         if vn_retry:
-            vn_feedback_and_soln = variable_name(solution=solution)
-            solution_fixed = vn_feedback_and_soln["solution"]
-            if "it is correct" in vn_feedback_and_soln["feedback"]:
+            # print("Solution length: ", len(solution))
+            usage, vn_feedback_and_soln = variable_name(solutions=solution, concurrent=False)
+            # print(vn_feedback_and_soln)
+            solution_fixed = vn_feedback_and_soln[0]["solution"]
+            if "it is correct" in vn_feedback_and_soln[0]["feedback"]:
                 vn_retry = False
 
         if ms_retry:
-            ms_feedback = missing_step(solution=solution_fixed)
-            if "it is correct" in ms_feedback:
+            usage, ms_feedback = missing_step(solutions=[solution_fixed], concurrent=False)
+            if "it is correct" in ms_feedback[0]['feedback']:
                 ms_retry = False
 
         if logical_retry:
-            logical_feedback = logical(solution=solution_fixed)
-            if "it is correct" in logical_feedback:
+            usage, logical_feedback = logical(solutions=[solution_fixed], concurrent=False)
+            if "it is correct" in logical_feedback[0]['feedback']:
                 logical_retry = False
 
         
-        feedback = {"Missing Step Feedback": ms_feedback, "Logical Reasoning Feedback": logical_feedback}
+        feedback = {"Missing Step Feedback": [ms_feedback[0]['feedback']], "Logical Reasoning Feedback": [logical_feedback[0]['feedback']]}
 
-        solution_fixed = task_iterate(solution=solution_fixed, feedback=feedback)
+        usage, solution_fixed = task_iterate(solutions=[solution_fixed], feedbacks=feedback, concurrent=False)
 
-        log.append({"attempt": n_attempts, "solution_curr": solution, "solution_fixed": solution_fixed, "feedback": feedback, "variable_name_feedback": vn_feedback_and_soln["feedback"]})
+        log.append({"attempt": n_attempts, "solution_curr": solution[0], "solution_fixed": solution_fixed[0], "feedback": {"Missing Step Feedback": ms_feedback[0]['feedback'], "Logical Reasoning Feedback": logical_feedback[0]['feedback']}, "variable_name_feedback": vn_feedback_and_soln[0]["feedback"]})
 
         if not (ms_retry or logical_retry or vn_retry):
             break
@@ -126,21 +131,31 @@ def test():
         print(log["generated_answer_ours"])
         print(log["generated_answer_direct"])
 
+def parse_args():
+    args = argparse.ArgumentParser()
+    args.add_argument("--gsm_task_file", type=str, default="data/tasks/gsm/gsm.jsonl")
+    args.add_argument("--max_attempts", type=int, default=4)
+    args.add_argument("--save_dir", type=str, default="outputs/gsm_maf")
+    args.add_argument("--exp_label", type=str, default="gsmic_mixed_0")
+    args.add_argument("--feedback_types", type=str, default="variable_naming, missing_step, logical, coherency, hallucination")
+    args.add_argument("--temperature", type=float, default=0.0)
+    args.add_argument("--engine", type=str, default=ENGINE, choices=[CODEX, GPT3, GPT35, GPT3TURBO])
+    args = args.parse_args()
+    args.outfile_prefix = f"{args.exp_label}.temp_{args.temperature}.engine_{args.engine}"
+    args.outfile = os.path.join(args.save_dir, f"{args.outfile_prefix}.jsonl")    # print and save the args
 
-if __name__ == "__main__":
-    import sys
+    _logger = Logger(os.path.join(args.save_dir, f"{args.outfile_prefix}.args.txt"))
 
-    if sys.argv[1] == "test":
+    print('=====Input Arguments=====')
+    _logger.write(json.dumps(vars(args), indent=2, sort_keys=False))
+
+    return args
+
+if __name__ == '__main__':
+    if sys.argv[1] == 'test':
+        logger = Logger(f"/tmp/test.log.txt")
         test()
     else:
-        import argparse
-        args = argparse.ArgumentParser()
-        args.add_argument("--gsm_task_file", type=str, default="data/tasks/gsm/gsm.jsonl")
-        args.add_argument("--max_attempts", type=int, default=4)
-        args.add_argument("--outfile", type=str, default="data/tasks/gsm/gsm_outputs.jsonl")
-        args.add_argument("--feedback_types", type=str, default="missing_step, variable_naming, logical, coherency, hallucination")
-        args.add_argument("--temperature", type=float, default=0.0)
-        args.add_argument("--engine", type=str, default=ENGINE, choices=[CODEX, GPT3, GPT35, GPT3TURBO])
-        args = args.parse_args()
-        args.outfile = f"{args.outfile}.temp_{args.temperature}.engine_{args.engine}.jsonl"
+        args = parse_args()
+        logger = Logger(os.path.join(args.save_dir, f"{args.outfile_prefix}.log.txt"))
         fix_gsm(gsm_task_file=args.gsm_task_file, max_attempts=args.max_attempts, outfile=args.outfile, temperature=args.temperature, engine=args.engine)

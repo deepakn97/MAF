@@ -1,9 +1,13 @@
 import asyncio
+import os
 import time
 from typing import List
 import pandas as pd
+import torch
 from tqdm import tqdm
-from src.utils import Prompt, acall_gpt
+from src.utils import Prompt, acall_gpt, call_gpt, VICUNA_MODEL_PATH, ALPACA_MODEL_PATH
+from fastchat.conversation import get_conv_template
+from fastchat.serve.inference import load_model
 
 from prompt_lib.backends import openai_api
 
@@ -30,22 +34,37 @@ class GSMInit(Prompt):
         query = f"{self.prompt}{self.question_prefix}{solution}{self.intra_example_sep}{self.answer_prefix}"
         return query
 
-    def __call__(self, solutions: List[str]) -> str:
+    def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> str:
         generation_queries = [self.make_query(solution) for solution in solutions]
-        # print("Initial generation 0: ", generation_queries[0])
-        # print("Initial generation 1: ", generation_queries[1])
-        batch_size = 10
+        # print("initial generation query 0:\n", generation_queries[0])
+        # print("initial generation query 1:\n", generation_queries[1])
+        if not concurrent:
+            batch_size = 1
+
         async_responses = []
         for i in tqdm(range(0, len(generation_queries), batch_size), total=len(generation_queries)//batch_size):
-            batch_responses = asyncio.run(
-                acall_gpt(
+            if concurrent:
+                batch_responses = asyncio.run(
+                    acall_gpt(
+                        generation_queries[i:i+batch_size],
+                        self.engine,
+                        self.temperature,
+                        self.max_tokens,
+                        stop_token=self.inter_example_sep
+                    )
+                )
+            else:
+                # print(f"{i}th generation_query:\n{generation_queries[i:i+batch_size]}")
+                # print(self.engine)
+                # print(self.temperature)
+                # print(self.max_tokens)
+                batch_responses = call_gpt(
                     generation_queries[i:i+batch_size],
                     self.engine,
                     self.temperature,
                     self.max_tokens,
-                    stop_token="# Q:"
+                    stop_token=self.inter_example_sep
                 )
-            )
             async_responses.extend(batch_responses)
         
         solutions = []
@@ -59,9 +78,92 @@ class GSMInit(Prompt):
                 usage += response['usage']['total_tokens']
                 finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
         print(f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(async_responses)}")
+        # print("Init Solutions length: ", len(solutions))
 
         return usage, solutions
 
+class OSInit(Prompt):
+    def __init__(self,
+        prompt_examples: str = None,
+        engine: str = "vicuna", 
+        question_prefix: str = "# Q: ",
+        intra_example_sep: str = "\n\n",
+        inter_example_sep: str = "\n\n",
+        answer_prefix: str = "# A:",
+        model_device: str = "cuda",
+        cuda_visible_devices: str = "0,1,2",
+        max_gpu_memory: int = None,
+        load_8bit: bool = False,
+        cpu_offloading: bool = False,
+        debug: bool = False,
+        temperature: float = 0.0, 
+        max_tokens: int = 300,
+    ):
+        super().__init__(
+            question_prefix=question_prefix,
+            answer_prefix=answer_prefix,
+            intra_example_sep=intra_example_sep,
+            inter_example_sep=inter_example_sep,
+            engine=engine,
+            temperature=temperature
+        )
+        self.max_tokens = max_tokens
+        self.setup_prompt_from_examples_file(prompt_examples)
+
+        self.model_path = None
+        if engine == "vicuna":
+            model_path = VICUNA_MODEL_PATH
+        elif engine == "alpaca":
+            model_path = ALPACA_MODEL_PATH
+        else:
+            raise ValueError("Model name {engine} not supported. Choose between vicuna and alpaca")
+        
+        os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
+        num_gpus = len(cuda_visible_devices.strip().split(","))
+
+        self.model, self.tokenizer = load_model(
+            model_path,
+            model_device,
+            num_gpus,
+            max_gpu_memory,
+            load_8bit,
+            cpu_offloading,
+            debug
+        )
+
+    def setup_prompt_from_examples_file(self, examples_path: str, **kwargs) -> str:
+        with open(examples_path, "r") as f:
+            self.prompt = f.read()
+    
+    def make_query(self, solution:str = None, **kwargs) -> str:
+        query = f"""{self.prompt}{solution}{self.inter_example_sep}"""
+        conv = get_conv_template(self.model_path)
+        conv.append_message(conv.roles[0], query)
+        conv.append_message(conv.roles[1], None)
+        query = conv.get_prompt()
+        return query 
+    
+    def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> str:
+        generation_queries = [self.make_query(solution) for solution in solutions]
+        async_responses = []
+
+        for i in tqdm(range(len(generation_queries), total=len(generation_queries))):
+            input_ids = self.tokenizer([generation_queries[i]]).input_ids
+            output_ids = self.model.generate(
+                torch.as_tensor(input_ids).cuda(),
+                do_sample=True,
+                temperature=self.temperature,
+                max_new_tokens=self.max_tokens
+            )
+
+            if self.model.config.is_encoder_decoder:
+                output_ids = output_ids[0]
+            else:
+                output_ids = output_ids[0][len(input_ids):]
+            
+            output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
+            async_responses.append(output)
+        return async_responses
 
 def test():
     task_init = GSMInit(
@@ -82,6 +184,17 @@ def test():
         print(task_init([question]))
     end = time.time()
     print("Sequential version: ", end - start)
+
+    os_task_init = OSInit(
+        prompt_examples="prompt/os_maf/init.txt",
+        engine="text-davinci-003",
+        temperature=0.0
+    )
+
+    start = time.time()
+    print(os_task_init(questions))
+    end = time.time()
+    print("Vicuna version: ", end - start)
     
 
 if __name__ == "__main__":
