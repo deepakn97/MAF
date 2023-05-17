@@ -1,0 +1,49 @@
+Hypothesis: Eruptions can cause plants to die
+
+Text:
+# sent 1: eruptions emit lava
+# sent 2: plants have green leaves
+# sent 3: eruptions produce ash clouds
+# sent 4: producers will die without sunlight
+# sent 5: ash blocks sunlight
+
+Entailment Tree:
+sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
+int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
+sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
+
+### END ###
+
+Hypothesis: An astronaut requires the oxygen in a spacesuit backpack to breathe
+
+Text:
+# sent 1: spacesuit backpacks contain oxygen
+# sent 2: an animal requires oxygen to breathe
+# sent 3: a vacuum does not contain oxygen
+# sent 4: an astronaut is a kind of human
+# sent 5: a human is a kind of animal
+# sent 6: space is a vacuum
+
+Entailment Tree:
+sent 4 and sent 5: an astronaut is a kind of human and a human is a kind of animal -> int 1: an astronaut is a kind of animal
+sent 3 and sent 6: a vacuum does not contain oxygen and space is a vacuum -> int 2: there is no oxygen in space
+sent 2 and int 1: an animal requires oxygen to breathe and an astronaut is a kind of animal -> int 3: an astronaut requires oxygen to breathe
+sent 1 and int 2 and int 3: spacesuit backpacks contain oxygen and there is no oxygen in space and an astronaut requires oxygen to breathe -> H: an astronaut requires the oxygen in spacesuit backpack to breathe
+
+### END ###
+
+Hypothesis: evaporating and condensing can both be caused by changes in heat energy
+
+Text: 
+# sent 1: temperature is a measure of heat energy
+# sent 2: temperature changes can cause phase changes
+# sent 3: evaporating is a kind of phase change
+# sent 4: condensing is a kind of phase change
+
+Entailment Tree:
+sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in temperature are changes in heat energy
+int 1 and sent 2: changes in temperature are changes in heat energy and temperature changes can cause phase changes -> int 2: changes in heat energy can cause phase changes
+sent 3 and sent 4: evaporating is a kind of phase change and condensing is a kind of phase change -> int 3: evaporating and condensing are both kinds of phase changes
+int 2 and int 3: changes in heat energy can cause phase changes and evaporating and condensing are both kinds of phase changes -> H: evaporating and condensing can both be caused by changes in heat energy
+
+### END ###
