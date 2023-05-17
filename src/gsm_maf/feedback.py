@@ -67,7 +67,7 @@ class CoherencyFeedback(LLMFeedback):
         self.setup_prompt_from_examples_file(prompt_examples)
 
 @FeedbackFactory.register("missing_step_os")
-class MissingStepFeedback(OSFeedback):
+class MissingStepFeedbackOS(OSFeedback):
     def __init__(
         self,
         prompt_examples: str,
@@ -78,7 +78,7 @@ class MissingStepFeedback(OSFeedback):
         self.setup_prompt_from_examples_file(prompt_examples)
 
 @FeedbackFactory.register("variable_naming_os")
-class VariableNameFeedback(OSFeedback):
+class VariableNameFeedbackOS(OSFeedback):
     def __init__(
         self,
         prompt_examples: str,
@@ -89,7 +89,7 @@ class VariableNameFeedback(OSFeedback):
         self.setup_prompt_from_examples_file(prompt_examples)
 
 @FeedbackFactory.register("logical_os")
-class LogicalFeedback(OSFeedback):
+class LogicalFeedbackOS(OSFeedback):
     def __init__(
         self,
         prompt_examples: str,
@@ -100,7 +100,7 @@ class LogicalFeedback(OSFeedback):
         self.setup_prompt_from_examples_file(prompt_examples)
         
 @FeedbackFactory.register("hallucination_os")
-class HallucinationFeedback(OSFeedback):
+class HallucinationFeedbackOS(OSFeedback):
     def __init__(
         self,
         prompt_examples: str,
@@ -111,7 +111,7 @@ class HallucinationFeedback(OSFeedback):
         self.setup_prompt_from_examples_file(prompt_examples)
 
 @FeedbackFactory.register("coherency_os")
-class CoherencyFeedback(OSFeedback):
+class CoherencyFeedbackOS(OSFeedback):
     def __init__(
         self,
         prompt_examples: str,

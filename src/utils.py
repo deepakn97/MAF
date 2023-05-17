@@ -388,3 +388,27 @@ def call_gpt(
             responses.append(response)
 
     return responses
+
+def retry_parse_fail_prone_cmd(
+    func,
+    max_retries: int = 100,
+    exceptions=(
+        ValueError,
+        KeyError,
+        IndexError,
+    ),
+):
+    def wrapper(*args, **kwargs):
+        retries = max_retries
+        while retries:
+            try:
+                return func(*args, **kwargs)
+            except exceptions as e:
+                stack_trace = traceback.format_exc()
+
+                retries -= 1
+                print(
+                    f"An error occurred: {e}. {stack_trace}. Left retries: {retries}.")
+        return None
+
+    return wrapper
