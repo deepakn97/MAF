@@ -30,11 +30,11 @@ def iterative_gsm(question: str, max_attempts: int, temperature: float, engine: 
     task_init = GSMInit(engine=engine, prompt_examples="prompt/gsm_maf/init.txt", temperature=temperature)
 
     # getting feedback
-    variable_name = VariableNameFeedback(engine=engine, prompt_examples="prompt/gsm_maf/variable_naming.txt", temperature=0.7)
+    variable_name = VariableNameFeedback(engine=engine, prompt_examples="prompt/gsm_maf/variable_naming.txt", temperature=temperature)
 
-    missing_step = MissingStepFeedback(engine=engine, prompt_examples="prompt/gsm_maf/missing_step.txt", temperature=0.7)
+    missing_step = MissingStepFeedback(engine=engine, prompt_examples="prompt/gsm_maf/missing_step.txt", temperature=temperature)
 
-    logical = LogicalFeedback(engine=engine, prompt_examples="prompt/gsm_maf/logical.txt", temperature=0.7)
+    logical = LogicalFeedback(engine=engine, prompt_examples="prompt/gsm_maf/logical.txt", temperature=temperature)
 
     task_iterate = GSMIterate(engine=engine, prompt_examples="prompt/gsm_maf/iterate.txt", temperature=temperature)
 

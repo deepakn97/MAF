@@ -8,7 +8,7 @@ from tqdm import tqdm
 from src.utils import ALPACA_MODEL_PATH, VICUNA_MODEL_PATH, Prompt, acall_gpt, call_gpt
 import asyncio
 
-from fastchat.conversation import get_conv_template
+from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
 
 class GSMIterate(Prompt):
@@ -124,9 +124,9 @@ class OSIterate(Prompt):
 
         self.model_path = None
         if engine == "vicuna":
-            model_path = VICUNA_MODEL_PATH
+            self.model_path = VICUNA_MODEL_PATH
         elif engine == "alpaca":
-            model_path = ALPACA_MODEL_PATH
+            self.model_path = ALPACA_MODEL_PATH
         else:
             raise ValueError("Model name {engine} not supported. Choose between vicuna and alpaca")
         
@@ -134,7 +134,7 @@ class OSIterate(Prompt):
         num_gpus = len(cuda_visible_devices.strip().split(","))
 
         self.model, self.tokenizer = load_model(
-            model_path,
+            self.model_path,
             model_device,
             num_gpus,
             max_gpu_memory,
@@ -153,7 +153,7 @@ class OSIterate(Prompt):
             # if feedback_text != "":
             solution += f"""{feedback_type}:\n{feedback_text}{self.intra_example_sep}"""
         query = f"{self.prompt}{self.intra_example_sep}{solution}{self.instruction}"
-        conv = get_conv_template(self.model_path)
+        conv = get_conversation_template(self.model_path)
         conv.append_message(conv.roles[0], query)
         conv.append_message(conv.roles[1], None)
         query = conv.get_prompt()
@@ -169,14 +169,20 @@ class OSIterate(Prompt):
             generation_queries.append(self.make_query(solution=solution, feedback=feedback))
         entire_outputs = []
 
-        for i in tqdm(range(len(generation_queries), total=len(generation_queries))):
+        for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
+            print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
+            print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
+            print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+
             input_ids = self.tokenizer([generation_queries[i]]).input_ids
-            output_ids = self.model.generate(
-                torch.as_tensor(input_ids).cuda(),
-                do_sample=True,
-                temperature=self.temperature,
-                max_new_tokens=self.max_tokens
-            )
+            input_ids = torch.as_tensor(input_ids).to(self.model.device)
+            with torch.no_grad():
+                output_ids = self.model.generate(
+                    input_ids,
+                    do_sample=True,
+                    temperature=self.temperature,
+                    max_new_tokens=self.max_tokens
+                )
 
             if self.model.config.is_encoder_decoder:
                 output_ids = output_ids[0]
@@ -185,6 +191,9 @@ class OSIterate(Prompt):
             
             output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
             entire_outputs.append(output)
+            del input_ids
+            del output_ids
+        torch.cuda.empty_cache()
 
         solutions = []
         for entire_output in entire_outputs:

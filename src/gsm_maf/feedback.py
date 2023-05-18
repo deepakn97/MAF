@@ -1,15 +1,27 @@
 import sys
 import time
-from typing import Dict
+from typing import Dict, List
 
 from src.utils import OSFeedback, Prompt
 import pandas as pd
 from pathlib import Path
-from prompt_lib.backends import openai_api
+from langchain.python import PythonREPL
 
-from src.utils import Prompt, LLMFeedback, FeedbackFactory
+from src.utils import Prompt, LLMFeedback, FeedbackFactory, Feedback
 
+@FeedbackFactory.register("python_executer")
+class PythonExecuter(Feedback):
+    def __init__(
+        self,
+        **kwargs
+    ) -> None:
+        super().__init__(name="Python Executor Feedback", **kwargs)
+        self.repl = PythonREPL()
 
+    def __call__(self, solutions: List[str]) -> List[str]:
+        executable_solutions = [solution + "\nprint(solution())" for solution in solutions]
+        results = [self.repl.run(solution) for solution in executable_solutions]
+        return results
 
 @FeedbackFactory.register("missing_step")
 class MissingStepFeedback(LLMFeedback):

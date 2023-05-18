@@ -1,4 +1,5 @@
 import sys
+import time
 from typing import Dict, List
 from src.utils import Prompt
 
@@ -25,13 +26,21 @@ class GSMIterate(Prompt):
   def __call__(self, solution: str, feedback: str) -> str:
     generation_query = self.make_query(solution=solution, feedback=feedback)
     # print(generation_query)
-    output = openai_api.OpenaiAPIWrapper.call(
-      prompt=generation_query,
-      engine=self.engine,
-      max_tokens=self.max_tokens,
-      stop_token="### END ###",
-      temperature=self.temperature
-    )
+    success = False
+    while not success:
+        try:
+            output = openai_api.OpenaiAPIWrapper.call(
+                prompt=generation_query,
+                engine=self.engine,
+                max_tokens=self.max_tokens,
+                stop_token="### END ###",
+                temperature=self.temperature,
+            )
+            success = True
+        except Exception as e:
+            success = False
+            print(e)
+            time.sleep(60)
 
     entire_output = openai_api.OpenaiAPIWrapper.get_first_response(output)
     # print(f"Iterate Output: {entire_output}")
