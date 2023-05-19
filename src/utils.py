@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+import math
 import os
 import time
 import traceback
@@ -216,6 +217,10 @@ class OSFeedback(Feedback):
         os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
         num_gpus = len(cuda_visible_devices.strip().split(","))
 
+        # cap gpu memory usage to 60% for the model
+        if max_gpu_memory is None:
+            max_gpu_memory = str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
+
         self.model, self.tokenizer = load_model(
             self.model_path,
             model_device,
@@ -419,3 +424,22 @@ def retry_parse_fail_prone_cmd(
         return None
 
     return wrapper
+
+def get_gpu_memory(max_gpus=None):
+    """Get available memory for each GPU."""
+    gpu_memory = []
+    num_gpus = (
+        torch.cuda.device_count()
+        if max_gpus is None
+        else min(max_gpus, torch.cuda.device_count())
+    )
+
+    for gpu_id in range(num_gpus):
+        with torch.cuda.device(gpu_id):
+            device = torch.cuda.current_device()
+            gpu_properties = torch.cuda.get_device_properties(device)
+            total_memory = gpu_properties.total_memory / (1024**3)
+            allocated_memory = torch.cuda.memory_allocated() / (1024**3)
+            available_memory = total_memory - allocated_memory
+            gpu_memory.append(available_memory)
+    return max(gpu_memory)

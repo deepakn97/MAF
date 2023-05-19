@@ -1,11 +1,12 @@
 import asyncio
+import math
 import os
 import time
 from typing import List
 import pandas as pd
 import torch
 from tqdm import tqdm
-from src.utils import Prompt, acall_gpt, call_gpt, VICUNA_MODEL_PATH, ALPACA_MODEL_PATH
+from src.utils import Prompt, acall_gpt, call_gpt, VICUNA_MODEL_PATH, ALPACA_MODEL_PATH, get_gpu_memory
 from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
 
@@ -121,6 +122,9 @@ class OSInit(Prompt):
         os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
         print(os.environ["CUDA_VISIBLE_DEVICES"])
         num_gpus = len(cuda_visible_devices.strip().split(","))
+
+        if max_gpu_memory is None:
+            max_gpu_memory = str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
 
         self.model, self.tokenizer = load_model(
             self.model_path,
