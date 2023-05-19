@@ -1,3 +1,4 @@
+import time
 import pandas as pd
 from src.utils import Prompt
 
@@ -28,13 +29,21 @@ class GSMInit(Prompt):
 
     def __call__(self, solution: str) -> str:
         generation_query = self.make_query(solution)
-        output = openai_api.OpenaiAPIWrapper.call(
-            prompt=generation_query,
-            engine=self.engine,
-            max_tokens=self.max_tokens,
-            stop_token=self.inter_example_sep,
-            temperature=self.temperature,
-        )
+        success = False
+        while not success:
+            try:
+                output = openai_api.OpenaiAPIWrapper.call(
+                    prompt=generation_query,
+                    engine=self.engine,
+                    max_tokens=self.max_tokens,
+                    stop_token=self.inter_example_sep,
+                    temperature=self.temperature,
+                )
+                success = True
+            except Exception as e:
+                success = False
+                print(e)
+                time.sleep(60)
 
         solution_code = openai_api.OpenaiAPIWrapper.get_first_response(output)
 

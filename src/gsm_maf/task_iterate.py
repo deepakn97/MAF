@@ -1,3 +1,4 @@
+import math
 import os
 import sys
 import time
@@ -5,10 +6,10 @@ from typing import Dict, List
 import torch
 
 from tqdm import tqdm
-from src.utils import ALPACA_MODEL_PATH, VICUNA_MODEL_PATH, Prompt, acall_gpt, call_gpt
+from src.utils import ALPACA_MODEL_PATH, VICUNA_MODEL_PATH, Prompt, acall_gpt, call_gpt, get_gpu_memory
 import asyncio
 
-from fastchat.conversation import get_conv_template
+from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
 
 class GSMIterate(Prompt):
@@ -124,17 +125,20 @@ class OSIterate(Prompt):
 
         self.model_path = None
         if engine == "vicuna":
-            model_path = VICUNA_MODEL_PATH
+            self.model_path = VICUNA_MODEL_PATH
         elif engine == "alpaca":
-            model_path = ALPACA_MODEL_PATH
+            self.model_path = ALPACA_MODEL_PATH
         else:
             raise ValueError("Model name {engine} not supported. Choose between vicuna and alpaca")
         
         os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
         num_gpus = len(cuda_visible_devices.strip().split(","))
 
+        if max_gpu_memory is None:
+            max_gpu_memory = str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
+
         self.model, self.tokenizer = load_model(
-            model_path,
+            self.model_path,
             model_device,
             num_gpus,
             max_gpu_memory,
@@ -153,7 +157,7 @@ class OSIterate(Prompt):
             # if feedback_text != "":
             solution += f"""{feedback_type}:\n{feedback_text}{self.intra_example_sep}"""
         query = f"{self.prompt}{self.intra_example_sep}{solution}{self.instruction}"
-        conv = get_conv_template(self.model_path)
+        conv = get_conversation_template(self.model_path)
         conv.append_message(conv.roles[0], query)
         conv.append_message(conv.roles[1], None)
         query = conv.get_prompt()
@@ -169,14 +173,20 @@ class OSIterate(Prompt):
             generation_queries.append(self.make_query(solution=solution, feedback=feedback))
         entire_outputs = []
 
-        for i in tqdm(range(len(generation_queries), total=len(generation_queries))):
+        for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
+            print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
+            print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
+            print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+
             input_ids = self.tokenizer([generation_queries[i]]).input_ids
-            output_ids = self.model.generate(
-                torch.as_tensor(input_ids).cuda(),
-                do_sample=True,
-                temperature=self.temperature,
-                max_new_tokens=self.max_tokens
-            )
+            input_ids = torch.as_tensor(input_ids).to(self.model.device)
+            with torch.no_grad():
+                output_ids = self.model.generate(
+                    input_ids,
+                    do_sample=True,
+                    temperature=self.temperature,
+                    max_new_tokens=self.max_tokens
+                )
 
             if self.model.config.is_encoder_decoder:
                 output_ids = output_ids[0]
@@ -185,6 +195,9 @@ class OSIterate(Prompt):
             
             output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
             entire_outputs.append(output)
+            del input_ids
+            del output_ids
+        torch.cuda.empty_cache()
 
         solutions = []
         for entire_output in entire_outputs:
@@ -233,24 +246,25 @@ def test():
     return result"""
     ]
     feedbacks = {
-    "Missing Step Feedback": ["""# Let us go through the code step-by-step
+    "Missing Step Feedback": [
+    """# Let us go through the code step-by-step
     chips_per_square_inch = 12
     chips_per_bag = 72
     bags = 2
     height = 3
-    # looks good
+# looks good
 
-    # Let's check other parts
+# Let's check other parts
     chips_needed = height * chips_per_square_inch
     chips_available = bags * chips_per_bag
-    # wrong! we need to caclulate the area of the mosaic which can be made by available chips. This can be calculated by dividing chips available with chips per square inch. Let's add it!
+# wrong! we need to caclulate the area of the mosaic which can be made by available chips. This can be calculated by dividing chips available with chips per square inch. Let's add it!
 
-    # Let's check other parts
+# Let's check other parts
     chips_left = chips_available - chips_needed
     length = chips_left / chips_per_square_inch
     result = length
     return result
-    # looks good""",
+# looks good""",
     """# Let us go through the code step-by-step
     budget = 65
 # looks good
@@ -265,8 +279,6 @@ def test():
     chicken_cost = 2 * bacon_cost
 # wrong! bacon_cost is missing. Let's add it.
 # wrong! we need the total cost of chicken to calculate remaining budget. Let's add it.
-    chicken_packs = 6
-    chicken_cost = 2 * bacon_cost
     
 # Let's check other parts
     strawberry_packs

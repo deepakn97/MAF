@@ -30,7 +30,7 @@ def iterative_gsm(question: str, max_attempts: int, feedback_type: str, temperat
     if feedback_type == "naive":
         raise NotImplementedError
     else:
-        task_feedback = GSMFeedback(engine=ENGINE, prompt_examples="prompt/gsm_iter/feedback.txt", temperature=0.7, max_tokens = 300)
+        task_feedback = GSMFeedback(engine=ENGINE, prompt_examples="prompt/gsm_iter/feedback.txt", temperature=temperature, max_tokens = 900)
     
     task_iterate = GSMIterate(engine=ENGINE, prompt_examples="prompt/gsm_iter/iterate.txt", temperature=temperature, max_tokens = 300)
 

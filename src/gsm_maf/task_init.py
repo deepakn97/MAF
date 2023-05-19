@@ -1,12 +1,13 @@
 import asyncio
+import math
 import os
 import time
 from typing import List
 import pandas as pd
 import torch
 from tqdm import tqdm
-from src.utils import Prompt, acall_gpt, call_gpt, VICUNA_MODEL_PATH, ALPACA_MODEL_PATH
-from fastchat.conversation import get_conv_template
+from src.utils import Prompt, acall_gpt, call_gpt, VICUNA_MODEL_PATH, ALPACA_MODEL_PATH, get_gpu_memory
+from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
 
 from prompt_lib.backends import openai_api
@@ -112,17 +113,21 @@ class OSInit(Prompt):
 
         self.model_path = None
         if engine == "vicuna":
-            model_path = VICUNA_MODEL_PATH
+            self.model_path = VICUNA_MODEL_PATH
         elif engine == "alpaca":
-            model_path = ALPACA_MODEL_PATH
+            self.model_path = ALPACA_MODEL_PATH
         else:
             raise ValueError("Model name {engine} not supported. Choose between vicuna and alpaca")
         
         os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
+        print(os.environ["CUDA_VISIBLE_DEVICES"])
         num_gpus = len(cuda_visible_devices.strip().split(","))
 
+        if max_gpu_memory is None:
+            max_gpu_memory = str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
+
         self.model, self.tokenizer = load_model(
-            model_path,
+            self.model_path,
             model_device,
             num_gpus,
             max_gpu_memory,
@@ -137,7 +142,7 @@ class OSInit(Prompt):
     
     def make_query(self, solution:str = None, **kwargs) -> str:
         query = f"""{self.prompt}{solution}{self.inter_example_sep}"""
-        conv = get_conv_template(self.model_path)
+        conv = get_conversation_template(self.model_path)
         conv.append_message(conv.roles[0], query)
         conv.append_message(conv.roles[1], None)
         query = conv.get_prompt()
@@ -147,14 +152,20 @@ class OSInit(Prompt):
         generation_queries = [self.make_query(solution) for solution in solutions]
         async_responses = []
 
-        for i in tqdm(range(len(generation_queries), total=len(generation_queries))):
+        for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
+            print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
+            print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
+            print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+
             input_ids = self.tokenizer([generation_queries[i]]).input_ids
-            output_ids = self.model.generate(
-                torch.as_tensor(input_ids).cuda(),
-                do_sample=True,
-                temperature=self.temperature,
-                max_new_tokens=self.max_tokens
-            )
+            input_ids = torch.as_tensor(input_ids).to(self.model.device)
+            with torch.no_grad():
+                output_ids = self.model.generate(
+                    input_ids,
+                    do_sample=True,
+                    temperature=self.temperature,
+                    max_new_tokens=self.max_tokens
+                )
 
             if self.model.config.is_encoder_decoder:
                 output_ids = output_ids[0]
@@ -163,6 +174,9 @@ class OSInit(Prompt):
             
             output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
             async_responses.append(output)
+            del input_ids
+            del output_ids
+        torch.cuda.empty_cache()
         return async_responses
 
 def test():

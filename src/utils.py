@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+import math
 import os
 import time
 import traceback
@@ -6,7 +7,7 @@ import openai
 import asyncio
 import backoff
 from typing import Callable, Dict, List, Union
-from fastchat.conversation import get_conv_template
+from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
 
 import numpy as np
@@ -176,8 +177,8 @@ class LLMModel():
     pass
 
 class OSFeedback(Feedback):
-    def __init__(self,
-        prompt_examples: str = None,
+    def __init__(
+        self,
         engine: str = "vicuna", 
         question_prefix: str = "# Q: ",
         intra_example_sep: str = "\n\n",
@@ -204,21 +205,24 @@ class OSFeedback(Feedback):
         self.max_tokens = max_tokens
         self.eager_refine = eager_refine
         self.instruction = "# There is an error in the code above because of lack of understanding of the question. What is the error? To find the error, go through semantically complete blocks of the code, and check if everything looks good."
-        self.setup_prompt_from_examples_file(prompt_examples)
 
         self.model_path = None
         if engine == "vicuna":
-            model_path = VICUNA_MODEL_PATH
+            self.model_path = VICUNA_MODEL_PATH
         elif engine == "alpaca":
-            model_path = ALPACA_MODEL_PATH
+            self.model_path = ALPACA_MODEL_PATH
         else:
             raise ValueError("Model name {engine} not supported. Choose between vicuna and alpaca")
         
         os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
         num_gpus = len(cuda_visible_devices.strip().split(","))
 
+        # cap gpu memory usage to 60% for the model
+        if max_gpu_memory is None:
+            max_gpu_memory = str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
+
         self.model, self.tokenizer = load_model(
-            model_path,
+            self.model_path,
             model_device,
             num_gpus,
             max_gpu_memory,
@@ -235,7 +239,7 @@ class OSFeedback(Feedback):
         solution:str = None, 
     ) -> str:
         query = f"""{self.prompt}{solution}{self.intra_example_sep}{self.instruction}"""
-        conv = get_conv_template(self.model_path)
+        conv = get_conversation_template(self.model_path)
         conv.append_message(conv.roles[0], query)
         conv.append_message(conv.roles[1], None)
         query = conv.get_prompt()
@@ -245,14 +249,20 @@ class OSFeedback(Feedback):
         generation_queries = [self.make_query(solution) for solution in solutions]
         entire_outputs = []
 
-        for i in tqdm(range(len(generation_queries), total=len(generation_queries))):
+        for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
+            print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
+            print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
+            print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+
             input_ids = self.tokenizer([generation_queries[i]]).input_ids
-            output_ids = self.model.generate(
-                torch.as_tensor(input_ids).cuda(),
-                do_sample=True,
-                temperature=self.temperature,
-                max_new_tokens=self.max_tokens
-            )
+            input_ids = torch.as_tensor(input_ids).to(self.model.device)
+            with torch.no_grad():
+                output_ids = self.model.generate(
+                    input_ids,
+                    do_sample=True,
+                    temperature=self.temperature,
+                    max_new_tokens=self.max_tokens
+                )
 
             if self.model.config.is_encoder_decoder:
                 output_ids = output_ids[0]
@@ -261,6 +271,9 @@ class OSFeedback(Feedback):
             
             output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
             entire_outputs.append(output)
+            del input_ids
+            del output_ids
+        torch.cuda.empty_cache()
 
         fb_and_solns = []
         for entire_output in entire_outputs:
@@ -313,8 +326,7 @@ class Logger(object):
 
 def parse_feedback(feedback):
     feedback = feedback.split("\n\n")
-    feedback = [f for f in feedback if f.split(
-        '\n')[-1].lower() != '# looks good']
+    feedback = [f.rstrip() for f in feedback if '# looks good' not in f.strip().lower()]
     return "\n\n".join(feedback)
 
 def backoff_handler(details):
@@ -412,3 +424,22 @@ def retry_parse_fail_prone_cmd(
         return None
 
     return wrapper
+
+def get_gpu_memory(max_gpus=None):
+    """Get available memory for each GPU."""
+    gpu_memory = []
+    num_gpus = (
+        torch.cuda.device_count()
+        if max_gpus is None
+        else min(max_gpus, torch.cuda.device_count())
+    )
+
+    for gpu_id in range(num_gpus):
+        with torch.cuda.device(gpu_id):
+            device = torch.cuda.current_device()
+            gpu_properties = torch.cuda.get_device_properties(device)
+            total_memory = gpu_properties.total_memory / (1024**3)
+            allocated_memory = torch.cuda.memory_allocated() / (1024**3)
+            available_memory = total_memory - allocated_memory
+            gpu_memory.append(available_memory)
+    return max(gpu_memory)
