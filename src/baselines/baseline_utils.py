@@ -4,17 +4,8 @@ import nltk
 import numpy as np
 import re
 from langchain.prompts import FewShotPromptTemplate, PromptTemplate
-
-
-def prepare_modified_data(problem):
-    '''Remove each sentence one by one and see if the model can still predict the label correctly.'''
-    sentences = nltk.sent_tokenize(problem['question'])
-    modified_data = []
-    for i in range(len(sentences)):
-        modified_question = '.'.join(sentences[:i] + sentences[i+1:])
-        modified_data.append({'context': modified_question,
-                             'removed_sentence_id': i, 'removed_sentence': sentences[i]})
-    return modified_data
+from io import StringIO
+from contextlib import redirect_stdout
 
 
 def load_gsm_data(filepath):
@@ -22,22 +13,6 @@ def load_gsm_data(filepath):
     with open(filepath, 'r') as read_file:
         data = [json.loads(json_str) for json_str in read_file]
     return data
-
-
-def prepare_ic_data(data):
-    ic_data = []
-    original_data = []
-    for d in data:
-        ic_data.append({
-            'question': d['new_question'],
-            'answer': d['answer']
-        })
-        original_data.append({
-            'question': d['original_question'],
-            'answer': d['answer']
-        })
-
-    return ic_data, original_data
 
 
 def create_prompt_template(task):
@@ -50,28 +25,45 @@ def create_prompt_template(task):
     return prompt
 
 
-def prepare_clean_context(modified_data, scores):
-    for md, score in zip(modified_data, scores):
-        md['score'] = score
-
-
-def parse_answer(answer):
-    json_start = answer.find('{')
-    json_end = answer.find('}') + 1
-    if (json_start == -1 or json_end == 0):
-        return ""
-    json_string = json.loads(answer[json_start:json_end])
-    try:
-        orig = json_string['final_answer']
-        orig = ''.join(c for c in orig if c.isdigit() or c == '.')
-        float_orig = float(orig)
-        int_orig = int(orig)
-        if (float_orig != int_orig):
-            return str(float_orig)
-        else:
-            return str(int_orig)
-    except:
-        return ""
+def parse_answer(answer, task):
+    if task == 'pot_gsm':
+        try:
+            answer = answer.split('\n')
+            # remove line sayiing "Lets solve this with a python program"
+            if (answer[0].lower().find('python program') != -1):
+                answer = answer[1:]
+            # remove lines after print statement
+            for i, line in enumerate(answer):
+                if (line.lower().find('print') != -1):
+                    answer = answer[:i + 1]
+                    break
+            answer = '\n'.join(answer)
+            f = StringIO()
+            with redirect_stdout(f):
+                exec(answer)
+            answer = f.getvalue()
+            answer = answer.split('\n')[0]
+            answer = ''.join(c for c in answer if c.isdigit() or c == '.')
+            return answer
+        except:
+            return "undefined"
+    else:
+        answer_key = 'final_answer: '
+        if (answer.find(answer_key) == -1):
+            return ""
+        answer = answer[answer.find(answer_key) + len(answer_key):]
+        answer = answer.split('\n')[0]
+        answer = ''.join(c for c in answer if c.isdigit() or c ==
+                         '.')  # note that commas are removed
+        try:
+            fl_answer = float(answer)
+            int_answer = int(fl_answer)
+            if (fl_answer == int_answer):
+                return str(int_answer)
+            else:
+                return str(fl_answer)
+        except:
+            return ""
 
 
 class Logger(object):
