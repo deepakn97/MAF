@@ -17,7 +17,7 @@ sys.path.append(str(path_root))
 import src.gsm_maf.feedback as feedback_utils
 from src.gsm_maf.task_init import GSMInit, OSInit
 from src.gsm_maf.task_iterate import GSMIterate, OSIterate
-from src.utils import FeedbackFactory, Logger
+from src.utils import FeedbackFactory, Logger, parse_feedback
 
 CODEX = "code-davinci-002"
 GPT3 = "text-davinci-002"
@@ -29,7 +29,7 @@ OPENAI_ENGINES = [CODEX, GPT3, GPT35, GPT3TURBO, GPT4]
 OS_ENGINES = ["vicuna", "alpaca"]
 
 
-def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feedback_types: str, engine: str, temperature: float, batch_size: int = 5, gpus: str = "0,1"):
+def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feedback_types: str, engine: str, temperature: float, batch_size: int = 5, gpus: str = "0,1", summarize_fb: bool = False):
     # initialize all the required components
     n_attempts = 0
     feedbacks_given = [ft.strip() for ft in feedback_types.split(",")]
@@ -132,10 +132,11 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                         feedbacks_retry[i][idx] = False
                     if fm.eager_refine:
                         solutions_fixed[idx] = fb_and_maybe_solns[j]["solution"]
-                        feedbacks_refine[fm.name][idx] = fb_and_maybe_solns[j]["feedback"]
-                    else:
-                        feedbacks[fm.name][idx] = fb_and_maybe_solns[j]['feedback']
                 
+                    if summarize_fb:
+                        feedbacks_refine[fm.name][idx] = parse_feedback(fb_and_maybe_solns[j]["feedback"])
+                    else:
+                        feedbacks_refine[fm.name][idx] = fb_and_maybe_solns[j]["feedback"]
             fb_gen_end = time.time()
 
             # delete the feedback module
@@ -160,7 +161,10 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
             logger.write("Generating refined solutions\n")
 
             # initialize the refinement class
-            iterate_prompt_path = os.path.join(prompt_dir, "iterate.txt")
+            if summarize_fb:
+                iterate_prompt_path = os.path.join(prompt_dir, "iterate_summarized_feedback.txt")
+            else:
+                iterate_prompt_path = os.path.join(prompt_dir, "iterate.txt")
             if engine in OPENAI_ENGINES:
                 task_iterate = GSMIterate(engine=engine, prompt_examples=iterate_prompt_path, temperature=temperature, max_tokens = 300)
             elif engine in OS_ENGINES:
@@ -216,16 +220,16 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
     return log
 
 
-def fix_gsm(gsm_task_file: str, prompt_dir: str, max_attempts: int, outfile: str, temperature: float, feedback_types: str, engine: str, batch_size: int = 5, gpus: str = "0,1"):
+def fix_gsm(gsm_task_file: str, prompt_dir: str, max_attempts: int, outfile: str, temperature: float, feedback_types: str, engine: str, batch_size: int = 5, gpus: str = "0,1", summarize_fb: bool = False):
 
     # prepare feedback modules
 
     df = pd.read_json(gsm_task_file, lines=True, orient="records")
-    df = df[:5]
+    # df = df[:5]
     df["run_logs"] = [None] * len(df)
     results = []
     # loop over number of attempts instead of number of datapoints to use async calls
-    run_logs = iterative_gsm(questions=df["input"], prompt_dir=prompt_dir, max_attempts=max_attempts, feedback_types=feedback_types, engine=engine, temperature=temperature, batch_size=batch_size, gpus=gpus)
+    run_logs = iterative_gsm(questions=df["input"], prompt_dir=prompt_dir, max_attempts=max_attempts, feedback_types=feedback_types, engine=engine, temperature=temperature, batch_size=batch_size, gpus=gpus, summarize_fb=summarize_fb)
     for j, row in enumerate(df.iterrows()):
         row_copy = row[-1].to_dict()
         row_copy["run_logs"] = run_logs[j]
@@ -260,6 +264,7 @@ def parse_args():
     args.add_argument("--feedback_types", type=str, default="variable_naming, missing_step, logical")
     args.add_argument("--prompt_dir", type=str, default="prompt/gsm_maf")
     args.add_argument("--temperature", type=float, default=0.7)
+    args.add_argument("--summarize_fb", action="store_true", default=False)
     args.add_argument("--engine", type=str, default=ENGINE, choices=[CODEX, GPT3, GPT35, GPT3TURBO, "vicuna", "alpaca"])
     args.add_argument("--gpus", type=str, default="0,1")
     args.add_argument("--batch_size", type=int, default=5)
@@ -281,4 +286,4 @@ if __name__ == '__main__':
     else:
         args = parse_args()
         logger = Logger(os.path.join(args.save_dir, f"{args.outfile_prefix}.log.txt"))
-        fix_gsm(gsm_task_file=args.gsm_task_file, prompt_dir=args.prompt_dir, max_attempts=args.max_attempts, outfile=args.outfile, temperature=args.temperature, feedback_types = args.feedback_types, engine=args.engine, batch_size=args.batch_size, gpus=args.gpus)
+        fix_gsm(gsm_task_file=args.gsm_task_file, prompt_dir=args.prompt_dir, max_attempts=args.max_attempts, outfile=args.outfile, temperature=args.temperature, feedback_types = args.feedback_types, engine=args.engine, batch_size=args.batch_size, gpus=args.gpus, summarize_fb=args.summarize_fb)

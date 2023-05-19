@@ -242,24 +242,25 @@ def test():
     return result"""
     ]
     feedbacks = {
-    "Missing Step Feedback": ["""# Let us go through the code step-by-step
+    "Missing Step Feedback": [
+    """# Let us go through the code step-by-step
     chips_per_square_inch = 12
     chips_per_bag = 72
     bags = 2
     height = 3
-    # looks good
+# looks good
 
-    # Let's check other parts
+# Let's check other parts
     chips_needed = height * chips_per_square_inch
     chips_available = bags * chips_per_bag
-    # wrong! we need to caclulate the area of the mosaic which can be made by available chips. This can be calculated by dividing chips available with chips per square inch. Let's add it!
+# wrong! we need to caclulate the area of the mosaic which can be made by available chips. This can be calculated by dividing chips available with chips per square inch. Let's add it!
 
-    # Let's check other parts
+# Let's check other parts
     chips_left = chips_available - chips_needed
     length = chips_left / chips_per_square_inch
     result = length
     return result
-    # looks good""",
+# looks good""",
     """# Let us go through the code step-by-step
     budget = 65
 # looks good
@@ -274,8 +275,6 @@ def test():
     chicken_cost = 2 * bacon_cost
 # wrong! bacon_cost is missing. Let's add it.
 # wrong! we need the total cost of chicken to calculate remaining budget. Let's add it.
-    chicken_packs = 6
-    chicken_cost = 2 * bacon_cost
     
 # Let's check other parts
     strawberry_packs

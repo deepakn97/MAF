@@ -63,7 +63,7 @@ class HallucinationFeedback(LLMFeedback):
         prompt_examples: str,
         **kwargs
     ) -> None:
-        super().__init__(name="Hallucination Feedback", max_tokens=600, eager_refine=True, answer_prefix="def solution():", **kwargs)
+        super().__init__(name="Hallucination Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
         self.instruction = """# Check each semantically complete block of code for any hallucination errors and suggest fixes. Hallucination errors are steps that are supported by neither the context nor the real world. Ignore all other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 

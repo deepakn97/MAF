@@ -321,8 +321,7 @@ class Logger(object):
 
 def parse_feedback(feedback):
     feedback = feedback.split("\n\n")
-    feedback = [f for f in feedback if f.split(
-        '\n')[-1].lower() != '# looks good']
+    feedback = [f.rstrip() for f in feedback if '# looks good' not in f.strip().lower()]
     return "\n\n".join(feedback)
 
 def backoff_handler(details):
