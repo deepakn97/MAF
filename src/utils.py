@@ -250,9 +250,9 @@ class OSFeedback(Feedback):
         entire_outputs = []
 
         for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
-            print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
-            print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
-            print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+            # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
+            # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
+            # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
 
             input_ids = self.tokenizer([generation_queries[i]]).input_ids
             input_ids = torch.as_tensor(input_ids).to(self.model.device)

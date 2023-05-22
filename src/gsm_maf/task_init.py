@@ -146,6 +146,7 @@ class OSInit(Prompt):
         conv.append_message(conv.roles[0], query)
         conv.append_message(conv.roles[1], None)
         query = conv.get_prompt()
+        print(query)
         return query 
     
     def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> str:
@@ -153,9 +154,9 @@ class OSInit(Prompt):
         async_responses = []
 
         for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
-            print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
-            print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
-            print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+            # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
+            # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
+            # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
 
             input_ids = self.tokenizer([generation_queries[i]]).input_ids
             input_ids = torch.as_tensor(input_ids).to(self.model.device)
@@ -200,13 +201,13 @@ def test():
     print("Sequential version: ", end - start)
 
     os_task_init = OSInit(
-        prompt_examples="prompt/os_maf/init.txt",
-        engine="text-davinci-003",
-        temperature=0.0
+        prompt_examples="prompt/gsm_maf/init.txt",
+        engine="vicuna",
+        temperature=1.0
     )
 
     start = time.time()
-    print(os_task_init(questions))
+    print(os_task_init(questions[0:1]))
     end = time.time()
     print("Vicuna version: ", end - start)
     

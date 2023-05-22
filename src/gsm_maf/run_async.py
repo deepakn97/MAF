@@ -77,20 +77,22 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
             # print(type(solutions[0]))
             init_gen_end = time.time()
 
+            mins = (init_gen_end - init_gen_start)/60
+            logger.write(f"Initial generation took {mins} minutes\n")
+            logger.write(f"Token usage per minute: {usage/mins}")
+
             # delete the task_init object
             if engine in OS_ENGINES:
                 task_init.model = task_init.model.cpu()
                 del task_init.model
                 torch.cuda.empty_cache()
-                print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
-                print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
-                print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
-            del task_init
+                # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
+                # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
+                # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+            else:
+                time.sleep(60)
 
-            mins = (init_gen_end - init_gen_start)/60
-            logger.write(f"Initial generation took {mins} minutes\n")
-            logger.write(f"Token usage per minute: {usage/mins}")
-            time.sleep(60)
+            del task_init
 
         solutions_fixed = [solution for solution in solutions]
         for i, feedback in enumerate(feedbacks_given):
@@ -153,13 +155,14 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 del fm.model
                 del fm.tokenizer
                 torch.cuda.empty_cache()
-                print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
-                print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
-                print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+                # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
+                # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
+                # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+            else:
+                time.sleep(60)
+
             del fm
 
-            time.sleep(60)
-        
         # only call iterate if there is at least one feedback without eager_refine
         if len(feedbacks):
             logger.write("Generating refined solutions\n")
@@ -193,13 +196,13 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 task_iterate.model = task_iterate.model.cpu()
                 del task_iterate.model
                 torch.cuda.empty_cache()
-                print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
-                print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
-                print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
-
+                # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
+                # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
+                # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+            else:
+                time.sleep(60)
 
             del task_iterate
-            time.sleep(60)
 
         for i in range(len(questions)):
             solution = solutions[i]
