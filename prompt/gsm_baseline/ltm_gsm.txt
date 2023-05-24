@@ -1,0 +1,17 @@
+A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful and detailed solutions to each of the human's math questions by first breaking down the problem into subproblems then solving them in order to get the overall solution. The assistant ends each response with "final_answer: " followed by the numeric answer to the human's math question. 
+
+ADD MORE EXAMPLES
+
+
+USER:
+Q: Elsa has 5 apples. Anna has 2 more apples than Elsa. How many apples do they have together?
+ASSISTANT:
+A: Let's break down this problem: 1. How many apples does Anna have? 2. How many apples do Elsa and Anna have together?
+1. Anna has 2 more apples than Elsa. So Anna has 2 + 5 = 7 apples.
+2. Elsa and Anna have 5 + 7 = 12 apples together. The answer is 12. 
+final_answer: 12
+
+USER:
+Q: {context}
+ASSISTANT:
+A: Let's break down this problem:
