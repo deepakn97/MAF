@@ -1,1 +1,0 @@
-Q: Elsa has 5 apples. Anna has 2 more apples than Elsa. How many apples do they have together?\nA: Anna has 2 more apples than Elsa, so Anna has 2 + 5 = 7 apples. Elsa and Anna have 5 + 7 = 12 apples together. The answer is 12. final_answer: 12\nEnd your answer with \"final_answer: \"

@@ -26,5 +26,3 @@ final_answer: 3
 
 USER:
 Q: {context}
-ASSISTANT:
-A: 
