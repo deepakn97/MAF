@@ -69,6 +69,8 @@ class GSMIterate(Prompt):
         for response in async_responses:
             if "gpt" in self.engine:
                 entire_outputs.append(response['choices'][0]['message']['content'].strip())
+                usage += response['usage']['total_tokens']
+                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
             elif "text-davinci" in self.engine:
                 entire_outputs.append(response['choices'][0]['text'].strip())
                 usage += response['usage']['total_tokens']
@@ -244,7 +246,8 @@ def test():
     total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
     money_left = budget - total_cost
     result = money_left
-    return result"""
+    return result""",
+    "def solution():\n    \"\"\"Helga went shopping for a new pair of shoes. At the first store, she tried on 7 pairs of shoes. At the second store, she tried on 2 more pairs than at the first store. At the third store, she did not try on any shoes, but she did buy a scarf. But at the fourth store, she tried on twice as many pairs of shoes as she did at all three other stores combined, before finally choosing a pair to buy. Helga's neighbor tried on 20 pairs of pants than Helga. What is the total number of pairs of shoes Helga tried on before buying her new shoes?\"\"\"\n    shoes_first_store = 7\n    shoes_second_store = shoes_first_store + 2\n    shoes_third_store = 0\n    shoes_fourth_store = 2 * (shoes_first_store + shoes_second_store + shoes_third_store)\n    total_shoes_tried_on = shoes_first_store + shoes_second_store + shoes_third_store + shoes_fourth_store\n    neighbor_pants = total_shoes_tried_on + 20\n    result = total_shoes_tried_on\n    return result"
     ]
     feedbacks = {
     "Missing Step Feedback": [
@@ -296,7 +299,8 @@ def test():
     money_left = budget - total_cost
     result = money_left
     return result
-# looks good"""
+# looks good""",
+    """There are no missing steps in the code! It is correct!"""
     ],
     "Logical Reasoning Feedback": ["""# Let us go through the code step-by-step
     chips_per_square_inch = 12
@@ -348,37 +352,44 @@ def test():
     money_left = budget - total_cost
     result = money_left
     return result
-# wrong! we want to calculate the total cost of buying all the items so we should use the total cost of each item instead of cost of 1 pack of each item. Let's fix it."""
+# wrong! we want to calculate the total cost of buying all the items so we should use the total cost of each item instead of cost of 1 pack of each item. Let's fix it.""",
+    """There are no logical reasoning errors in the code! It is correct!"""
     ],
+    "Coherency Feedback": ["""""", """""", """"""],
+    "Hallucination Feedback": ["""# The code looks good, no hallucination errors found.""", """# The code looks good, no hallucination errors found.""", """# The code looks good, no hallucination errors found."""],
+
 }
     start = time.time()
-    print(task_iterate(wrong_solns, feedbacks))
+    usage, solutions = task_iterate(wrong_solns, feedbacks)
+    for solution in solutions:
+        print(solution)
+        print('\n')
     end = time.time()
     print("Async version: ", end - start)
 
-    solutions = []
-    fbs = []
-    for i in range(len(wrong_solns)):
-        solution = wrong_solns[i]
-        feedback = {}
-        for ft, fb in feedbacks.items():
-            feedback[ft] = [fb[i]]
-        solutions.append(solution)
-        fbs.append(feedback)
+    # solutions = []
+    # fbs = []
+    # for i in range(len(wrong_solns)):
+    #     solution = wrong_solns[i]
+    #     feedback = {}
+    #     for ft, fb in feedbacks.items():
+    #         feedback[ft] = [fb[i]]
+    #     solutions.append(solution)
+    #     fbs.append(feedback)
 
-    start = time.time()
-    for soln, fb in zip(wrong_solns, fbs):
-        print(task_iterate([soln], fb))
-    end = time.time()
-    print("Sequential version: ", end - start)
+    # start = time.time()
+    # for soln, fb in zip(wrong_solns, fbs):
+    #     print(task_iterate([soln], fb))
+    # end = time.time()
+    # print("Sequential version: ", end - start)
 
-    os_task_iterate = OSIterate(
-        engine='vicuna',
-        prompt_examples='prompt/gsm_maf/iterate.txt',
-        temperature=0.0
-    )
-    start = time.time()
-    print(os_task_iterate(solutions, feedbacks))
+    # os_task_iterate = OSIterate(
+    #     engine='vicuna',
+    #     prompt_examples='prompt/gsm_maf/iterate.txt',
+    #     temperature=0.0
+    # )
+    # start = time.time()
+    # print(os_task_iterate(solutions, feedbacks))
 
 
 if __name__ == "__main__":

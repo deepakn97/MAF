@@ -1,13 +1,6 @@
-import sys
-import time
 from typing import Dict, List
-
-from src.utils import OSFeedback, Prompt
-import pandas as pd
-from pathlib import Path
 from langchain.python import PythonREPL
-
-from src.utils import Prompt, LLMFeedback, FeedbackFactory, Feedback
+from src.utils import OSFeedback, LLMFeedback, FeedbackFactory, Feedback
 
 @FeedbackFactory.register("python_executer")
 class PythonExecuter(Feedback):
@@ -22,6 +15,17 @@ class PythonExecuter(Feedback):
         executable_solutions = [solution + "\nprint(solution())" for solution in solutions]
         results = [self.repl.run(solution) for solution in executable_solutions]
         return results
+
+@FeedbackFactory.register("self_refine")
+class SelfRefineFeedback(LLMFeedback):
+    def __init__(
+        self,
+        prompt_examples: str,
+        **kwargs
+    ) -> None:
+        super().__init__(name="", max_tokens=600, answer_prefix="def solution():", eager_refine=True, **kwargs)
+        self.instruction = "# There is an error in the code above because of lack of understanding of the question. What is the error? To find the error, go through semantically complete blocks of the code, and check if everything looks good."
+        self.setup_prompt_from_examples_file(prompt_examples)
 
 @FeedbackFactory.register("missing_step")
 class MissingStepFeedback(LLMFeedback):
@@ -139,20 +143,20 @@ def test():
     #     engine="text-davinci-003",
     #     temperature=0.7
     # )
-    # variable_naming = VariableNameFeedback(
-    #     prompt_examples="prompt/gsm_maf/variable_naming.txt",
-    #     engine="text-davinci-003",
-    #     temperature=0.7,
-    # )
+    variable_naming = VariableNameFeedback(
+        prompt_examples="prompt/gsm_maf/variable_naming.txt",
+        engine="gpt-3.5-turbo",
+        temperature=0.0,
+    )
     # logical = LogicalFeedback(
     #     prompt_examples="prompt/gsm_maf/logical.txt",
     #     engine="text-davinci-003",
     #     temperature=0.7,
     # )
-    print(FeedbackFactory.registry)
-    missing_step = FeedbackFactory.create_feedback('missing_step', engine='text-davinci-003', temperature=0.7, prompt_examples='prompt/gsm_maf/missing_step.txt', answer_prefix="def solution():")
-    variable_naming = FeedbackFactory.create_feedback('variable_naming', engine='text-davinci-003', temperature=0.7, prompt_examples='prompt/gsm_maf/variable_naming.txt', answer_prefix='def solution():', max_tokens=600)
-    logical = FeedbackFactory.create_feedback('logical', engine='text-davinci-003', temperature=0.7, prompt_examples='prompt/gsm_maf/logical.txt', answer_prefix='def solution():')
+    # print(FeedbackFactory.registry)
+    # missing_step = FeedbackFactory.create_feedback('missing_step', engine='gpt-3.5-turbo', temperature=0.7, prompt_examples='prompt/gsm_maf/missing_step.txt', answer_prefix="def solution():")
+    # variable_naming = FeedbackFactory.create_feedback('variable_naming', engine='gpt-3.5-turbo', temperature=0.7, prompt_examples='prompt/gsm_maf/variable_naming.txt', answer_prefix='def solution():', max_tokens=600)
+    # logical = FeedbackFactory.create_feedback('logical', engine='gpt-3.5-turbo', temperature=0.7, prompt_examples='prompt/gsm_maf/logical.txt', answer_prefix='def solution():')
 
     wrong_solns = ["""def solution():
     \"\"\"Milo is making a mosaic with chips of glass. It takes twelve glass chips to make every square inch of the mosaic. A bag of glass chips holds 72 chips. Milo wants his mosaic to be three inches tall. If he has two bags of glass chips, how many inches long can he make his mosaic?\"\"\"
@@ -166,36 +170,22 @@ def test():
     length = chips_left / chips_per_inch
     result = length
     return result""",
-    """def solution():
-    \"\"\"Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?\"\"\"
-    budget = 65
-    bacon_packs = 5
-    bacon_total_cost = 10
-    chicken_packs = 6
-    chicken_cost = 2 * bacon_cost
-    strawberry_packs = 3
-    strawberry_cost = 4
-    apple_packs = 7
-    apple_cost = strawberry_cost / 2
-    total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
-    money_left = budget - total_cost
-    result = money_left
-    return result"""
+    "def solution():\n    \"\"\"Helga went shopping for a new pair of shoes. At the first store, she tried on 7 pairs of shoes. At the second store, she tried on 2 more pairs than at the first store. At the third store, she did not try on any shoes, but she did buy a scarf. But at the fourth store, she tried on twice as many pairs of shoes as she did at all three other stores combined, before finally choosing a pair to buy. Helga's neighbor tried on 20 pairs of pants than Helga. What is the total number of pairs of shoes Helga tried on before buying her new shoes?\"\"\"\n    shoes_first_store = 7\n    shoes_second_store = shoes_first_store + 2\n    shoes_third_store = 0\n    shoes_fourth_store = 2 * (shoes_first_store + shoes_second_store + shoes_third_store)\n    total_shoes_tried_on = shoes_first_store + shoes_second_store + shoes_third_store + shoes_fourth_store\n    neighbor_pants = total_shoes_tried_on + 20\n    result = total_shoes_tried_on\n    return result"
     ]
-    vn_feedback_and_solns = variable_naming(wrong_solns)
+    usage, vn_feedback_and_solns = variable_naming(wrong_solns)
     for i, vn_feedback_and_soln in enumerate(vn_feedback_and_solns):
         print(f"Variable Naming Feedback {i}:\n{vn_feedback_and_soln['feedback']}")
         print(f"Variable Naming Solution {i}:\n{vn_feedback_and_soln['solution']}")
 
 
-    ms_feedbacks = missing_step([x['solution'] for x in vn_feedback_and_solns])
-    print(len(ms_feedbacks))
-    for i, ms_feedback in enumerate(ms_feedbacks):
-        print(f"Missing Step Feedback {i}:\n{ms_feedback}")
+    # ms_feedbacks = missing_step([x['solution'] for x in vn_feedback_and_solns])
+    # print(len(ms_feedbacks))
+    # for i, ms_feedback in enumerate(ms_feedbacks):
+    #     print(f"Missing Step Feedback {i}:\n{ms_feedback}")
 
-    logical_feedbacks = logical([x['solution'] for x in vn_feedback_and_solns])
-    for i, logical_feedback in enumerate(logical_feedbacks):
-        print(f"Logical Feedback {i}:\n{logical_feedback}")
+    # logical_feedbacks = logical([x['solution'] for x in vn_feedback_and_solns])
+    # for i, logical_feedback in enumerate(logical_feedbacks):
+    #     print(f"Logical Feedback {i}:\n{logical_feedback}")
 
 if __name__ == '__main__':
     test()

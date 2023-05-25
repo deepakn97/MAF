@@ -104,6 +104,28 @@ class LLMFeedback(Feedback):
         solution = f"""{solution}{self.intra_example_sep}{self.instruction}"""
         return f"{self.prompt}{solution}"
     
+    def process_outputs(self, outputs: List[str], **kwargs) -> List[str]:
+        fb_and_solns = []
+        for entire_output in outputs:
+            if "### END" in entire_output:
+                entire_output = entire_output.split("### END")[0]
+            fb_and_maybe_soln = entire_output.strip()
+            if self.eager_refine:
+                if self.answer_prefix in fb_and_maybe_soln:
+                    feedback = fb_and_maybe_soln.split(self.answer_prefix)[0].strip()
+                    solution = fb_and_maybe_soln.split(self.answer_prefix)[1].rstrip()
+                    solution = f"{self.answer_prefix}{solution}"
+                else:
+                    feedback = fb_and_maybe_soln
+                    solution = ""
+            else:
+                feedback = fb_and_maybe_soln
+                solution = ""
+            
+            fb_and_solns.append({"feedback": feedback, "solution": solution})
+
+        return fb_and_solns
+
     def __call__(self, solutions: List[str], batch_size=10, concurrent=True):
         generation_queries = [self.make_query(solution) for solution in solutions]
         if not concurrent:
@@ -139,32 +161,16 @@ class LLMFeedback(Feedback):
         for response in async_responses:
             if "gpt" in self.engine:
                 entire_outputs.append(response['choices'][0]['message']['content'].strip())
+                usage += response['usage']['total_tokens']
+                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
             elif "text-davinci" in self.engine:
                 entire_outputs.append(response['choices'][0]['text'].strip())
                 usage += response['usage']['total_tokens']
                 finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
         print(f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(async_responses)}")
         
-        fb_and_solns = []
+        fb_and_solns = self.process_outputs(entire_outputs)
         # print(entire_outputs)
-
-        for entire_output in entire_outputs:
-            if "### END" in entire_output:
-                entire_output = entire_output.split("### END")[0]
-            fb_and_maybe_soln = entire_output.strip()
-            if self.eager_refine:
-                if self.answer_prefix in fb_and_maybe_soln:
-                    feedback = fb_and_maybe_soln.split(self.answer_prefix)[0].strip()
-                    solution = fb_and_maybe_soln.split(self.answer_prefix)[1].rstrip()
-                    solution = f"{self.answer_prefix}{solution}"
-                else:
-                    feedback = fb_and_maybe_soln
-                    solution = ""
-            else:
-                feedback = fb_and_maybe_soln
-                solution = ""
-            
-            fb_and_solns.append({"feedback": feedback, "solution": solution})
 
         return usage, fb_and_solns
 
@@ -244,7 +250,30 @@ class OSFeedback(Feedback):
         conv.append_message(conv.roles[1], None)
         query = conv.get_prompt()
         return query 
-    
+
+    def process_outputs(self, outputs: List[str]) -> List[str]:
+        """Implementation for processing outputs from the model. This function is meant to be overriden by subclasses for different datasets."""
+        fb_and_solns = []
+        for entire_output in outputs:
+            if "### END" in entire_output:
+                entire_output = entire_output.split("### END")[0]
+            fb_and_maybe_soln = entire_output.strip()
+            if self.eager_refine:
+                if self.answer_prefix in fb_and_maybe_soln:
+                    feedback = fb_and_maybe_soln.split(self.answer_prefix)[0].strip()
+                    solution = fb_and_maybe_soln.split(self.answer_prefix)[1].rstrip()
+                    solution = f"{self.answer_prefix}{solution}"
+                else:
+                    feedback = fb_and_maybe_soln
+                    solution = ""
+            else:
+                feedback = fb_and_maybe_soln
+                solution = ""
+            
+            fb_and_solns.append({"feedback": feedback, "solution": solution})
+
+        return fb_and_solns
+
     def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> List[str]:
         generation_queries = [self.make_query(solution) for solution in solutions]
         entire_outputs = []
@@ -268,31 +297,14 @@ class OSFeedback(Feedback):
                 output_ids = output_ids[0]
             else:
                 output_ids = output_ids[0][len(input_ids):]
-            
+
             output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
             entire_outputs.append(output)
             del input_ids
             del output_ids
         torch.cuda.empty_cache()
 
-        fb_and_solns = []
-        for entire_output in entire_outputs:
-            if "### END" in entire_output:
-                entire_output = entire_output.split("### END")[0]
-            fb_and_maybe_soln = entire_output.strip()
-            if self.eager_refine:
-                if self.answer_prefix in fb_and_maybe_soln:
-                    feedback = fb_and_maybe_soln.split(self.answer_prefix)[0].strip()
-                    solution = fb_and_maybe_soln.split(self.answer_prefix)[1].rstrip()
-                    solution = f"{self.answer_prefix}{solution}"
-                else:
-                    feedback = fb_and_maybe_soln
-                    solution = ""
-            else:
-                feedback = fb_and_maybe_soln
-                solution = ""
-            
-            fb_and_solns.append({"feedback": feedback, "solution": solution})
+        fb_and_solns = self.process_outputs(entire_outputs)
 
         return fb_and_solns
 
@@ -330,9 +342,9 @@ def parse_feedback(feedback):
     return "\n\n".join(feedback)
 
 def backoff_handler(details):
-    print(f"waiting {details['wait']} because: {details['exception']}")
+    print(f"Try: {details['tries']}, waiting {details['wait']} because: {details['exception']}")
 
-@backoff.on_exception(backoff.expo, Exception, max_tries=10, raise_on_giveup=False, on_backoff=backoff_handler)
+@backoff.on_exception(backoff.expo, Exception, max_tries=20, raise_on_giveup=False, on_backoff=backoff_handler)
 async def acall_gpt(
     queries: List[str], 
     engine: str = "text-davinci-002", 
@@ -368,7 +380,7 @@ async def acall_gpt(
 
     return await asyncio.gather(*async_responses)
 
-@backoff.on_exception(backoff.expo, Exception, max_tries=10, raise_on_giveup=False, on_backoff=backoff_handler)
+@backoff.on_exception(backoff.expo, Exception, max_tries=20, raise_on_giveup=False, on_backoff=backoff_handler)
 def call_gpt(
     queries: List[str],
     engine: str = "text-davinci-002",

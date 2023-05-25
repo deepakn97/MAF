@@ -46,7 +46,7 @@ Logical Reasoning Feedback:
 
 Given the different type of feedbacks and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
 
-Okay, here is the rewrite
+Okay, here is the rewrite:
 
 def solution():
     """Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?"""

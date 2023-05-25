@@ -2,7 +2,7 @@ import asyncio
 import math
 import os
 import time
-from typing import List
+from typing import List, Tuple
 import pandas as pd
 import torch
 from tqdm import tqdm
@@ -35,7 +35,7 @@ class GSMInit(Prompt):
         query = f"{self.prompt}{self.question_prefix}{solution}{self.intra_example_sep}{self.answer_prefix}"
         return query
 
-    def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> str:
+    def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> Tuple[int, List[str]]:
         generation_queries = [self.make_query(solution) for solution in solutions]
         # print("initial generation query 0:\n", generation_queries[0])
         # print("initial generation query 1:\n", generation_queries[1])
@@ -74,6 +74,8 @@ class GSMInit(Prompt):
         for response in async_responses:
             if "gpt" in self.engine:
                 solutions.append(response['choices'][0]['message']['content'].strip())
+                usage += response['usage']['total_tokens']
+                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
             elif "text-davinci" in self.engine:
                 solutions.append(response['choices'][0]['text'].strip())
                 usage += response['usage']['total_tokens']

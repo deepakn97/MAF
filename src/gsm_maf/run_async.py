@@ -134,6 +134,7 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                         feedbacks_retry[i][idx] = False
                     if fm.eager_refine:
                         solutions_fixed[idx] = fb_and_maybe_solns[j]["solution"]
+
                         if summarize_fb:
                             feedbacks_refine[fm.name][idx] = parse_feedback(fb_and_maybe_solns[j]["feedback"])
                         else:
@@ -187,6 +188,9 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
 
             for i in range(len(questions)):
                 solutions_fixed[i] = solutions_fixed_temp[i]
+                if solutions_fixed[i] == "":
+                    print(f"No fixed solution for example {i}")
+
             refine_gen_end = time.time()
 
             mins = (refine_gen_end - refine_gen_start)/60

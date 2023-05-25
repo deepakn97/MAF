@@ -60,7 +60,8 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
             solutions.append(log["solution_curr"])
         solutions.append(row["run_logs"][-1]["solution_fixed"])
         
-        if "return result" not in solutions[-1]:
+        if "return" not in solutions[-1]:
+            print(f'Incomplete code generation for example {idx}')
             incomplete_codes += 1
             
         feedback = [rec["feedback"] for rec in row["run_logs"]]
@@ -149,7 +150,6 @@ def check_corr(result: float, correct_solution: float, tol: float = 1e-3):
         return abs(result - correct_solution) < tol
     except:
         return 0
-
 
 
 if __name__ == "__main__":
