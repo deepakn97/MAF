@@ -10,7 +10,6 @@ from src.utils import Prompt, acall_gpt, call_gpt, VICUNA_MODEL_PATH, ALPACA_MOD
 from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
 
-from prompt_lib.backends import openai_api
 
 
 class GSMInit(Prompt):
@@ -145,14 +144,12 @@ class OSInit(Prompt):
             self.prompt = f.read()
     
     def make_query(self, solution:str = None, **kwargs) -> str:
-        query = f"""{self.prompt}{self.question_prefix}{solution}{self.intra_example_sep}{self.answer_prefix}"""
+        query = f"""{self.prompt}{solution}{self.inter_example_sep}"""
         # conv = get_conversation_template(self.model_path)
-        # conv.system = ""
-        # conv.stop_str = self.inter_example_sep
-        # print("Conv: ", conv)
         # conv.append_message(conv.roles[0], query)
         # conv.append_message(conv.roles[1], None)
         # query = conv.get_prompt()
+        print('query:', query)
         return query 
     
     def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> str:
@@ -186,7 +183,6 @@ class OSInit(Prompt):
                 output_ids = output_ids[0]
             else:
                 output_ids = output_ids[0][len(input_ids[0]):]
-            
             output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
             if self.stop_str in output:
                 output = output.split(self.stop_str)[0].strip()
