@@ -78,6 +78,8 @@ class BaselineWrapper:
         prompt_file = f'prompt/{self.task}/{self.prompt}.json'
         self.llm.setup_prompt_from_examples_file(prompt_file)
         save_dir = os.path.join(self.save_dir, f'{self.engine}/{self.task}/{self.prompt}')
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
         for data_file in os.listdir(self.data_dir):
             print(data_file)
             if (not data_file.endswith('.jsonl')):
@@ -86,8 +88,10 @@ class BaselineWrapper:
             save_file = os.path.join(save_dir, data_file.replace('.jsonl', '_results.json'))
             if save_file not in self.results_filepaths:
                 self.results_filepaths.append(save_file)
+            print
             if (os.path.exists(save_file)):
                 continue
+
             if batch_size is None:
                 outputs = self.llm([parse_problem(d, self.task) for d in data])
             else:
