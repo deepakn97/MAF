@@ -40,8 +40,11 @@ class BaselineWrapper:
     ):
         if (task not in TASKS):
             raise ValueError(f"Invalid task {task}")
+        self.task = task
         if (prompt not in PROMPTS):
             raise ValueError(f"Invalid prompt {prompt}")
+        self.prompt = prompt
+        self.engine = engine
         if llm is not None:
             self.llm = llm
         else:
@@ -63,23 +66,39 @@ class BaselineWrapper:
             raise ValueError(f"Invalid prompt {prompt}")
         if data_dir is None:
             if (task == 'gsm_baseline'):
-                data_dir = 'src/gsm_data'
+                self.data_dir = 'data/gsm_data'
             elif (task == 'entailment_baseline'):
-                data_dir = 'src/entailment_data/baseline_data'
+                self.data_dir = 'data/entailment_data/baseline_data'
+        else:
+            self.data_dir = data_dir
         self.save_dir = save_dir
         self.results_filepaths = []
-    def run(self):
+        
+    def run(self, batch_size = None):
+        prompt_file = f'prompt/{self.task}/{self.prompt}.json'
+        self.llm.setup_prompt_from_examples_file(prompt_file)
+        save_dir = os.path.join(self.save_dir, f'{self.engine}/{self.task}/{self.prompt}')
         for data_file in os.listdir(self.data_dir):
+            print(data_file)
             if (not data_file.endswith('.jsonl')):
                 continue
             data = load_jsonl(os.path.join(self.data_dir, data_file))
-            save_dir = os.path.join(self.save_dir, f'{self.engine}/{self.task}/{self.prompt}')
             save_file = os.path.join(save_dir, data_file.replace('.jsonl', '_results.json'))
             if save_file not in self.results_filepaths:
                 self.results_filepaths.append(save_file)
             if (os.path.exists(save_file)):
                 continue
-            outputs = self.llm([parse_problem(d, self.task) for d in data])
+            if batch_size is None:
+                outputs = self.llm([parse_problem(d, self.task) for d in data])
+            else:
+                outputs = []
+                for i in tqdm(range(0, len(data), batch_size)):
+                    print(i)
+                    outputs.extend(self.llm([parse_problem(d, self.task) for d in data[i:min(i + batch_size, len(data))]]))
+                    print('donezo')
+                    data = [{**d, 'output': o} for d, o in zip(data, outputs)]
+                    with open(save_file, 'w') as f:
+                        f.write(json.dumps(data) + '\n')
             data = [{**d, 'output': o} for d, o in zip(data, outputs)]
             with open(save_file, 'w') as f:
                 f.write(json.dumps(data) + '\n')
@@ -141,33 +160,6 @@ async def run_model(llm, prompt_template, data, output_file = None):
                 f.write(json.dumps(data) + '\n')
         print (f"Completed {i + step} problems")
     return data
-
-async def run_baseline(llm, task, prompt_technique, model_name, data_dir, save_dir):
-    '''
-        Args:
-            llm: the language model,
-            task: the task to run (e.g. gsm_baseline),
-            prompt_technique: the prompt technique to use (e.g. 4cot_gsm),
-            model_name: the name of the model,
-            data_dir: the directory where the data is stored,
-            save_dir: the directory where the output should be saved
-    '''
-    save_dir = os.path.join(save_dir, f'{model_name}/{prompt_technique}')
-    prompt_template = create_prompt_template(task, model_name, prompt_technique)
-    for i in range(3):
-        for variant in ['original', 'irc']:
-            data = load_gsm_data(os.path.join(data_dir, f'gsmic_mixed_{i}_{variant}.jsonl'))
-
-            if (not os.path.exists(save_dir)):
-                os.makedirs(save_dir)
-            if (os.path.exists(os.path.join(save_dir, f'gsmic_mixed_{i}_{variant}_output_{model_name}_{prompt_technique}.json')) 
-                or os.path.exists(os.path.join(save_dir, f'hand_gsmic_mixed_{i}_{variant}_output_{model_name}_{prompt_technique}.json'))):
-                continue
-            problems = await run_model(llm, prompt_template, data)
-            output_file = os.path.join(save_dir, f'gsmic_mixed_{i}_{variant}_output_{model_name}_{prompt_technique}.json')
-            print(output_file)
-            with open(output_file, 'w') as f:
-                  f.write(json.dumps(problems) + '\n')
 
 
 def grade(filepath, overwrite = False):
