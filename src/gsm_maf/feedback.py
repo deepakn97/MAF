@@ -29,7 +29,7 @@ class SelfRefineFeedback(LLMFeedback):
         prompt_examples: str,
         **kwargs
     ) -> None:
-        super().__init__(name="", max_tokens=600, answer_prefix="def solution():", eager_refine=True, **kwargs)
+        super().__init__(name="Original Self-Refine", max_tokens=600, answer_prefix="def solution():", eager_refine=True, **kwargs)
         self.instruction = "# There is an error in the code above because of lack of understanding of the question. What is the error? To find the error, go through semantically complete blocks of the code, and check if everything looks good."
         self.setup_prompt_from_examples_file(prompt_examples)
 

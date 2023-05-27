@@ -4,6 +4,7 @@ import os
 import time
 import traceback
 import openai
+from openai.openai_response import OpenAIResponse
 import asyncio
 import backoff
 from typing import Callable, Dict, List, Union
@@ -16,6 +17,14 @@ from tqdm import tqdm
 
 VICUNA_MODEL_PATH = "/home/ubuntu/vicuna_weights/13B"
 ALPACA_MODEL_PATH = "/data4/dnathani/alpaca-7b"
+CODEX = "code-davinci-002"
+GPT3 = "text-davinci-002"
+GPT35 = "text-davinci-003"
+GPT3TURBO = "gpt-3.5-turbo"
+GPT4 = "gpt-4"
+ENGINE = GPT35
+OPENAI_ENGINES = [CODEX, GPT3, GPT35, GPT3TURBO, GPT4]
+OS_ENGINES = ["vicuna", "alpaca"]
 
 class Prompt:
     def __init__(
@@ -79,7 +88,7 @@ class LLMFeedback(Feedback):
         question_prefix: str = "# Q: ",
         answer_prefix: str = "# A:",
         intra_example_sep: str = "\n\n",
-        inter_example_sep: str = "\n\n",
+        inter_example_sep: str = "### END ###",
         temperature: float = 0.0,
         max_tokens: int = 300,
         eager_refine: bool = False,
@@ -461,3 +470,22 @@ def get_gpu_memory(max_gpus=None):
             available_memory = total_memory - allocated_memory
             gpu_memory.append(available_memory)
     return max(gpu_memory)
+
+def extract_answer_gpt(
+    responses: List[OpenAIResponse],
+    engine: str
+):
+    outputs = []
+    usage = 0
+    finish_reason_stop = 0
+    for response in responses:
+        if "gpt" in engine:
+            outputs.append(response['choices'][0]['message']['content'].strip())
+            usage += response['usage']['total_tokens']
+            finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
+        elif "text-davinci" in engine:
+            outputs.append(response['choices'][0]['text'].strip())
+            usage += response['usage']['total_tokens']
+            finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
+    print(f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(responses)}")
+    return usage, outputs

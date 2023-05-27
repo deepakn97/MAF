@@ -144,8 +144,8 @@ sent 1 and int 2 and int 3: spacesuit backpacks contain oxygen and there is no o
         fm = FeedbackFactory.create_feedback(feedback, prompt_examples=fb_prompt_path, engine="text-davinci-003", temperature=0.0)
         usage, fb_and_maybe_solns = fm(wrong_solns)
         for i, fb_and_soln in enumerate(fb_and_maybe_solns):
-            print(f"{fm.name} Feedback {i}: {fb_and_soln['feedback']}\n")
-            print(f"{fm.name} Solution {i}: {fb_and_soln['solution']}\n")
+            print(f"{fm.name} Feedback {i}:\n{fb_and_soln['feedback']}\n")
+            print(f"{fm.name} Solution {i}:\n{fb_and_soln['solution']}\n")
 
     # ----- OS Models ----- #
     os_feedbaks = [ft for ft in list(FeedbackFactory.registry.keys()) if "os" in ft and ft != "self_refine"]

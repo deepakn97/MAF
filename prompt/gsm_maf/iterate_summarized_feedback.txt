@@ -44,7 +44,7 @@ Logical Reasoning Feedback:
     return result
 # wrong! we want to calculate the total cost of buying all the items so we should use the total cost of each item instead of cost of 1 pack of each item. Let's fix it.
 
-Given the different type of feedbacks and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
+# Given the different type of feedbacks and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
 
 Okay, here is the rewrite:
 
@@ -107,7 +107,7 @@ Logical Reasoning Feedback:
     cup_total_cost = plate_cost
 # wrong! the questions mentions total cost of all cups is 1200 less than total cost of plates. So we should use plate_total_cost instead of plate_cost and subtract 1200 from it. Let's fix it.
 
-Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
+# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
 
 Okay, here is the rewrite:
 
@@ -124,6 +124,42 @@ def solution():
     # missing step
     cup_cost = cup_total_cost / cups
     result = cup_cost
+    return result
+
+### END ###
+
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
+    return result
+
+Missing Step Feedback: 
+There are no missing steps in the code! It is correct! 
+
+Logical Reasoning Feedback: 
+There are no logical errors in the code! It is correct!
+
+# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
+
+The code has no mistakes! It is correct! Here is the rewrite (for the sake of completeness):
+
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
     return result
 
 ### END ###

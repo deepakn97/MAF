@@ -17,19 +17,10 @@ sys.path.append(str(path_root))
 import src.gsm_maf.feedback as feedback_utils
 from src.gsm_maf.task_init import GSMInit, OSInit
 from src.gsm_maf.task_iterate import GSMIterate, OSIterate
+from src.utils import OPENAI_ENGINES, OS_ENGINES
 from src.utils import FeedbackFactory, Logger, parse_feedback
 
-CODEX = "code-davinci-002"
-GPT3 = "text-davinci-002"
-GPT35 = "text-davinci-003"
-GPT3TURBO = "gpt-3.5-turbo"
-GPT4 = "gpt-4"
-ENGINE = GPT35
-OPENAI_ENGINES = [CODEX, GPT3, GPT35, GPT3TURBO, GPT4]
-OS_ENGINES = ["vicuna", "alpaca"]
-
-
-def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feedback_types: str, engine: str, temperature: float, batch_size: int = 5, gpus: str = "0,1", summarize_fb: bool = False):
+def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feedback_types: str, engine: str, temperature: float, batch_size: int = 5, gpus: str = "0,1", summarize_fb: bool = False, debug: bool = False):
     # initialize all the required components
     n_attempts = 0
     feedbacks_given = [ft.strip() for ft in feedback_types.split(",")]
@@ -90,7 +81,8 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
                 # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
             else:
-                time.sleep(60)
+                if not debug:
+                    time.sleep(60)
 
             del task_init
 
@@ -118,6 +110,7 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
 
                 # call the feedback module
                 retry_idxs = list(np.where(feedbacks_retry[i])[0])
+                logger.write(f"Stopped {fm.name} generation for {len(questions) - len(retry_idxs)} questions\n")
                 solutions_retry = [solutions_fixed[idx] for idx in retry_idxs]
                 fb_and_maybe_solns = fm(solutions=solutions_retry, batch_size=batch_size, concurrent=True)
 
@@ -129,8 +122,7 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 # if eager_refine is on, get the solutions and feedbacks
                 for j, idx in enumerate(retry_idxs):
                     # print(j, idx)
-                    if "it is correct" in fb_and_maybe_solns[j]['feedback']:
-                        print(f"HAHA sort of gotcha, {idx}")
+                    if "it is correct" in fb_and_maybe_solns[j]['feedback'].lower():
                         feedbacks_retry[i][idx] = False
                     if fm.eager_refine:
                         solutions_fixed[idx] = fb_and_maybe_solns[j]["solution"]
@@ -156,11 +148,9 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 del fm.model
                 del fm.tokenizer
                 torch.cuda.empty_cache()
-                # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
-                # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
-                # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
             else:
-                time.sleep(60)
+                if not debug:
+                    time.sleep(60)
 
             del fm
 
@@ -200,11 +190,9 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 task_iterate.model = task_iterate.model.cpu()
                 del task_iterate.model
                 torch.cuda.empty_cache()
-                # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
-                # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
-                # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
             else:
-                time.sleep(60)
+                if not debug:
+                    time.sleep(60)
 
             del task_iterate
 
@@ -241,7 +229,7 @@ def fix_gsm(gsm_task_file: str, prompt_dir: str, max_attempts: int, outfile: str
     df["run_logs"] = [None] * len(df)
     results = []
     # loop over number of attempts instead of number of datapoints to use async calls
-    run_logs = iterative_gsm(questions=df["input"], prompt_dir=prompt_dir, max_attempts=max_attempts, feedback_types=feedback_types, engine=engine, temperature=temperature, batch_size=batch_size, gpus=gpus, summarize_fb=summarize_fb)
+    run_logs = iterative_gsm(questions=df["input"], prompt_dir=prompt_dir, max_attempts=max_attempts, feedback_types=feedback_types, engine=engine, temperature=temperature, batch_size=batch_size, gpus=gpus, summarize_fb=summarize_fb, debug=debug)
     for j, row in enumerate(df.iterrows()):
         row_copy = row[-1].to_dict()
         row_copy["run_logs"] = run_logs[j]
@@ -277,15 +265,17 @@ def parse_args():
     args.add_argument("--prompt_dir", type=str, default="prompt/gsm_maf")
     args.add_argument("--temperature", type=float, default=0.7)
     args.add_argument("--summarize_fb", action="store_true", default=False)
-    args.add_argument("--engine", type=str, default=ENGINE, choices=[CODEX, GPT3, GPT35, GPT3TURBO, "vicuna", "alpaca"])
+    args.add_argument("--engine", type=str, default="text-davinci-003", choices=OPENAI_ENGINES + OS_ENGINES)
     args.add_argument("--gpus", type=str, default="0,1")
     args.add_argument("--batch_size", type=int, default=5)
     args.add_argument("--debug", action="store_true", default=False)
     args = args.parse_args()
-    args.outfile_prefix = f"{args.exp_label}.temp_{args.temperature}.engine_{args.engine}"
-    args.outfile = os.path.join(args.save_dir, f"{args.outfile_prefix}.jsonl")    # print and save the args
+    args.outdir = os.path.join(args.save_dir, f"{args.exp_label}.temp_{args.temperature}.engine_{args.engine}")
+    print(args.save_dir)
+    os.makedirs(args.outdir, exist_ok=True)
+    args.outfile = os.path.join(args.outdir, f"results.jsonl")    # print and save the args
 
-    _logger = Logger(os.path.join(args.save_dir, f"{args.outfile_prefix}.args.txt"))
+    _logger = Logger(os.path.join(args.outdir, f"args.txt"))
 
     print('=====Input Arguments=====')
     _logger.write(json.dumps(vars(args), indent=2, sort_keys=False))
@@ -298,5 +288,5 @@ if __name__ == '__main__':
         test()
     else:
         args = parse_args()
-        logger = Logger(os.path.join(args.save_dir, f"{args.outfile_prefix}.log.txt"))
+        logger = Logger(os.path.join(args.outdir, f"log.txt"))
         fix_gsm(gsm_task_file=args.gsm_task_file, prompt_dir=args.prompt_dir, max_attempts=args.max_attempts, outfile=args.outfile, temperature=args.temperature, feedback_types = args.feedback_types, engine=args.engine, batch_size=args.batch_size, gpus=args.gpus, summarize_fb=args.summarize_fb, debug=args.debug)

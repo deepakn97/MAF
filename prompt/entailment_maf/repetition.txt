@@ -59,7 +59,7 @@ sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires o
     sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
 # looks good
 
-# There are no repetition errors in this entailment tree! Here is the rewrite (for the sake of completeness):
+# There are no repetition errors! It is correct! Here is the rewrite (for the sake of completeness):
 
 Entailment Tree:
 sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe

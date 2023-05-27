@@ -6,7 +6,7 @@ from typing import Dict, List
 import torch
 
 from tqdm import tqdm
-from src.utils import ALPACA_MODEL_PATH, VICUNA_MODEL_PATH, Prompt, acall_gpt, call_gpt, get_gpu_memory
+from src.utils import ALPACA_MODEL_PATH, VICUNA_MODEL_PATH, Prompt, acall_gpt, call_gpt, extract_answer_gpt, get_gpu_memory
 import asyncio
 
 from fastchat.model.model_adapter import get_conversation_template
@@ -18,7 +18,7 @@ class GSMIterate(Prompt):
             question_prefix="",
             answer_prefix="",
             intra_example_sep="\n\n",
-            inter_example_sep="\n\n",
+            inter_example_sep="### END ###",
             engine=engine,
             temperature=temperature
         )
@@ -30,7 +30,15 @@ class GSMIterate(Prompt):
         with open(examples_path, "r") as f:
             self.prompt = f.read()
 
-    def __call__(self, solutions: List[str], feedbacks: Dict[str, List[str]], batch_size=10, concurrent=True) -> str:
+    def make_query(self, solution: str, feedback: Dict[str, str]) -> str:
+        solution = f"""{solution}{self.intra_example_sep}"""
+        for feedback_type, feedback_text in feedback.items():
+            if feedback_text != "":
+                solution += f"""{feedback_type}:\n{feedback_text}{self.intra_example_sep}"""
+        query = f"{self.prompt}{self.intra_example_sep}{solution}{self.instruction}"
+        return query
+
+    def __call__(self, solutions: List[str], feedbacks: Dict[str, List[str]], batch_size=10, concurrent=True) -> List[str]:
             
         generation_queries = []
         for i in range(len(solutions)):
@@ -52,7 +60,7 @@ class GSMIterate(Prompt):
                     self.engine, 
                     self.temperature, 
                     self.max_tokens,
-                    stop_token="### END")
+                    stop_token=self.inter_example_sep)
                 )
             else:
                 batch_responses = call_gpt(
@@ -60,22 +68,13 @@ class GSMIterate(Prompt):
                     self.engine,
                     self.temperature,
                     self.max_tokens,
-                    stop_token="### END"
+                    stop_token=self.inter_example_sep
                 )
             async_responses.extend(batch_responses)
-        entire_outputs = []
-        usage = 0
-        finish_reason_stop = 0
-        for response in async_responses:
-            if "gpt" in self.engine:
-                entire_outputs.append(response['choices'][0]['message']['content'].strip())
-                usage += response['usage']['total_tokens']
-                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
-            elif "text-davinci" in self.engine:
-                entire_outputs.append(response['choices'][0]['text'].strip())
-                usage += response['usage']['total_tokens']
-                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
-        print(f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(async_responses)}")
+        # print("Async responses 0:\n", async_responses[0])
+        
+        usage, entire_outputs = extract_answer_gpt(async_responses, self.engine)
+        # print("Entire output 0:\n", entire_outputs[0])
 
         # print(f"Iterate Output: {entire_output}")
         solutions = []
@@ -88,14 +87,6 @@ class GSMIterate(Prompt):
                 solution = "def solution():" + solution.rstrip()
             solutions.append(solution)
         return usage, solutions
-
-    def make_query(self, solution: str, feedback: Dict[str, str]) -> str:
-        solution = f"""{solution}{self.intra_example_sep}"""
-        for feedback_type, feedback_text in feedback.items():
-            # if feedback_text != "":
-            solution += f"""{feedback_type}:\n{feedback_text}{self.intra_example_sep}"""
-        query = f"{self.prompt}{self.intra_example_sep}{solution}{self.instruction}"
-        return query
   
 class OSIterate(Prompt):
     def __init__(self,
