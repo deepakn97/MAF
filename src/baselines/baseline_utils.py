@@ -69,11 +69,36 @@ class BaselineWrapper:
         self.save_dir = save_dir
         self.results_filepaths = []
     def run(self):
-        pass
+        for data_file in os.listdir(self.data_dir):
+            if (not data_file.endswith('.jsonl')):
+                continue
+            data = load_jsonl(os.path.join(self.data_dir, data_file))
+            save_dir = os.path.join(self.save_dir, f'{self.engine}/{self.task}/{self.prompt}')
+            save_file = os.path.join(save_dir, data_file.replace('.jsonl', '_results.json'))
+            if save_file not in self.results_filepaths:
+                self.results_filepaths.append(save_file)
+            if (os.path.exists(save_file)):
+                continue
+            outputs = self.llm([parse_problem(d, self.task) for d in data])
+            data = [{**d, 'output': o} for d, o in zip(data, outputs)]
+            with open(save_file, 'w') as f:
+                f.write(json.dumps(data) + '\n')
     def parse_answers(self):
-        pass
-    def grade_answer(self):
-        pass
+        for filepath in self.results_filepaths:
+            with (open(filepath, 'r')) as f:
+                data = json.loads(f.read())
+            for d in data:
+                d['answer'] = self.parse_answer(d['output'])
+            with open(filepath, 'w') as f:
+                f.write(json.dumps(data) + '\n')
+    def grade_answers(self):
+        for filepath in self.results_filepaths:
+            with (open(filepath, 'r')) as f:
+                data = json.loads(f.read())
+            for d in data:
+                d['correct'] = check_corr(d['answer'], d['target'], self.task)
+            with open(filepath, 'w') as f:
+                f.write(json.dumps(data) + '\n')
 
 def parse_problem(problem_dict, task):
     if task not in TASKS:
@@ -186,11 +211,16 @@ def create_prompt_template(task, model_name, prompt_technique):
 def calc_accuracy(problems):
     return sum([p['correct'] for p in problems]) / len(problems)
 
-def check_corr(input: str, target: str, tol: float = 0.001):
-    try:
-        return (abs(float(input) - float(target)) < tol)
-    except:
-        return False
+def check_corr(input: str, target: str, task: str, tol: float = 0.001):
+    if (task not in TASKS):
+        raise ValueError(f"Invalid task {task}")
+    if (task == 'gsm_baseline'):
+        try:
+            return (abs(float(input) - float(target)) < tol)
+        except:
+            return False
+    elif (task == 'entailment_baseline'):
+        raise NotImplementedError()
 
 def manual_parse(filename):
     with open(filename, 'r') as f:
