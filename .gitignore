@@ -135,5 +135,6 @@ outputs/
 models/
 temp_result.py
 *.json
+!prompt/**/*.json
 *.eps
 *.png
