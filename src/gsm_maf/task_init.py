@@ -90,9 +90,10 @@ class OSInit(Prompt):
         prompt_examples: str = None,
         engine: str = "vicuna", 
         question_prefix: str = "# Q: ",
-        intra_example_sep: str = "\n\n",
+        answer_prefix: str = "# solution using Python:\n",
+        stop_str: str = "\n\n",
+        intra_example_sep: str = "\n",
         inter_example_sep: str = "\n\n",
-        answer_prefix: str = "# A:",
         model_device: str = "cuda",
         cuda_visible_devices: str = "0,1,2",
         max_gpu_memory: int = None,
@@ -111,6 +112,7 @@ class OSInit(Prompt):
             temperature=temperature
         )
         self.max_tokens = max_tokens
+        self.stop_str = stop_str
         self.setup_prompt_from_examples_file(prompt_examples)
 
         self.model_path = None
@@ -143,17 +145,19 @@ class OSInit(Prompt):
             self.prompt = f.read()
     
     def make_query(self, solution:str = None, **kwargs) -> str:
-        query = f"""{self.prompt}{solution}{self.inter_example_sep}"""
-        conv = get_conversation_template(self.model_path)
-        conv.append_message(conv.roles[0], query)
-        conv.append_message(conv.roles[1], None)
-        query = conv.get_prompt()
-        print(query)
+        query = f"""{self.prompt}{self.question_prefix}{solution}{self.intra_example_sep}{self.answer_prefix}"""
+        # conv = get_conversation_template(self.model_path)
+        # conv.system = ""
+        # conv.stop_str = self.inter_example_sep
+        # print("Conv: ", conv)
+        # conv.append_message(conv.roles[0], query)
+        # conv.append_message(conv.roles[1], None)
+        # query = conv.get_prompt()
         return query 
     
     def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> str:
         generation_queries = [self.make_query(solution) for solution in solutions]
-        async_responses = []
+        entire_outputs = []
 
         for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
             # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
@@ -163,24 +167,45 @@ class OSInit(Prompt):
             input_ids = self.tokenizer([generation_queries[i]]).input_ids
             input_ids = torch.as_tensor(input_ids).to(self.model.device)
             with torch.no_grad():
-                output_ids = self.model.generate(
-                    input_ids,
-                    do_sample=True,
-                    temperature=self.temperature,
-                    max_new_tokens=self.max_tokens
-                )
+                if self.temperature == 0.0:
+                    output_ids = self.model.generate(
+                        input_ids,
+                        do_sample=False,
+                        max_new_tokens=self.max_tokens
+                    )
+                else:
+                    output_ids = self.model.generate(
+                        input_ids,
+                        do_sample=True,
+                        temperature=self.temperature,
+                        max_new_tokens=self.max_tokens
+                    )
 
             if self.model.config.is_encoder_decoder:
+                # print('is encoder decoder')
                 output_ids = output_ids[0]
             else:
-                output_ids = output_ids[0][len(input_ids):]
+                output_ids = output_ids[0][len(input_ids[0]):]
             
             output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
-            async_responses.append(output)
+            if self.stop_str in output:
+                output = output.split(self.stop_str)[0].strip()
+
+            entire_outputs.append(output)
             del input_ids
             del output_ids
         torch.cuda.empty_cache()
-        return async_responses
+        solutions = []
+        for entire_output in entire_outputs:
+            if self.stop_str in entire_output:
+                entire_output = entire_output.split(self.stop_str)[0].strip()
+            solution = ""
+            if "def solution():" in entire_output:
+                solution = entire_output.split("def solution():")[1]
+                solution = "def solution():" + solution.rstrip()
+            solutions.append(solution)
+                
+        return solutions
 
 def test():
     task_init = GSMInit(
@@ -191,25 +216,27 @@ def test():
 
     questions = ["Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?", "Milo is making a mosaic with chips of glass. It takes twelve glass chips to make every square inch of the mosaic. A bag of glass chips holds 72 chips. Milo wants his mosaic to be three inches tall. If he has two bags of glass chips, how many inches long can he make his mosaic?", "Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Calculate the total cost of buying each cup.", "Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"]
 
-    start = time.time()
-    print(task_init(questions))
-    end = time.time()
-    print("Async version: ", end - start)
+    # start = time.time()
+    # print(task_init(questions))
+    # end = time.time()
+    # print("Async version: ", end - start)
 
-    start = time.time()
-    for question in questions:
-        print(task_init([question]))
-    end = time.time()
-    print("Sequential version: ", end - start)
+    # start = time.time()
+    # for question in questions:
+    #     print(task_init([question]))
+    # end = time.time()
+    # print("Sequential version: ", end - start)
 
     os_task_init = OSInit(
         prompt_examples="prompt/gsm_maf/init.txt",
         engine="vicuna",
-        temperature=1.0
+        temperature=0.7
     )
 
     start = time.time()
-    print(os_task_init(questions[0:1]))
+    solutions = os_task_init(questions[:2])
+    for solution in solutions:
+        print(solution)
     end = time.time()
     print("Vicuna version: ", end - start)
     

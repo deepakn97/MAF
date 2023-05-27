@@ -1,4 +1,10 @@
 from typing import Dict, List
+
+import torch
+
+from src.utils import OSFeedback, Prompt
+import pandas as pd
+from pathlib import Path
 from langchain.python import PythonREPL
 from src.utils import OSFeedback, LLMFeedback, FeedbackFactory, Feedback
 
@@ -100,7 +106,7 @@ class VariableNameFeedbackOS(OSFeedback):
         prompt_examples: str,
         **kwargs
     ) -> None:
-        super().__init__(name="Variable Naming Feedback", max_tokens=600, eager_refine=True, answer_prefix="def solution():", **kwargs)
+        super().__init__(name="Variable Naming Feedback", max_tokens=900, eager_refine=True, answer_prefix="def solution():", **kwargs)
         self.instruction = """# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
@@ -111,7 +117,7 @@ class LogicalFeedbackOS(OSFeedback):
         prompt_examples: str,
         **kwargs,
     ) -> None:
-        super().__init__(name="Logical Reasoning Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
+        super().__init__(name="Logical Reasoning Feedback", max_tokens=300,answer_prefix="def solution():", **kwargs)
         self.instruction = """# Check each semantically complete block of the code to check for any logical reasoning errors. Logical reasoning errors may include errors in the mathematical calculations, errors in the order of the steps, or errors in the assumptions made. State the assumptions you made clearly. Ignore all the other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
         
@@ -122,7 +128,7 @@ class HallucinationFeedbackOS(OSFeedback):
         prompt_examples: str,
         **kwargs
     ) -> None:
-        super().__init__(name="Hallucination Feedback", max_tokens=600, eager_refine=True, answer_prefix="def solution():", **kwargs)
+        super().__init__(name="Hallucination Feedback", max_tokens=600,answer_prefix="def solution():", **kwargs)
         self.instruction = """# Check each semantically complete block of code for any hallucination errors and suggest fixes. Hallucination errors are steps that are supported by neither the context nor the real world. Ignore all other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
@@ -133,30 +139,14 @@ class CoherencyFeedbackOS(OSFeedback):
         prompt_examples: str,
         **kwargs
     ) -> None:
-        super().__init__(name="Coherency Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
+        super().__init__(name="Coherency Feedback", max_tokens=300,answer_prefix="def solution():", **kwargs)
         self.instruction = """# Check the code for any coherency errors and suggest fixes. Coherency errors are steps that contradict each other or do not follow a cohesive story. Ignore all other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
 def test():
-    # missing_step = MissingStepFeedback(
-    #     prompt_examples="prompt/gsm_maf/missing_step.txt",
-    #     engine="text-davinci-003",
-    #     temperature=0.7
-    # )
-    variable_naming = VariableNameFeedback(
-        prompt_examples="prompt/gsm_maf/variable_naming.txt",
-        engine="gpt-3.5-turbo",
-        temperature=0.0,
-    )
-    # logical = LogicalFeedback(
-    #     prompt_examples="prompt/gsm_maf/logical.txt",
-    #     engine="text-davinci-003",
-    #     temperature=0.7,
-    # )
-    # print(FeedbackFactory.registry)
-    # missing_step = FeedbackFactory.create_feedback('missing_step', engine='gpt-3.5-turbo', temperature=0.7, prompt_examples='prompt/gsm_maf/missing_step.txt', answer_prefix="def solution():")
-    # variable_naming = FeedbackFactory.create_feedback('variable_naming', engine='gpt-3.5-turbo', temperature=0.7, prompt_examples='prompt/gsm_maf/variable_naming.txt', answer_prefix='def solution():', max_tokens=600)
-    # logical = FeedbackFactory.create_feedback('logical', engine='gpt-3.5-turbo', temperature=0.7, prompt_examples='prompt/gsm_maf/logical.txt', answer_prefix='def solution():')
+    missing_step = FeedbackFactory.create_feedback('missing_step', engine='text-davinci-003', temperature=0.7, prompt_examples='prompt/gsm_maf/missing_step.txt')
+    variable_naming = FeedbackFactory.create_feedback('variable_naming', engine='text-davinci-003', temperature=0.7, prompt_examples='prompt/gsm_maf/variable_naming.txt')
+    logical = FeedbackFactory.create_feedback('logical', engine='text-davinci-003', temperature=0.7, prompt_examples='prompt/gsm_maf/logical.txt')
 
     wrong_solns = ["""def solution():
     \"\"\"Milo is making a mosaic with chips of glass. It takes twelve glass chips to make every square inch of the mosaic. A bag of glass chips holds 72 chips. Milo wants his mosaic to be three inches tall. If he has two bags of glass chips, how many inches long can he make his mosaic?\"\"\"
@@ -165,17 +155,18 @@ def test():
     bags = 2
     height = 3
     chips_needed = height * chips_per_inch
-    chips_available = bags * chips_per_bag
     chips_left = chips_available - chips_needed
     length = chips_left / chips_per_inch
     result = length
     return result""",
     "def solution():\n    \"\"\"Helga went shopping for a new pair of shoes. At the first store, she tried on 7 pairs of shoes. At the second store, she tried on 2 more pairs than at the first store. At the third store, she did not try on any shoes, but she did buy a scarf. But at the fourth store, she tried on twice as many pairs of shoes as she did at all three other stores combined, before finally choosing a pair to buy. Helga's neighbor tried on 20 pairs of pants than Helga. What is the total number of pairs of shoes Helga tried on before buying her new shoes?\"\"\"\n    shoes_first_store = 7\n    shoes_second_store = shoes_first_store + 2\n    shoes_third_store = 0\n    shoes_fourth_store = 2 * (shoes_first_store + shoes_second_store + shoes_third_store)\n    total_shoes_tried_on = shoes_first_store + shoes_second_store + shoes_third_store + shoes_fourth_store\n    neighbor_pants = total_shoes_tried_on + 20\n    result = total_shoes_tried_on\n    return result"
     ]
-    usage, vn_feedback_and_solns = variable_naming(wrong_solns)
-    for i, vn_feedback_and_soln in enumerate(vn_feedback_and_solns):
-        print(f"Variable Naming Feedback {i}:\n{vn_feedback_and_soln['feedback']}")
-        print(f"Variable Naming Solution {i}:\n{vn_feedback_and_soln['solution']}")
+
+    # ----- OpenAI Engines ----- #
+    # vn_feedback_and_solns = variable_naming(wrong_solns)
+    # for i, vn_feedback_and_soln in enumerate(vn_feedback_and_solns):
+    #     print(f"Variable Naming Feedback {i}:\n{vn_feedback_and_soln['feedback']}")
+    #     print(f"Variable Naming Solution {i}:\n{vn_feedback_and_soln['solution']}")
 
 
     # ms_feedbacks = missing_step([x['solution'] for x in vn_feedback_and_solns])
@@ -186,6 +177,35 @@ def test():
     # logical_feedbacks = logical([x['solution'] for x in vn_feedback_and_solns])
     # for i, logical_feedback in enumerate(logical_feedbacks):
     #     print(f"Logical Feedback {i}:\n{logical_feedback}")
+    
+    # ----- OS Engines ----- #
+    variable_naming_os = FeedbackFactory.create_feedback('variable_naming_os', engine='vicuna', temperature=0.0, prompt_examples='prompt/gsm_maf/variable_naming_os.txt')
+    vn_feedback_and_solns = variable_naming_os(wrong_solns)
+    for i, vn_feedback_and_soln in enumerate(vn_feedback_and_solns):
+        print(f"Variable Naming Feedback {i}:\n{vn_feedback_and_soln['feedback']}")
+        print(f"OS Variable Naming Solution {i}:\n{vn_feedback_and_soln['solution']}")
+    
+    del variable_naming_os
+    torch.cuda.empty_cache()
 
+    missing_step_os = FeedbackFactory.create_feedback('missing_step_os', engine='vicuna', temperature=0.0, prompt_examples='prompt/gsm_maf/missing_step_os.txt')
+    ms_feedbacks = missing_step_os([x['solution'] for x in vn_feedback_and_solns])
+    print(len(ms_feedbacks))
+    for i, ms_feedback in enumerate(ms_feedbacks):
+        print(f"OS Missing Step Feedback {i}:\n{ms_feedback}")
+
+    del ms_feedbacks
+    del missing_step_os
+    torch.cuda.empty_cache()
+
+    logical_os = FeedbackFactory.create_feedback('logical_os', engine='vicuna', temperature=0.0, prompt_examples='prompt/gsm_maf/logical_os.txt')
+    logical_feedbacks = logical_os([x['solution'] for x in vn_feedback_and_solns])
+    for i, logical_feedback in enumerate(logical_feedbacks):
+        print(f"OS Logical Feedback {i}:\n{logical_feedback}")
+
+    del logical_feedbacks
+    del logical_os
+    torch.cuda.empty_cache()
+    
 if __name__ == '__main__':
     test()

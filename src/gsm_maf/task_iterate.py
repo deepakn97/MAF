@@ -102,9 +102,10 @@ class OSIterate(Prompt):
         prompt_examples: str = None,
         engine: str = "vicuna", 
         question_prefix: str = "",
+        answer_prefix: str = "",
         intra_example_sep: str = "\n\n",
         inter_example_sep: str = "\n\n",
-        answer_prefix: str = "",
+        stop_str:str = "### END",
         model_device: str = "cuda",
         cuda_visible_devices: str = "0,1,2",
         max_gpu_memory: int = None,
@@ -123,6 +124,7 @@ class OSIterate(Prompt):
             temperature=temperature
         )
         self.max_tokens = max_tokens
+        self.stop_str = stop_str
         self.instruction = "# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback."
         self.setup_prompt_from_examples_file(prompt_examples)
 
@@ -160,10 +162,10 @@ class OSIterate(Prompt):
             # if feedback_text != "":
             solution += f"""{feedback_type}:\n{feedback_text}{self.intra_example_sep}"""
         query = f"{self.prompt}{self.intra_example_sep}{solution}{self.instruction}"
-        conv = get_conversation_template(self.model_path)
-        conv.append_message(conv.roles[0], query)
-        conv.append_message(conv.roles[1], None)
-        query = conv.get_prompt()
+        # conv = get_conversation_template(self.model_path)
+        # conv.append_message(conv.roles[0], query)
+        # conv.append_message(conv.roles[1], None)
+        # query = conv.get_prompt()
         return query 
     
     def __call__(self, solutions: List[str], feedbacks: Dict[str, List[str]], batch_size=10, concurrent=True) -> str:
@@ -177,24 +179,33 @@ class OSIterate(Prompt):
         entire_outputs = []
 
         for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
-            # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
-            # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
-            # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+            # # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
+            # # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
+            # # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+            print(generation_queries[i])
 
             input_ids = self.tokenizer([generation_queries[i]]).input_ids
             input_ids = torch.as_tensor(input_ids).to(self.model.device)
+            print(len(input_ids[0]))
             with torch.no_grad():
-                output_ids = self.model.generate(
-                    input_ids,
-                    do_sample=True,
-                    temperature=self.temperature,
-                    max_new_tokens=self.max_tokens
-                )
+                if self.temperature == 0.0:
+                    output_ids = self.model.generate(
+                        input_ids,
+                        do_sample=False,
+                        max_new_tokens=self.max_tokens
+                    )
+                else:
+                    output_ids = self.model.generate(
+                        input_ids,
+                        do_sample=True,
+                        temperature=self.temperature,
+                        max_new_tokens=self.max_tokens
+                    )
 
             if self.model.config.is_encoder_decoder:
                 output_ids = output_ids[0]
             else:
-                output_ids = output_ids[0][len(input_ids):]
+                output_ids = output_ids[0][len(input_ids[0]):]
             
             output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
             entire_outputs.append(output)
@@ -204,8 +215,8 @@ class OSIterate(Prompt):
 
         solutions = []
         for entire_output in entire_outputs:
-            if "### END ###" in entire_output:
-                entire_output = entire_output.split("### END ###")[0].strip()
+            if self.stop_str in entire_output:
+                entire_output = entire_output.split(self.stop_str)[0].strip()
             solution = ""
             if "def solution():" in entire_output:
                 solution = entire_output.split("def solution():")[1]
@@ -251,34 +262,11 @@ def test():
     ]
     feedbacks = {
     "Missing Step Feedback": [
-    """# Let us go through the code step-by-step
-    chips_per_square_inch = 12
-    chips_per_bag = 72
-    bags = 2
-    height = 3
-# looks good
-
-# Let's check other parts
+    """# Let's check other parts
     chips_needed = height * chips_per_square_inch
     chips_available = bags * chips_per_bag
-# wrong! we need to caclulate the area of the mosaic which can be made by available chips. This can be calculated by dividing chips available with chips per square inch. Let's add it!
-
-# Let's check other parts
-    chips_left = chips_available - chips_needed
-    length = chips_left / chips_per_square_inch
-    result = length
-    return result
-# looks good""",
-    """# Let us go through the code step-by-step
-    budget = 65
-# looks good
-
-# Let's check other parts
-    bacon_packs = 5
-    bacon_total_cost = 10
-# looks good
-
-# Let's check other parts
+# wrong! we need to caclulate the area of the mosaic which can be made by available chips. This can be calculated by dividing chips available with chips per square inch. Let's add it!""",
+    """# Let's check other parts
     chicken_packs = 6
     chicken_cost = 2 * bacon_cost
 # wrong! bacon_cost is missing. Let's add it.
@@ -292,24 +280,9 @@ def test():
 # Let's check other parts
     apple_packs = 7
     apple_cost = strawberry_cost / 2
-# wrong! we need the total cost of apples to calculate remaining budget. Let's add it.
-
-# Let's check other parts
-    total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
-    money_left = budget - total_cost
-    result = money_left
-    return result
-# looks good""",
-    """There are no missing steps in the code! It is correct!"""
+# wrong! we need the total cost of apples to calculate remaining budget. Let's add it."""
     ],
-    "Logical Reasoning Feedback": ["""# Let us go through the code step-by-step
-    chips_per_square_inch = 12
-    chips_per_bag = 72
-    bags = 2
-    height = 3
-    # looks good
-
-    # Let's check other parts
+    "Logical Reasoning Feedback": ["""# Let's check other parts
     chips_needed = height * chips_per_square_inch
     chips_available = bags * chips_per_bag
     # wrong! chips needed doesn't make sense here. remove it
@@ -321,31 +294,10 @@ def test():
     return result
     # wrong! chips_left doesn't make sense here. remove it
     # wrong! we want to divide the *area of the mosaic* by the height of the mosaic to get the length of the mosaic. Let's fix it!""",
-    """# Let us go through the code step-by-step
-    budget = 65
-# looks good
-
-# Let's check other parts
-    bacon_packs = 5
-    bacon_total_cost = 10
-# looks good
-
-# Let's check other parts
+    """# Let's check other parts
     chicken_packs = 6
     chicken_cost = 2 * bacon_total_cost
 # wrong! according to the context, the cost of each packet of chicken is twice the cost of 1 packet of bacon. We should use bacon_cost in place of bacon_total_cost to calculate the chicken pack cost correctly. Let's fix it.
-    chicken_packs = 6
-    chicken_cost = 2 * bacon_cost
-
-# Let's check other parts
-    strawberry_packs
-    strawberry_cost = 4
-# looks good
-
-# Let's check other parts
-    apple_packs = 7
-    apple_cost = strawberry_cost / 2
-# looks good
 
 # Let's check other parts
     total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
@@ -359,13 +311,10 @@ def test():
     "Hallucination Feedback": ["""# The code looks good, no hallucination errors found.""", """# The code looks good, no hallucination errors found.""", """# The code looks good, no hallucination errors found."""],
 
 }
-    start = time.time()
-    usage, solutions = task_iterate(wrong_solns, feedbacks)
-    for solution in solutions:
-        print(solution)
-        print('\n')
-    end = time.time()
-    print("Async version: ", end - start)
+    # start = time.time()
+    # print(task_iterate(wrong_solns, feedbacks))
+    # end = time.time()
+    # print("Async version: ", end - start)
 
     # solutions = []
     # fbs = []
@@ -383,13 +332,17 @@ def test():
     # end = time.time()
     # print("Sequential version: ", end - start)
 
-    # os_task_iterate = OSIterate(
-    #     engine='vicuna',
-    #     prompt_examples='prompt/gsm_maf/iterate.txt',
-    #     temperature=0.0
-    # )
-    # start = time.time()
-    # print(os_task_iterate(solutions, feedbacks))
+    os_task_iterate = OSIterate(
+        engine='vicuna',
+        prompt_examples='prompt/gsm_maf/iterate_sfb_1.txt',
+        temperature=0.0
+    )
+    start = time.time()
+    solutions = os_task_iterate(wrong_solns, feedbacks)
+    for solution in solutions:
+        print(solution)
+    end = time.time()
+    print("OS version: ", end - start)
 
 
 if __name__ == "__main__":

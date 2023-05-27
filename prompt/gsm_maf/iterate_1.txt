@@ -15,6 +15,15 @@ def solution():
     return result
 
 Missing Step Feedback:
+# Let us go through the code step-by-step
+    budget = 65
+# looks good
+
+# Let's check other parts
+    bacon_packs = 5
+    bacon_total_cost = 10
+# looks good
+
 # Let's check other parts
     chicken_packs = 6
     chicken_cost = 2 * bacon_total_cost
@@ -31,11 +40,37 @@ Missing Step Feedback:
     apple_cost = strawberry_cost / 2
 # wrong! we need the total cost of apples to calculate remaining budget. Let's add it.
 
+# Let's check other parts
+    total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
+    money_left = budget - total_cost
+    result = money_left
+    return result
+# looks good
+
 Logical Reasoning Feedback:
+# Let us go through the code step-by-step
+    budget = 65
+# looks good
+
+# Let's check other parts
+    bacon_packs = 5
+    bacon_total_cost = 10
+# looks good
+
 # Let's check other parts
     chicken_packs = 6
     chicken_cost = 2 * bacon_total_cost
 # wrong! according to the context, the cost of each packet of chicken is twice the cost of 1 packet of bacon. We should use bacon_cost in place of bacon_total_cost to calculate the chicken pack cost correctly. Let's fix it.
+
+# Let's check other parts
+    strawberry_packs
+    strawberry_cost = 4
+# looks good
+
+# Let's check other parts
+    apple_packs = 7
+    apple_cost = strawberry_cost / 2
+# looks good
 
 # Let's check other parts
     total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
@@ -46,7 +81,7 @@ Logical Reasoning Feedback:
 
 Given the different type of feedbacks and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
 
-Okay, here is the rewrite:
+Okay, here is the rewrite
 
 def solution():
     """Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?"""
@@ -92,6 +127,11 @@ Missing Step Feedback:
 # wrong! we need to calculate the total cost of plates to calculate the cost of each cup. Let's add it.
 
 # Let's check other parts
+    cups = 12 * 20
+    cup_total_cost = plate_cost
+# looks good
+
+# Let's check other parts
     result = cup_cost
     return result
 # wrong! we need to calculate the cost of each cup to answer the question. Let's add it.
@@ -106,6 +146,11 @@ Logical Reasoning Feedback:
     cups = 12 * 20
     cup_total_cost = plate_cost
 # wrong! the questions mentions total cost of all cups is 1200 less than total cost of plates. So we should use plate_total_cost instead of plate_cost and subtract 1200 from it. Let's fix it.
+
+# Let's check other parts
+    result = cup_cost
+    return result
+# looks good
 
 Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
 
@@ -124,6 +169,90 @@ def solution():
     # missing step
     cup_cost = cup_total_cost / cups
     result = cup_cost
+    return result
+
+### END ###
+
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
+    return result
+
+Missing Step Feedback: 
+# Let us go through the code step-by-step
+    cards_initial = 80
+# looks good
+
+# Let's check the other parts
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+# looks good
+
+# Let's check the other parts
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+# looks good
+
+# Let's check the other parts
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+# looks good
+
+# Let's check the other parts
+    result = cards_d
+    return result
+# looks good
+
+There are no missing steps in the code! It is correct! 
+
+Logical Reasoning Feedback: 
+# Let us go through the code step-by-step
+    cards_initial = 80
+# looks good
+
+# Let's check the other parts
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+# looks good
+
+# Let's check the other parts
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+# looks good
+
+# Let's check the other parts
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+# looks good
+
+# Let's check the other parts
+    result = cards_d
+    return result
+# looks good
+
+There are no logical errors in the code! It is correct!
+
+Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
+
+The code has no mistakes! It is correct! Here is the rewrite (for the sake of completeness):
+
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
     return result
 
 ### END ###

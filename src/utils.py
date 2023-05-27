@@ -14,7 +14,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-VICUNA_MODEL_PATH = "/data4/dnathani/vicuna_weights/13B"
+VICUNA_MODEL_PATH = "/home/ubuntu/vicuna_weights/13B"
 ALPACA_MODEL_PATH = "/data4/dnathani/alpaca-7b"
 
 class Prompt:
@@ -188,8 +188,8 @@ class OSFeedback(Feedback):
         engine: str = "vicuna", 
         question_prefix: str = "# Q: ",
         intra_example_sep: str = "\n\n",
-        inter_example_sep: str = "\n\n",
-        answer_prefix: str = "# A:",
+        inter_example_sep: str = "### END ###",
+        answer_prefix: str = "def solution():",
         eager_refine: bool = False,
         model_device: str = "cuda",
         cuda_visible_devices: str = "0,1,2",
@@ -245,10 +245,10 @@ class OSFeedback(Feedback):
         solution:str = None, 
     ) -> str:
         query = f"""{self.prompt}{solution}{self.intra_example_sep}{self.instruction}"""
-        conv = get_conversation_template(self.model_path)
-        conv.append_message(conv.roles[0], query)
-        conv.append_message(conv.roles[1], None)
-        query = conv.get_prompt()
+        # conv = get_conversation_template(self.model_path)
+        # conv.append_message(conv.roles[0], query)
+        # conv.append_message(conv.roles[1], None)
+        # query = conv.get_prompt()
         return query 
 
     def process_outputs(self, outputs: List[str]) -> List[str]:
@@ -279,25 +279,31 @@ class OSFeedback(Feedback):
         entire_outputs = []
 
         for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
-            # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
-            # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
-            # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
+            # print(generation_queries[i])
 
             input_ids = self.tokenizer([generation_queries[i]]).input_ids
             input_ids = torch.as_tensor(input_ids).to(self.model.device)
             with torch.no_grad():
-                output_ids = self.model.generate(
-                    input_ids,
-                    do_sample=True,
-                    temperature=self.temperature,
-                    max_new_tokens=self.max_tokens
-                )
+                if self.temperature == 0.0:
+                    output_ids = self.model.generate(
+                        input_ids,
+                        do_sample=False,
+                        max_new_tokens=self.max_tokens
+                    )
+                else:
+                    output_ids = self.model.generate(
+                        input_ids,
+                        do_sample=True,
+                        temperature=self.temperature,
+                        max_new_tokens=self.max_tokens
+                    )
 
             if self.model.config.is_encoder_decoder:
                 output_ids = output_ids[0]
             else:
-                output_ids = output_ids[0][len(input_ids):]
-
+                output_ids = output_ids[0][len(input_ids[0]):]
+            print(f"Output tokens: {len(output_ids)}")
+            
             output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
             entire_outputs.append(output)
             del input_ids
