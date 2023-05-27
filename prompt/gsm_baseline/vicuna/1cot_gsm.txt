@@ -1,9 +1,0 @@
-A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human's math questions while showing their work. The assistant always ends their response with "final_answer: " followed by the numerical answer to the human's math problem.
-
-USER:
-Q: Elsa has 5 apples. Anna has 2 more apples than Elsa. How many apples do they have together?
-ASSISTANT:
-A: Anna has 2 more apples than Elsa, so Anna has 2 + 5 = 7 apples. Elsa and Anna have 5 + 7 = 12 apples together. The answer is 12. final_answer: 12
-
-USER:
-Q: {context}
