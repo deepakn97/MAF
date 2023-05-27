@@ -9,6 +9,7 @@ from tqdm import tqdm
 from src.utils import Prompt, acall_gpt, call_gpt, VICUNA_MODEL_PATH, ALPACA_MODEL_PATH, get_gpu_memory
 from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
+import json
 
 
 
@@ -26,9 +27,14 @@ class GSMInit(Prompt):
         self.setup_prompt_from_examples_file(prompt_examples)
 
     def setup_prompt_from_examples_file(self, prompt_examples) -> str:
-        with open(prompt_examples, "r") as f:
-            self.prompt = f.read()
-    
+        if prompt_examples.endswith(".json"):
+            with open(prompt_examples, "r") as f:
+                examples = json.load(f)
+            self.prompt = "\n\n".join([f"{self.question_prefix}{example['question']}{self.intra_example_sep}{self.answer_prefix}{example['solution']}" for example in examples])
+        else:
+            with open(prompt_examples, "r") as f:
+                self.prompt = f.read()
+        
     def make_query(self, solution: str) -> str:
         solution = solution.strip()
         query = f"{self.prompt}{self.question_prefix}{solution}{self.intra_example_sep}{self.answer_prefix}"
@@ -139,9 +145,14 @@ class OSInit(Prompt):
             debug
         )
 
-    def setup_prompt_from_examples_file(self, examples_path: str, **kwargs) -> str:
-        with open(examples_path, "r") as f:
-            self.prompt = f.read()
+    def setup_prompt_from_examples_file(self, prompt_examples: str, **kwargs) -> str:
+        if prompt_examples.endswith(".json"):
+            with open(prompt_examples, "r") as f:
+                examples = json.load(f)
+            self.prompt = "\n\n".join([f"{self.question_prefix}{example['question']}{self.intra_example_sep}{self.answer_prefix}{example['solution']}" for example in examples])
+        else:
+            with open(prompt_examples, "r") as f:
+                self.prompt = f.read()
     
     def make_query(self, solution:str = None, **kwargs) -> str:
         query = f"""{self.prompt}{solution}{self.inter_example_sep}"""
