@@ -26,6 +26,14 @@ OS_MODELS = ["vicuna", "alpaca"]
 OPENAI_MODELS = ["gpt-3.5-turbo", "text-davinci-003"]
 TASKS = ['gsm_baseline', 'entailment_baseline']
 PROMPTS = ['0cot_gsm', '1cot_gsm', '4cot_gsm', 'pot_gsm', 'ltm_gsm', '3shot_entailment']
+QA_TEMPLATE = {
+    'question_prefix' : ' # Q: ',
+    'answer_prefix' : '# A: ',
+}
+PYTHON_TEMPLATE = {
+    'question_prefix' : '# Q: ',
+    'answer_prefix' : '# solution using Python:\n',
+}
 
 class BaselineWrapper:
     def __init__(

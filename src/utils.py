@@ -302,9 +302,6 @@ class OSModel():
             if "def solution():" in entire_output:
                 solution = entire_output.split("def solution():")[1]
                 solution = "def solution():" + solution.rstrip()
-            print('raw output length:', len(entire_output)))
-            print('solution length', len(solution))
-            print('cut output length:', len(self.tokenizer(solution)[0]))
             solutions.append(solution)
         return solutions
 
@@ -326,7 +323,7 @@ class LLMModel():
         self.answer_prefix=answer_prefix
         self.intra_example_sep=intra_example_sep
         self.inter_example_sep=inter_example_sep
-        stop_str = stop_str
+        self.stop_str = stop_str
         self.engine=engine
         self.temperature=temperature
         self.max_tokens = max_tokens
@@ -371,13 +368,9 @@ class LLMModel():
 
     def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> Tuple[int, List[str]]:
         generation_queries = [self.make_query(solution) for solution in solutions]
-        # print("initial generation query 0:\n", generation_queries[0])
-        # print("initial generation query 1:\n", generation_queries[1])
         if not concurrent:
             batch_size = 1
-        print('C1')
         async_responses = []
-        print('C2')
         for i in tqdm(range(0, len(generation_queries), batch_size), total=(len(generation_queries) + batch_size - 1)//batch_size):
             print(f'batch {i}')
             if concurrent:
@@ -387,7 +380,7 @@ class LLMModel():
                         self.engine,
                         self.temperature,
                         self.max_tokens,
-                        stop_token=self.inter_example_sep
+                        stop_token=self.stop_str
                     )
                 )
             else:
@@ -400,15 +393,14 @@ class LLMModel():
                     self.engine,
                     self.temperature,
                     self.max_tokens,
-                    stop_token=self.inter_example_sep
+                    stop_token=self.stop_str
                 )
-            print('C3')
             async_responses.extend(batch_responses)
         
         solutions = []
         usage = 0
         finish_reason_stop = 0
-        print('C4')
+        # print('first response:', async_responses[0])
         for response in async_responses:
             if "gpt" in self.engine:
                 solutions.append(response['choices'][0]['message']['content'].strip())
