@@ -7,15 +7,15 @@ import openai
 from openai.openai_response import OpenAIResponse
 import asyncio
 import backoff
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List, Union, Tuple
 from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
-
+import json
 import numpy as np
 import torch
 from tqdm import tqdm
 
-VICUNA_MODEL_PATH = "/home/ubuntu/vicuna_weights/13B"
+VICUNA_MODEL_PATH = "/data4/dnathani/vicuna_weights/13B"
 ALPACA_MODEL_PATH = "/data4/dnathani/alpaca-7b"
 CODEX = "code-davinci-002"
 GPT3 = "text-davinci-002"
@@ -185,9 +185,232 @@ class LLMFeedback(Feedback):
 
 class OSModel():
     """This class is meant to implement common functions to call all Open-source based LLMs. These common functions include make_query, __call__, setup_prompt_from_examples_file, load_model"""
-    pass
+    def __init__(self,
+        prompt_examples: str = None,
+        engine: str = "vicuna", 
+        system_message: str = None,
+        question_prefix: str = "# Q: ",
+        answer_prefix: str = "# solution using Python:\n",
+        stop_str: str = "\n\n",
+        intra_example_sep: str = "\n",
+        inter_example_sep: str = "\n\n",
+        model_device: str = "cuda",
+        cuda_visible_devices: str = "0,1,2",
+        max_gpu_memory: int = None,
+        load_8bit: bool = False,
+        cpu_offloading: bool = False,
+        debug: bool = False,
+        temperature: float = 0.0, 
+        max_tokens: int = 600,
+    ):
+        self.system_message = system_message
+        self.max_tokens = max_tokens
+        self.stop_str = stop_str
+        self.setup_prompt_from_examples_file(prompt_examples)
+        self.question_prefix=question_prefix
+        self.answer_prefix=answer_prefix
+        self.intra_example_sep=intra_example_sep
+        self.inter_example_sep=inter_example_sep
+        self.engine=engine
+        self.temperature=temperature
+        self.model_path = None
+        if engine == "vicuna":
+            self.model_path = VICUNA_MODEL_PATH
+        elif engine == "alpaca":
+            self.model_path = ALPACA_MODEL_PATH
+        else:
+            raise ValueError("Model name {engine} not supported. Choose between vicuna and alpaca")
+        
+        os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
+        print(os.environ["CUDA_VISIBLE_DEVICES"])
+        num_gpus = len(cuda_visible_devices.strip().split(","))
+
+        if max_gpu_memory is None:
+            max_gpu_memory = str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
+
+        self.model, self.tokenizer = load_model(
+            self.model_path,
+            model_device,
+            num_gpus,
+            max_gpu_memory,
+            load_8bit,
+            cpu_offloading,
+            debug
+        )
+
+    def setup_prompt_from_examples_file(self, prompt_examples: str, **kwargs) -> str:
+        if prompt_examples is None:
+            return None
+        elif not os.path.exists(prompt_examples):
+            raise FileNotFoundError(f"Prompt examples file {prompt_examples} not found.")
+        elif prompt_examples.endswith(".json"):
+            with open(prompt_examples, "r") as f:
+                examples = json.load(f)
+            self.prompt = "\n\n".join([f"{self.question_prefix}{example['question']}{self.intra_example_sep}{self.answer_prefix}{example['solution']}" for example in examples])
+            if (self.system_message is not None) and (len(self.system_message) > 0):
+                self.prompt = f"{self.system_message}\n\n{self.prompt}"
+        else:
+            with open(prompt_examples, "r") as f:
+                self.prompt = f.read()
+    
+    def make_query(self, solution:str = None, **kwargs) -> str:
+        solution = solution.strip()
+        query = f"{self.prompt}{self.inter_example_sep}{self.question_prefix}{solution}{self.intra_example_sep}{self.answer_prefix}"
+        return query 
+    
+    def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> str:
+        generation_queries = [self.make_query(solution) for solution in solutions]
+        entire_outputs = []
+
+        for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
+            input_ids = self.tokenizer([generation_queries[i]]).input_ids
+            input_ids = torch.as_tensor(input_ids).to(self.model.device)
+            with torch.no_grad():
+                if self.temperature == 0.0:
+                    output_ids = self.model.generate(
+                        input_ids,
+                        do_sample=False,
+                        max_new_tokens=self.max_tokens
+                    )
+                else:
+                    output_ids = self.model.generate(
+                        input_ids,
+                        do_sample=True,
+                        temperature=self.temperature,
+                        max_new_tokens=self.max_tokens
+                    )
+
+            if self.model.config.is_encoder_decoder:
+                # print('is encoder decoder')
+                output_ids = output_ids[0]
+            else:
+                output_ids = output_ids[0][len(input_ids[0]):]
+            print('output tokens', len(output_ids))
+            output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
+            if self.stop_str in output:
+                output = output.split(self.stop_str)[0].strip()
+
+            entire_outputs.append(output)
+            del input_ids
+            del output_ids
+        torch.cuda.empty_cache()
+        solutions = []
+        for entire_output in entire_outputs:
+            if self.stop_str in entire_output:
+                entire_output = entire_output.split(self.stop_str)[0].strip()
+            solution = ""
+            if "def solution():" in entire_output:
+                solution = entire_output.split("def solution():")[1]
+                solution = "def solution():" + solution.rstrip()
+            print('raw output length:', len(entire_output)))
+            print('solution length', len(solution))
+            print('cut output length:', len(self.tokenizer(solution)[0]))
+            solutions.append(solution)
+        return solutions
 
 class LLMModel():
+    def __init__(self, 
+                prompt_examples: str = None, 
+                engine: str = 'text-davinci-003', 
+                system_message: str = None,
+                question_prefix: str = "# Q: ",
+                answer_prefix: str = "# solution using Python:\n",
+                stop_str: str = "\n\n",
+                intra_example_sep: str = "\n",
+                inter_example_sep: str = "\n\n",
+                temperature: float = 0.0, 
+                max_tokens: int = 600) -> None:
+        self.system_message = system_message
+        self.question_prefix=question_prefix
+        self.answer_prefix=answer_prefix
+        self.intra_example_sep=intra_example_sep
+        self.inter_example_sep=inter_example_sep
+        stop_str = stop_str
+        self.engine=engine
+        self.temperature=temperature
+        self.max_tokens = max_tokens
+        self.setup_prompt_from_examples_file(prompt_examples)
+    ''' creates prompt template from file of few shot examples
+    Sets up prompts in the format:
+        <system_message>
+        ...
+        <question_prefix><question><intra_example_sep><answer_prefix><answer><inter_example_sep>
+        ...
+    '''
+    def setup_prompt_from_examples_file(self, prompt_examples) -> str:
+        if prompt_examples is None:
+            return None
+        elif not os.path.exists(prompt_examples):
+            raise FileNotFoundError(f"Prompt examples file {prompt_examples} not found.")
+        elif prompt_examples.endswith(".json"):
+            with open(prompt_examples, "r") as f:
+                examples = json.load(f)
+            print(self.inter_example_sep)
+            print(type(self.inter_example_sep))
+            self.prompt = self.inter_example_sep.join([f"{self.question_prefix}{example['question']}{self.intra_example_sep}{self.answer_prefix}{example['solution']}" for example in examples])
+            if (self.system_message is not None) and (len(self.system_message) > 0):
+                self.prompt = f"{self.system_message}\n\n{self.prompt}"
+        else:
+            with open(prompt_examples, "r") as f:
+                self.prompt = f.read()
+        return self.prompt
+        
+    def make_query(self, solution: str) -> str:
+        solution = solution.strip()
+        query = f"{self.prompt}{self.inter_example_sep}{self.question_prefix}{solution}{self.intra_example_sep}{self.answer_prefix}"
+        return query
+
+    def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> Tuple[int, List[str]]:
+        generation_queries = [self.make_query(solution) for solution in solutions]
+        # print("initial generation query 0:\n", generation_queries[0])
+        # print("initial generation query 1:\n", generation_queries[1])
+        if not concurrent:
+            batch_size = 1
+        print('C1')
+        async_responses = []
+        print('C2')
+        for i in tqdm(range(0, len(generation_queries), batch_size), total=(len(generation_queries) + batch_size - 1)//batch_size):
+            print(f'batch {i}')
+            if concurrent:
+                batch_responses = asyncio.run(
+                    acall_gpt(
+                        generation_queries[i:i+batch_size],
+                        self.engine,
+                        self.temperature,
+                        self.max_tokens,
+                        stop_token=self.inter_example_sep
+                    )
+                )
+            else:
+                # print(f"{i}th generation_query:\n{generation_queries[i:i+batch_size]}")
+                # print(self.engine)
+                # print(self.temperature)
+                # print(self.max_tokens)
+                batch_responses = call_gpt(
+                    generation_queries[i:i+batch_size],
+                    self.engine,
+                    self.temperature,
+                    self.max_tokens,
+                    stop_token=self.inter_example_sep
+                )
+            print('C3')
+            async_responses.extend(batch_responses)
+        
+        solutions = []
+        usage = 0
+        finish_reason_stop = 0
+        print('C4')
+        for response in async_responses:
+            if "gpt" in self.engine:
+                solutions.append(response['choices'][0]['message']['content'].strip())
+                usage += response['usage']['total_tokens']
+                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
+            elif "text-davinci" in self.engine:
+                solutions.append(response['choices'][0]['text'].strip())
+                usage += response['usage']['total_tokens']
+                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
+        print(f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(async_responses)}")
+        return solutions
     """This class is meant to implement common functions to call all API based LLMs. These common functions include make_query, __call__, and setup_prompt_from_examples_file"""
     pass
 
@@ -392,6 +615,8 @@ async def acall_gpt(
             )
             for query in queries
         ]
+    else:
+        raise ValueError(f"Unknown engine: {engine}")
 
     return await asyncio.gather(*async_responses)
 
