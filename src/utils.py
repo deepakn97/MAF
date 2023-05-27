@@ -319,7 +319,8 @@ class LLMModel():
                 intra_example_sep: str = "\n",
                 inter_example_sep: str = "\n\n",
                 temperature: float = 0.0, 
-                max_tokens: int = 600) -> None:
+                max_tokens: int = 600,
+                openai_api_key: str = None) -> None:
         self.system_message = system_message
         self.question_prefix=question_prefix
         self.answer_prefix=answer_prefix
@@ -330,6 +331,14 @@ class LLMModel():
         self.temperature=temperature
         self.max_tokens = max_tokens
         self.setup_prompt_from_examples_file(prompt_examples)
+        if openai_api_key is None:
+            try:
+                openai.api_key = os.environ.get("OPENAI_API_KEY")
+            except:
+                raise ValueError("OpenAI API key not found. Please set OPENAI_API_KEY environment variable or pass it as an argument.")
+        else:
+            openai.api_key = openai_api_key
+        
     ''' creates prompt template from file of few shot examples
     Sets up prompts in the format:
         <system_message>
