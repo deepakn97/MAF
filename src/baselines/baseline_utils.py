@@ -7,7 +7,7 @@ from langchain.prompts import FewShotPromptTemplate, PromptTemplate, HumanMessag
 from langchain.schema import HumanMessage
 from io import StringIO
 from contextlib import redirect_stdout
-from src.utils import Prompt, acall_gpt, call_gpt, VICUNA_MODEL_PATH, ALPACA_MODEL_PATH, get_gpu_memory
+from src.utils import Prompt, acall_gpt, call_gpt, VICUNA_MODEL_PATH, ALPACA_MODEL_PATH, OSModel, LLMModel
 from langchain.chat_models import ChatOpenAI
 from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
@@ -24,147 +24,75 @@ from time import sleep
 
 OS_MODELS = ["vicuna", "alpaca"]
 OPENAI_MODELS = ["gpt-3.5-turbo", "text-davinci-003"]
-TASKS = ['0cot_gsm', '1cot_gsm', '4cot_gsm', 'pot_gsm', 'ltm_gsm', 'entailment']
+TASKS = ['gsm_baseline', 'entailment_baseline']
+PROMPTS = ['0cot_gsm', '1cot_gsm', '4cot_gsm', 'pot_gsm', 'ltm_gsm', '3shot_entailment']
 
-class OSModel(Prompt):
-    def __init__(self,
-        prompt_examples: str = None,
-        engine: str = "vicuna", 
-        question_prefix: str = "# Q: ",
-        intra_example_sep: str = "\n\n",
-        inter_example_sep: str = "\n\n",
-        answer_prefix: str = "# A:",
-        model_device: str = "cuda",
-        cuda_visible_devices: str = "0, 1",
-        max_gpu_memory: int = None,
-        load_8bit: bool = False,
-        cpu_offloading: bool = False,
-        debug: bool = False,
-        temperature: float = 0.0, 
-        max_tokens: int = 750,
+class BaselineWrapper:
+    def __init__(
+        self,
+        engine: str = 'text-davinci-003',
+        task: str = 'gsm_baseline',
+        prompt: str = 'pot_gsm',
+        data_dir: str = None,
+        save_dir: str = 'src/baselines/models',
+        llm = None,
+        **kwargs
     ):
-        super().__init__(
-            question_prefix=question_prefix,
-            answer_prefix=answer_prefix,
-            intra_example_sep=intra_example_sep,
-            inter_example_sep=inter_example_sep,
-            engine=engine,
-            temperature=temperature
-        )
-        self.max_tokens = max_tokens
-        self.prompt = ''
-
-        self.model_path = None
-        if engine == "vicuna":
-            self.model_path = VICUNA_MODEL_PATH
-        elif engine == "alpaca":
-            self.model_path = ALPACA_MODEL_PATH
+        if (task not in TASKS):
+            raise ValueError(f"Invalid task {task}")
+        if (prompt not in PROMPTS):
+            raise ValueError(f"Invalid prompt {prompt}")
+        if llm is not None:
+            self.llm = llm
         else:
-            raise ValueError(f'Model name {engine} not supported. Choose between vicuna and alpaca')
-        
-        os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
-        print(os.environ["CUDA_VISIBLE_DEVICES"])
-        num_gpus = len(cuda_visible_devices.strip().split(","))
-
-        if max_gpu_memory is None:
-            max_gpu_memory = str(int(math.ceil(get_gpu_memory(num_gpus) * 0.8))) + "GiB"
-
-        self.model, self.tokenizer = load_model(
-            self.model_path,
-            model_device,
-            num_gpus,
-            max_gpu_memory,
-            load_8bit,
-            cpu_offloading,
-            debug
-        )
-
-    def setup_prompt_from_examples_file(self, examples_path: str, **kwargs) -> str:
-        with open(examples_path, "r") as f:
-            self.prompt = f.read()
-    
-    def make_query(self, solution:str = None, **kwargs) -> str:
-        query = f"""{self.prompt}{solution}{self.inter_example_sep}"""
-        return query 
-    
-    
-
-
-    async def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> str:
-        generation_queries = [self.make_query(solution) for solution in solutions]
-        async_responses = []
-        eos_token = "USER:"
-        eos_token_id = self.tokenizer.encode(eos_token, add_special_tokens=False)[0]
-        for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
-            # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
-            # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
-            # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
-
-
-            # time how long tokenizing takes
-            input_ids = self.tokenizer([generation_queries[i]]).input_ids
-            print('len input_ids', len(input_ids))
-            print('len input_ids[0]', len(input_ids[0]))
-            input_ids = torch.as_tensor(input_ids).to(self.model.device)
-            
-            # time how long generation takes
-            # add eos token 'USER: ' to stop Vicuna from generating user responses to continue conversation
-            with torch.no_grad():
-                output_ids = self.model.generate(
-                    input_ids,
-                    do_sample=True,
-                    temperature=self.temperature,
-                    max_new_tokens=self.max_tokens,
-                    early_stopping=True,
-                    eos_token_id=eos_token_id,
-
+            if (engine in OS_MODELS):
+                self.llm = OSModel(
+                    engine = self.engine,
+                    **kwargs
                 )
-
-            if self.model.config.is_encoder_decoder:
-                output_ids = output_ids[0]
+            elif (engine in OPENAI_MODELS):
+                self.llm = LLMModel(
+                    engine = self.engine,
+                    **kwargs
+                )
             else:
-                output_ids = output_ids[0][len(input_ids[0]):]
-            
-            # time how long decoding takes
-            output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
-            async_responses.append(output)
-            del input_ids
-            del output_ids
-        torch.cuda.empty_cache()
-        return async_responses
-    def clear_cache(self):
-        with torch.no_grad():
-            torch.cuda.empty_cache()
-        
+                raise ValueError(f"Invalid engine {engine}")
+        if (task not in TASKS):
+            raise ValueError(f"Invalid task {task}")
+        if (prompt not in PROMPTS):
+            raise ValueError(f"Invalid prompt {prompt}")
+        if data_dir is None:
+            if (task == 'gsm_baseline'):
+                data_dir = 'src/gsm_data'
+            elif (task == 'entailment_baseline'):
+                data_dir = 'src/entailment_data/baseline_data'
+        self.save_dir = save_dir
+        self.results_filepaths = []
+    def run(self):
+        pass
+    def parse_answers(self):
+        pass
+    def grade_answer(self):
+        pass
 
-class OpenAIWrapper:
-    def __init__(self, model_name, **kwargs):
-        if (model_name not in OPENAI_MODELS):
-            raise Exception('Model not supported')
-        if (model_name == 'gpt-3.5-turbo'):
-            self.llm = ChatOpenAI(model_name = model_name, **kwargs)
-        elif(model_name == 'text-davinci-003'):
-            self.llm = OpenAI(model_name = model_name, **kwargs)
-        self.model_name = model_name
-    async def __call__(self, prompts):
-        if (self.model_name == 'gpt-3.5-turbo'):
-            # convert each prompt into a HumanMessage
-            prompts = [[HumanMessage(content=prompt)] for prompt in prompts]
-            print(prompts)
-        outputs = [self.async_generate_answer(prompt) for prompt in prompts]
-        return await asyncio.gather(*outputs)
-    async def async_generate_answer(self, prompt):
-        success = False
-        while not success:
-            try:
-                output = await self.llm.agenerate([prompt])
-                success = True
-            except Exception as e:
-                print(e)
-                print(f'API server overloaded. Waiting for 30 seconds...')
-                sleep(30)
-                continue
-        return output.generations[0][0].text
+def parse_problem(problem_dict, task):
+    if task not in TASKS:
+        raise ValueError(f"Invalid task {task}")
+    if (task == 'gsm_baseline'):
+        return problem_dict['input']
+    elif (task == 'entailment_baseline'):
+        p = 'Hypothesis: ' + problem_dict['hypothesis'] + '\n\n' + 'Text:'
+        for sent, text in problem_dict['meta']['triples'].items():
+            p += '\n' + sent + ': ' + text
+    
+
+
+
+
+
+
+
+
 
 
 
