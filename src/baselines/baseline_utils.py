@@ -20,6 +20,7 @@ from src.utils import (
     ALPACA_MODEL_PATH,
     OSModel,
     LLMModel,
+    Logger,
 )
 from langchain.chat_models import ChatOpenAI
 from fastchat.model.model_adapter import get_conversation_template
@@ -34,7 +35,7 @@ from tqdm import tqdm
 from src.gsm_iter.gsm_selfref_eval import check_corr
 import asyncio
 from time import sleep
-from typing import List, Dict, Union, Iterable
+from typing import List, Dict, Union, Iterable, Tuple
 
 OS_MODELS = ["vicuna", "alpaca"]
 OPENAI_MODELS = ["gpt-3.5-turbo", "text-davinci-003"]
@@ -90,8 +91,9 @@ class BaselineWrapper:
             self.data_dir = data_dir
         self.save_dir = save_dir
         self.results_filepaths = []
+        self.logger = Logger("baseline_log.txt")
 
-    def run(self, batch_size=None):
+    def run(self, parse=True, grade=True, batch_size=None):
         prompt_file = f"prompt/{self.task}/{self.prompt}.json"
         self.llm.setup_prompt_from_examples_file(prompt_file)
         save_dir = os.path.join(
@@ -103,6 +105,10 @@ class BaselineWrapper:
             if not data_file.endswith(".jsonl"):
                 continue
             data = load_jsonl(os.path.join(self.data_dir, data_file))
+            self.logger.log(f"Running {data_file}")
+            self.logger.log(
+                "Example prompt", self.llm.make_query(parse_problem(data[0], self.task))
+            )
             save_file = os.path.join(
                 save_dir, data_file.replace(".jsonl", "_results.json")
             )
@@ -128,42 +134,83 @@ class BaselineWrapper:
                     with open(save_file, "w") as f:
                         f.write(json.dumps(data, indent=4) + "\n")
             data = [{**d, "output": o} for d, o in zip(data, outputs)]
-            data = relevant_fields(data, self.task)
+            data = get_relevant_fields(data, self.task)
             with open(save_file, "w") as f:
                 f.write(json.dumps(data, indent=4) + "\n")
+        if parse:
+            self.parse_answers()
+        if grade:
+            self.grade_answers()
 
     def parse_answers(self):
         for filepath in self.results_filepaths:
-            parse_answers(filepath, self.task)
+            parse_answers(filepath, self.task, self.prompt)
 
     def grade_answers(self):
         for filepath in self.results_filepaths:
             grade_answers(filepath, self.task)
 
 
-def nested_get(d, keys):
-    # if keys is not iterable
-    if not isinstance(keys, Iterable):
-        return d[keys]
-    else:
-        # if keys is iterable
-        if len(keys) == 1:
-            return d[keys[0]]
+def eval_entailment(filepath):
+    # convert filepath to TSV
+    with open(filepath, "r") as f:
+        data = json.load(f)
+    data = [d["answer"] for d in data]
+    data = "\n".join(data)
+    tsv_filepath = filepath.replace(".json", ".tsv")
+    with open(tsv_filepath, "w") as f:
+        f.write(data)
+    # run eval script
+
+
+def nested_get_pair(d, keys, suppress_error=False):
+    try:
+        if not isinstance(keys, Iterable) or type(keys) == str:
+            return d[keys]
         else:
-            return nested_get(d[keys[0]], keys[1:])
+            if len(keys) == 1:
+                return d[keys[0]]
+            else:
+                res = nested_get_pair(d[keys[0]], keys[1:])
+                return res
+    except KeyError:
+        if suppress_error:
+            return None
+        else:
+            raise KeyError(f"Key {keys} not found in {d}")
 
 
-def relevant_fields(data, task):
+def resolve_tuple_keys(d):
+    if isinstance(d, dict):
+        items = list(d.items())
+        for k, v in items:
+            if isinstance(k, tuple):
+                if len(k) == 1:
+                    d[k[0]] = v
+                else:
+                    d[k[0]] = resolve_tuple_keys({k[1:]: v})
+                del d[k]
+            else:
+                d[k] = resolve_tuple_keys(v)
+    elif isinstance(d, list):
+        for i, v in enumerate(d):
+            d[i] = resolve_tuple_keys(v)
+    return d
+
+
+def get_relevant_fields(data, task):
     FIELDS = {
         "common": ["output", "answer", "correct"],
         "gsm_baseline": ["input", "target", "n_steps"],
-        "entailment_baseline": ["hypothesis", "solution", ("meta", "triples")],
+        "entailment_baseline": ["hypothesis", "solution", "proof", ("meta", "triples")],
     }
     if task not in TASKS:
         raise ValueError(f"Invalid task {task}")
     fields = FIELDS["common"] + FIELDS[task]
     try:
-        return [{k: nested_get(d, k) for k in fields} for d in data]
+        res = [{k: nested_get_pair(d, k, True) for k in fields} for d in data]
+        res = resolve_tuple_keys(res)
+        return res
     except KeyError as e:
         print(f"Key error when trying to parse {task} data. Missing key {e}")
 
@@ -216,15 +263,17 @@ def grade_answers(filepath, task, overwrite=True):
         )
     with open(filepath, "w") as f:
         f.write(json.dumps(data, indent=4) + "\n")
+    # return accuracy
+    return sum([d["correct"] for d in data]) / len(data)
 
 
-def parse_answers(filepath, task, overwrite=True):
+def parse_answers(filepath, task, prompt_technique, overwrite=True):
     with open(filepath, "r") as f:
         problems = json.load(f)
     for p in problems:
-        p["answer"] = parse_answer(p["output"], task)
+        p["answer"] = parse_answer(p["output"], task, prompt_technique)
     with open(filepath, "w") as f:
-        f.write(json.dumps(problems) + "\n")
+        f.write(json.dumps(problems, indent=4) + "\n")
 
 
 def load_jsonl(filepath):
@@ -315,17 +364,13 @@ def parse_program_answer(answer):
         return "undefined"
 
 
-def parse_answer(answer, task):
-    if task == "pot_gsm":
+def parse_answer(answer, task, prompt_technique):
+    if prompt_technique == "pot_gsm":
         return parse_program_answer(answer)
-    elif task == "entailment":
-        if answer.find("Entailment Tree:") == -1:
-            return "undefined"
-        else:
-            answer = answer[answer.find("Entailment Tree:") :]
+    elif prompt_technique == "3shot_entailment":
         answer = get_entailment_proof([answer])[0]
         # Split by lines, only take lines including and after 'Entailment Tree:'
-        return answer
+        return "$proof$ = " + answer
     else:
         answer_key = "final_answer: "
         if answer.find(answer_key) == -1:

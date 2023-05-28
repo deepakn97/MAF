@@ -1,5 +1,6 @@
 from typing import List
 
+
 def get_entailment_proof(generated_trees: List[str]) -> List[str]:
     proofs = []
     for tree in generated_trees:
@@ -9,8 +10,8 @@ def get_entailment_proof(generated_trees: List[str]) -> List[str]:
         for step in steps:
             if "->" in step:
                 step_split = step.split("->")
-                lhs = step_split[0].split(':')[0].strip()
-                lhs.replace("and", "&")
+                lhs = step_split[0].split(":")[0].strip()
+                lhs = lhs.replace("and", "&")
                 rhs = step_split[1].strip()
                 if "hypothesis" in rhs:
                     rhs = rhs.split(":")[0].strip()
