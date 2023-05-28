@@ -26,6 +26,7 @@ ENGINE = GPT35
 OPENAI_ENGINES = [CODEX, GPT3, GPT35, GPT3TURBO, GPT4]
 OS_ENGINES = ["vicuna", "alpaca"]
 
+
 class Prompt:
     def __init__(
         self,
@@ -44,17 +45,11 @@ class Prompt:
         self.temperature = temperature
 
     def make_query(self, prompt: str, question: str) -> str:
-        return (
-            f"{prompt}{self.question_prefix}{question}{self.intra_example_sep}{self.answer_prefix}"
-        )
+        return f"{prompt}{self.question_prefix}{question}{self.intra_example_sep}{self.answer_prefix}"
 
 
 class Feedback(metaclass=ABCMeta):
-    def __init__(
-        self,
-        name: str = "Feedback",
-        **kwargs
-    ):
+    def __init__(self, name: str = "Feedback", **kwargs):
         super().__init__(**kwargs)
         self.name = name
 
@@ -62,12 +57,14 @@ class Feedback(metaclass=ABCMeta):
     def __call__(self, solutions: List[str], **kwargs) -> Union[str, Dict[str, str]]:
         """Call the feedback module on the solution and return a feedback string or a dictionary of outputs."""
 
+
 class FeedbackFactory:
-    """ The factory class for feedback generation. """
+    """The factory class for feedback generation."""
+
     registry = {}
 
     @classmethod
-    def create_feedback(cls, name: str, **kwargs) -> 'Feedback':
+    def create_feedback(cls, name: str, **kwargs) -> "Feedback":
         feedback_class = cls.registry[name]
         feedback = feedback_class(**kwargs)
         return feedback
@@ -79,8 +76,10 @@ class FeedbackFactory:
                 print(f"Feedback {name} already exists. Will replace it.")
             cls.registry[name] = wrapped_class
             return wrapped_class
+
         return inner_wrapper
-    
+
+
 class LLMFeedback(Feedback):
     def __init__(
         self,
@@ -92,7 +91,7 @@ class LLMFeedback(Feedback):
         temperature: float = 0.0,
         max_tokens: int = 300,
         eager_refine: bool = False,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.engine = engine
@@ -108,11 +107,11 @@ class LLMFeedback(Feedback):
     def setup_prompt_from_examples_file(self, examples_path: str, **kwargs) -> str:
         with open(examples_path, "r") as f:
             self.prompt = f.read()
-    
+
     def make_query(self, solution: str, **kwargs) -> str:
         solution = f"""{solution}{self.intra_example_sep}{self.instruction}"""
         return f"{self.prompt}{solution}"
-    
+
     def process_outputs(self, outputs: List[str], **kwargs) -> List[str]:
         fb_and_solns = []
         for entire_output in outputs:
@@ -130,7 +129,7 @@ class LLMFeedback(Feedback):
             else:
                 feedback = fb_and_maybe_soln
                 solution = ""
-            
+
             fb_and_solns.append({"feedback": feedback, "solution": solution})
 
         return fb_and_solns
@@ -144,24 +143,27 @@ class LLMFeedback(Feedback):
         # print("Feedback solutions length: ", len(solutions))
         # print(len(generation_queries))
         # print(batch_size)
-        for i in tqdm(range(0, len(generation_queries), batch_size), total=len(generation_queries)//batch_size):
+        for i in tqdm(
+            range(0, len(generation_queries), batch_size),
+            total=len(generation_queries) // batch_size,
+        ):
             if concurrent:
                 batch_responses = asyncio.run(
                     acall_gpt(
-                        generation_queries[i:i+batch_size], 
-                        self.engine, 
-                        self.temperature, 
+                        generation_queries[i : i + batch_size],
+                        self.engine,
+                        self.temperature,
                         self.max_tokens,
-                        stop_token="### END"
+                        stop_token="### END",
                     )
                 )
             else:
                 batch_responses = call_gpt(
-                    generation_queries[i:i+batch_size],
+                    generation_queries[i : i + batch_size],
                     self.engine,
                     self.temperature,
                     self.max_tokens,
-                    stop_token="### END"
+                    stop_token="### END",
                 )
             async_responses.extend(batch_responses)
         entire_outputs = []
@@ -169,26 +171,33 @@ class LLMFeedback(Feedback):
         finish_reason_stop = 0
         for response in async_responses:
             if "gpt" in self.engine:
-                entire_outputs.append(response['choices'][0]['message']['content'].strip())
-                usage += response['usage']['total_tokens']
-                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
+                entire_outputs.append(
+                    response["choices"][0]["message"]["content"].strip()
+                )
+                usage += response["usage"]["total_tokens"]
+                finish_reason_stop += response["choices"][0]["finish_reason"] == "stop"
             elif "text-davinci" in self.engine:
-                entire_outputs.append(response['choices'][0]['text'].strip())
-                usage += response['usage']['total_tokens']
-                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
-        print(f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(async_responses)}")
-        
+                entire_outputs.append(response["choices"][0]["text"].strip())
+                usage += response["usage"]["total_tokens"]
+                finish_reason_stop += response["choices"][0]["finish_reason"] == "stop"
+        print(
+            f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(async_responses)}"
+        )
+
         fb_and_solns = self.process_outputs(entire_outputs)
         # print(entire_outputs)
 
         return usage, fb_and_solns
 
-class OSModel():
+
+class OSModel:
     """This class is meant to implement common functions to call all Open-source based LLMs. These common functions include make_query, __call__, setup_prompt_from_examples_file, load_model"""
-    def __init__(self,
+
+    def __init__(
+        self,
         prompt_examples: str = None,
-        engine: str = "vicuna", 
-        system_message: str = None,
+        engine: str = "vicuna",
+        instruction: str = None,
         question_prefix: str = "# Q: ",
         answer_prefix: str = "# solution using Python:\n",
         stop_str: str = "\n\n",
@@ -200,33 +209,37 @@ class OSModel():
         load_8bit: bool = False,
         cpu_offloading: bool = False,
         debug: bool = False,
-        temperature: float = 0.0, 
+        temperature: float = 0.0,
         max_tokens: int = 600,
     ):
-        self.system_message = system_message
+        self.instruction = instruction
         self.max_tokens = max_tokens
         self.stop_str = stop_str
         self.setup_prompt_from_examples_file(prompt_examples)
-        self.question_prefix=question_prefix
-        self.answer_prefix=answer_prefix
-        self.intra_example_sep=intra_example_sep
-        self.inter_example_sep=inter_example_sep
-        self.engine=engine
-        self.temperature=temperature
+        self.question_prefix = question_prefix
+        self.answer_prefix = answer_prefix
+        self.intra_example_sep = intra_example_sep
+        self.inter_example_sep = inter_example_sep
+        self.engine = engine
+        self.temperature = temperature
         self.model_path = None
         if engine == "vicuna":
             self.model_path = VICUNA_MODEL_PATH
         elif engine == "alpaca":
             self.model_path = ALPACA_MODEL_PATH
         else:
-            raise ValueError("Model name {engine} not supported. Choose between vicuna and alpaca")
-        
+            raise ValueError(
+                "Model name {engine} not supported. Choose between vicuna and alpaca"
+            )
+
         os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
         print(os.environ["CUDA_VISIBLE_DEVICES"])
         num_gpus = len(cuda_visible_devices.strip().split(","))
 
         if max_gpu_memory is None:
-            max_gpu_memory = str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
+            max_gpu_memory = (
+                str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
+            )
 
         self.model, self.tokenizer = load_model(
             self.model_path,
@@ -235,29 +248,36 @@ class OSModel():
             max_gpu_memory,
             load_8bit,
             cpu_offloading,
-            debug
+            debug,
         )
 
     def setup_prompt_from_examples_file(self, prompt_examples: str, **kwargs) -> str:
         if prompt_examples is None:
             return None
         elif not os.path.exists(prompt_examples):
-            raise FileNotFoundError(f"Prompt examples file {prompt_examples} not found.")
+            raise FileNotFoundError(
+                f"Prompt examples file {prompt_examples} not found."
+            )
         elif prompt_examples.endswith(".json"):
             with open(prompt_examples, "r") as f:
                 examples = json.load(f)
-            self.prompt = "\n\n".join([f"{self.question_prefix}{example['question']}{self.intra_example_sep}{self.answer_prefix}{example['solution']}" for example in examples])
-            if (self.system_message is not None) and (len(self.system_message) > 0):
-                self.prompt = f"{self.system_message}\n\n{self.prompt}"
+            self.prompt = "\n\n".join(
+                [
+                    f"{self.question_prefix}{example['question']}{self.intra_example_sep}{self.answer_prefix}{example['solution']}"
+                    for example in examples
+                ]
+            )
+            if (self.instruction is not None) and (len(self.instruction) > 0):
+                self.prompt = f"{self.instruction}\n\n{self.prompt}"
         else:
             with open(prompt_examples, "r") as f:
                 self.prompt = f.read()
-    
-    def make_query(self, solution:str = None, **kwargs) -> str:
+
+    def make_query(self, solution: str = None, **kwargs) -> str:
         solution = solution.strip()
         query = f"{self.prompt}{self.inter_example_sep}{self.question_prefix}{solution}{self.intra_example_sep}{self.answer_prefix}"
-        return query 
-    
+        return query
+
     def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> str:
         generation_queries = [self.make_query(solution) for solution in solutions]
         entire_outputs = []
@@ -268,25 +288,27 @@ class OSModel():
             with torch.no_grad():
                 if self.temperature == 0.0:
                     output_ids = self.model.generate(
-                        input_ids,
-                        do_sample=False,
-                        max_new_tokens=self.max_tokens
+                        input_ids, do_sample=False, max_new_tokens=self.max_tokens
                     )
                 else:
                     output_ids = self.model.generate(
                         input_ids,
                         do_sample=True,
                         temperature=self.temperature,
-                        max_new_tokens=self.max_tokens
+                        max_new_tokens=self.max_tokens,
                     )
 
             if self.model.config.is_encoder_decoder:
                 # print('is encoder decoder')
                 output_ids = output_ids[0]
             else:
-                output_ids = output_ids[0][len(input_ids[0]):]
-            print('output tokens', len(output_ids))
-            output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
+                output_ids = output_ids[0][len(input_ids[0]) :]
+            print("output tokens", len(output_ids))
+            output = self.tokenizer.decode(
+                output_ids,
+                skip_special_tokens=True,
+                spaces_between_special_tokens=False,
+            )
             if self.stop_str in output:
                 output = output.split(self.stop_str)[0].strip()
 
@@ -305,82 +327,100 @@ class OSModel():
             solutions.append(solution)
         return solutions
 
-class LLMModel():
-    def __init__(self, 
-                prompt_examples: str = None, 
-                engine: str = 'text-davinci-003', 
-                system_message: str = None,
-                question_prefix: str = "# Q: ",
-                answer_prefix: str = "# solution using Python:\n",
-                stop_str: str = "\n\n",
-                intra_example_sep: str = "\n",
-                inter_example_sep: str = "\n\n",
-                temperature: float = 0.0, 
-                max_tokens: int = 600,
-                openai_api_key: str = None) -> None:
-        self.system_message = system_message
-        self.question_prefix=question_prefix
-        self.answer_prefix=answer_prefix
-        self.intra_example_sep=intra_example_sep
-        self.inter_example_sep=inter_example_sep
+
+class LLMModel:
+    def __init__(
+        self,
+        prompt_examples: str = None,
+        engine: str = "text-davinci-003",
+        instruction: str = None,
+        question_prefix: str = "# Q: ",
+        answer_prefix: str = "# solution using Python:\n",
+        stop_str: str = "\n\n",
+        intra_example_sep: str = "\n",
+        inter_example_sep: str = "\n\n",
+        temperature: float = 0.0,
+        max_tokens: int = 600,
+        openai_api_key: str = None,
+    ) -> None:
+        self.instruction = instruction
+        self.question_prefix = question_prefix
+        self.answer_prefix = answer_prefix
+        self.intra_example_sep = intra_example_sep
+        self.inter_example_sep = inter_example_sep
         self.stop_str = stop_str
-        self.engine=engine
-        self.temperature=temperature
+        self.engine = engine
+        self.temperature = temperature
         self.max_tokens = max_tokens
         self.setup_prompt_from_examples_file(prompt_examples)
         if openai_api_key is None:
             try:
                 openai.api_key = os.environ.get("OPENAI_API_KEY")
             except:
-                raise ValueError("OpenAI API key not found. Please set OPENAI_API_KEY environment variable or pass it as an argument.")
+                raise ValueError(
+                    "OpenAI API key not found. Please set OPENAI_API_KEY environment variable or pass it as an argument."
+                )
         else:
             openai.api_key = openai_api_key
-        
-    ''' creates prompt template from file of few shot examples
+
+    """ creates prompt template from file of few shot examples
     Sets up prompts in the format:
-        <system_message>
+        <instruction>
         ...
         <question_prefix><question><intra_example_sep><answer_prefix><answer><inter_example_sep>
         ...
-    '''
+    """
+
     def setup_prompt_from_examples_file(self, prompt_examples) -> str:
         if prompt_examples is None:
             return None
         elif not os.path.exists(prompt_examples):
-            raise FileNotFoundError(f"Prompt examples file {prompt_examples} not found.")
+            raise FileNotFoundError(
+                f"Prompt examples file {prompt_examples} not found."
+            )
         elif prompt_examples.endswith(".json"):
             with open(prompt_examples, "r") as f:
                 examples = json.load(f)
             print(self.inter_example_sep)
             print(type(self.inter_example_sep))
-            self.prompt = self.inter_example_sep.join([f"{self.question_prefix}{example['question']}{self.intra_example_sep}{self.answer_prefix}{example['solution']}" for example in examples])
-            if (self.system_message is not None) and (len(self.system_message) > 0):
-                self.prompt = f"{self.system_message}\n\n{self.prompt}"
+            self.prompt = self.inter_example_sep.join(
+                [
+                    f"{self.question_prefix}{example['question']}{self.intra_example_sep}{self.answer_prefix}{example['solution']}"
+                    for example in examples
+                ]
+            )
+            if (self.instruction is not None) and (len(self.instruction) > 0):
+                self.prompt = f"{self.instruction}\n\n{self.prompt}"
         else:
             with open(prompt_examples, "r") as f:
                 self.prompt = f.read()
         return self.prompt
-        
+
     def make_query(self, solution: str) -> str:
         solution = solution.strip()
         query = f"{self.prompt}{self.inter_example_sep}{self.question_prefix}{solution}{self.intra_example_sep}{self.answer_prefix}"
         return query
 
-    def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> Tuple[int, List[str]]:
+    def __call__(
+        self, solutions: List[str], batch_size=10, concurrent=True
+    ) -> List[str]:
         generation_queries = [self.make_query(solution) for solution in solutions]
         if not concurrent:
             batch_size = 1
         async_responses = []
-        for i in tqdm(range(0, len(generation_queries), batch_size), total=(len(generation_queries) + batch_size - 1)//batch_size):
-            print(f'batch {i}')
+        for i in tqdm(
+            range(0, len(generation_queries), batch_size),
+            total=(len(generation_queries) + batch_size - 1) // batch_size,
+        ):
+            print(f"batch {i}")
             if concurrent:
                 batch_responses = asyncio.run(
                     acall_gpt(
-                        generation_queries[i:i+batch_size],
+                        generation_queries[i : i + batch_size],
                         self.engine,
                         self.temperature,
                         self.max_tokens,
-                        stop_token=self.stop_str
+                        stop_token=self.stop_str,
                     )
                 )
             else:
@@ -389,36 +429,40 @@ class LLMModel():
                 # print(self.temperature)
                 # print(self.max_tokens)
                 batch_responses = call_gpt(
-                    generation_queries[i:i+batch_size],
+                    generation_queries[i : i + batch_size],
                     self.engine,
                     self.temperature,
                     self.max_tokens,
-                    stop_token=self.stop_str
+                    stop_token=self.stop_str,
                 )
             async_responses.extend(batch_responses)
-        
+
         solutions = []
         usage = 0
         finish_reason_stop = 0
         # print('first response:', async_responses[0])
         for response in async_responses:
             if "gpt" in self.engine:
-                solutions.append(response['choices'][0]['message']['content'].strip())
-                usage += response['usage']['total_tokens']
-                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
+                solutions.append(response["choices"][0]["message"]["content"].strip())
+                usage += response["usage"]["total_tokens"]
+                finish_reason_stop += response["choices"][0]["finish_reason"] == "stop"
             elif "text-davinci" in self.engine:
-                solutions.append(response['choices'][0]['text'].strip())
-                usage += response['usage']['total_tokens']
-                finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
-        print(f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(async_responses)}")
+                solutions.append(response["choices"][0]["text"].strip())
+                usage += response["usage"]["total_tokens"]
+                finish_reason_stop += response["choices"][0]["finish_reason"] == "stop"
+        print(
+            f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(async_responses)}"
+        )
         return solutions
+
     """This class is meant to implement common functions to call all API based LLMs. These common functions include make_query, __call__, and setup_prompt_from_examples_file"""
     pass
+
 
 class OSFeedback(Feedback):
     def __init__(
         self,
-        engine: str = "vicuna", 
+        engine: str = "vicuna",
         question_prefix: str = "# Q: ",
         intra_example_sep: str = "\n\n",
         inter_example_sep: str = "### END ###",
@@ -430,9 +474,9 @@ class OSFeedback(Feedback):
         load_8bit: bool = False,
         cpu_offloading: bool = False,
         debug: bool = False,
-        temperature: float = 0.0, 
+        temperature: float = 0.0,
         max_tokens: int = 300,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.engine = engine
@@ -451,14 +495,18 @@ class OSFeedback(Feedback):
         elif engine == "alpaca":
             self.model_path = ALPACA_MODEL_PATH
         else:
-            raise ValueError("Model name {engine} not supported. Choose between vicuna and alpaca")
-        
+            raise ValueError(
+                "Model name {engine} not supported. Choose between vicuna and alpaca"
+            )
+
         os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
         num_gpus = len(cuda_visible_devices.strip().split(","))
 
         # cap gpu memory usage to 60% for the model
         if max_gpu_memory is None:
-            max_gpu_memory = str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
+            max_gpu_memory = (
+                str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
+            )
 
         self.model, self.tokenizer = load_model(
             self.model_path,
@@ -467,22 +515,23 @@ class OSFeedback(Feedback):
             max_gpu_memory,
             load_8bit,
             cpu_offloading,
-            debug
+            debug,
         )
 
     def setup_prompt_from_examples_file(self, examples_path: str, **kwargs) -> str:
         with open(examples_path, "r") as f:
             self.prompt = f.read()
-    
-    def make_query(self,
-        solution:str = None, 
+
+    def make_query(
+        self,
+        solution: str = None,
     ) -> str:
         query = f"""{self.prompt}{solution}{self.intra_example_sep}{self.instruction}"""
         # conv = get_conversation_template(self.model_path)
         # conv.append_message(conv.roles[0], query)
         # conv.append_message(conv.roles[1], None)
         # query = conv.get_prompt()
-        return query 
+        return query
 
     def process_outputs(self, outputs: List[str]) -> List[str]:
         """Implementation for processing outputs from the model. This function is meant to be overriden by subclasses for different datasets."""
@@ -502,12 +551,14 @@ class OSFeedback(Feedback):
             else:
                 feedback = fb_and_maybe_soln
                 solution = ""
-            
+
             fb_and_solns.append({"feedback": feedback, "solution": solution})
 
         return fb_and_solns
 
-    def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> List[str]:
+    def __call__(
+        self, solutions: List[str], batch_size=10, concurrent=True
+    ) -> List[str]:
         generation_queries = [self.make_query(solution) for solution in solutions]
         entire_outputs = []
 
@@ -519,25 +570,27 @@ class OSFeedback(Feedback):
             with torch.no_grad():
                 if self.temperature == 0.0:
                     output_ids = self.model.generate(
-                        input_ids,
-                        do_sample=False,
-                        max_new_tokens=self.max_tokens
+                        input_ids, do_sample=False, max_new_tokens=self.max_tokens
                     )
                 else:
                     output_ids = self.model.generate(
                         input_ids,
                         do_sample=True,
                         temperature=self.temperature,
-                        max_new_tokens=self.max_tokens
+                        max_new_tokens=self.max_tokens,
                     )
 
             if self.model.config.is_encoder_decoder:
                 output_ids = output_ids[0]
             else:
-                output_ids = output_ids[0][len(input_ids[0]):]
+                output_ids = output_ids[0][len(input_ids[0]) :]
             print(f"Output tokens: {len(output_ids)}")
-            
-            output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
+
+            output = self.tokenizer.decode(
+                output_ids,
+                skip_special_tokens=True,
+                spaces_between_special_tokens=False,
+            )
             entire_outputs.append(output)
             del input_ids
             del output_ids
@@ -547,49 +600,61 @@ class OSFeedback(Feedback):
 
         return fb_and_solns
 
+
 class Logger(object):
     def __init__(self, output_name):
         dirname = os.path.dirname(output_name)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
 
-        self.log_file = open(output_name, 'w')
+        self.log_file = open(output_name, "w")
         self.infos = {}
 
     def append(self, key, val):
         vals = self.infos.setdefault(key, [])
         vals.append(val)
 
-    def log(self, extra_msg=''):
+    def log(self, extra_msg=""):
         msgs = [extra_msg]
         for key, vals in self.infos.items():
-            msgs.append('%s %.6f' % (key, np.mean(vals)))
-        msg = '\n'.join(msgs)
-        self.log_file.write(msg + '\n')
+            msgs.append("%s %.6f" % (key, np.mean(vals)))
+        msg = "\n".join(msgs)
+        self.log_file.write(msg + "\n")
         self.log_file.flush()
         self.infos = {}
         return msg
 
     def write(self, msg):
-        self.log_file.write(str(msg) + '\n')
+        self.log_file.write(str(msg) + "\n")
         self.log_file.flush()
         print(msg)
 
+
 def parse_feedback(feedback):
     feedback = feedback.split("\n\n")
-    feedback = [f.rstrip() for f in feedback if '# looks good' not in f.strip().lower()]
+    feedback = [f.rstrip() for f in feedback if "# looks good" not in f.strip().lower()]
     return "\n\n".join(feedback)
 
-def backoff_handler(details):
-    print(f"Try: {details['tries']}, waiting {details['wait']} because: {details['exception']}")
 
-@backoff.on_exception(backoff.expo, Exception, max_tries=20, raise_on_giveup=False, on_backoff=backoff_handler)
+def backoff_handler(details):
+    print(
+        f"Try: {details['tries']}, waiting {details['wait']} because: {details['exception']}"
+    )
+
+
+@backoff.on_exception(
+    backoff.expo,
+    Exception,
+    max_tries=20,
+    raise_on_giveup=False,
+    on_backoff=backoff_handler,
+)
 async def acall_gpt(
-    queries: List[str], 
-    engine: str = "text-davinci-002", 
-    temperature: float = 0.0, 
-    max_tokens: int = 300, 
-    stop_token:str = "### END"
+    queries: List[str],
+    engine: str = "text-davinci-002",
+    temperature: float = 0.0,
+    max_tokens: int = 300,
+    stop_token: str = "### END",
 ) -> List[Dict]:
     if "gpt" in engine:
         async_responses = [
@@ -598,7 +663,7 @@ async def acall_gpt(
                 messages=[{"role": "user", "content": query}],
                 temperature=temperature,
                 max_tokens=max_tokens,
-                stop=stop_token
+                stop=stop_token,
             )
             for query in queries
         ]
@@ -612,7 +677,7 @@ async def acall_gpt(
                 prompt=query,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                stop=[stop_token]
+                stop=[stop_token],
             )
             for query in queries
         ]
@@ -621,13 +686,20 @@ async def acall_gpt(
 
     return await asyncio.gather(*async_responses)
 
-@backoff.on_exception(backoff.expo, Exception, max_tries=20, raise_on_giveup=False, on_backoff=backoff_handler)
+
+@backoff.on_exception(
+    backoff.expo,
+    Exception,
+    max_tries=20,
+    raise_on_giveup=False,
+    on_backoff=backoff_handler,
+)
 def call_gpt(
     queries: List[str],
     engine: str = "text-davinci-002",
     temperature: float = 0.0,
     max_tokens: int = 300,
-    stop_token: str = "### END"
+    stop_token: str = "### END",
 ) -> List[Dict]:
     responses = []
     if "gpt" in engine:
@@ -638,7 +710,7 @@ def call_gpt(
                 messages=query,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                stop=stop_token
+                stop=stop_token,
             )
             responses.append(response)
     elif "text-davinci" in engine:
@@ -648,11 +720,12 @@ def call_gpt(
                 prompt=query,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                stop=[stop_token]
+                stop=[stop_token],
             )
             responses.append(response)
 
     return responses
+
 
 def retry_parse_fail_prone_cmd(
     func,
@@ -673,10 +746,12 @@ def retry_parse_fail_prone_cmd(
 
                 retries -= 1
                 print(
-                    f"An error occurred: {e}. {stack_trace}. Left retries: {retries}.")
+                    f"An error occurred: {e}. {stack_trace}. Left retries: {retries}."
+                )
         return None
 
     return wrapper
+
 
 def get_gpu_memory(max_gpus=None):
     """Get available memory for each GPU."""
@@ -697,21 +772,21 @@ def get_gpu_memory(max_gpus=None):
             gpu_memory.append(available_memory)
     return max(gpu_memory)
 
-def extract_answer_gpt(
-    responses: List[OpenAIResponse],
-    engine: str
-):
+
+def extract_answer_gpt(responses: List[OpenAIResponse], engine: str):
     outputs = []
     usage = 0
     finish_reason_stop = 0
     for response in responses:
         if "gpt" in engine:
-            outputs.append(response['choices'][0]['message']['content'].strip())
-            usage += response['usage']['total_tokens']
-            finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
+            outputs.append(response["choices"][0]["message"]["content"].strip())
+            usage += response["usage"]["total_tokens"]
+            finish_reason_stop += response["choices"][0]["finish_reason"] == "stop"
         elif "text-davinci" in engine:
-            outputs.append(response['choices'][0]['text'].strip())
-            usage += response['usage']['total_tokens']
-            finish_reason_stop += response['choices'][0]['finish_reason'] == "stop"
-    print(f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(responses)}")
+            outputs.append(response["choices"][0]["text"].strip())
+            usage += response["usage"]["total_tokens"]
+            finish_reason_stop += response["choices"][0]["finish_reason"] == "stop"
+    print(
+        f"Number of times the model finished because of stop token: {finish_reason_stop}/{len(responses)}"
+    )
     return usage, outputs

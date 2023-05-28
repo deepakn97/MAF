@@ -91,7 +91,7 @@ class BaselineWrapper:
             self.data_dir = data_dir
         self.save_dir = save_dir
         self.results_filepaths = []
-        self.logger = Logger("baseline_log.txt")
+        self.logger = Logger("src/baselines/baseline_log.txt")
 
     def run(self, parse=True, grade=True, batch_size=None):
         prompt_file = f"prompt/{self.task}/{self.prompt}.json"
@@ -107,7 +107,8 @@ class BaselineWrapper:
             data = load_jsonl(os.path.join(self.data_dir, data_file))
             self.logger.log(f"Running {data_file}")
             self.logger.log(
-                "Example prompt", self.llm.make_query(parse_problem(data[0], self.task))
+                "Example prompt: "
+                + self.llm.make_query(parse_problem(data[0], self.task))
             )
             save_file = os.path.join(
                 save_dir, data_file.replace(".jsonl", "_results.json")
