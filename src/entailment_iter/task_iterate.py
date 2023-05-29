@@ -1,7 +1,7 @@
 import sys
 import time
 from typing import Dict, List
-from src.utils import Prompt, LLMModel
+from src.utils import Prompt, LLMModel, OS_ENGINES, OPENAI_ENGINES
 
 
 class EntailmentIterate(Prompt):
@@ -18,17 +18,27 @@ class EntailmentIterate(Prompt):
             intra_example_sep="\n\n",
             inter_example_sep="\n\n",
         )
+        if engine in OPENAI_ENGINES:
+            pass
+        elif engine in OS_ENGINES:
+            raise NotImplementedError("OS Engines not yet supported")
+        else:
+            raise ValueError(f"Engine {engine} not supported")
         self.engine = engine
         self.temperature = temperature
         self.max_tokens = max_tokens
-        self.instruction = "# Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback."
+        self.instruction = "# Given the feedback and the original entailment tree, let's rewrite the entailment tree to incorporate all of the feedback."
         self.setup_prompt_from_examples_file(prompt_examples)
 
     # do we actually have prompt examples for feedback + model iteration?
+    # since that would require incorporating multiple aspects of feedback
+    # should we just use eager refine examples or do we actually want to use examples
+    # where feedback from multiple aspects is summarized and then used to refine the solution?
     def setup_prompt_from_examples_file(self, examples_path: str) -> str:
         with open(examples_path, "r") as f:
             self.prompt = f.read()
 
+    # given a solution and feedback, generate a refined solution
     def __call__(self, solution: str, feedback: str) -> str:
         generation_query = self.make_query(solution=solution, feedback=feedback)
         # print(generation_query)
@@ -66,8 +76,8 @@ class EntailmentIterate(Prompt):
 
 
 def test():
-    task_iterate = GSMIterate(
-        engine="text-davinci-002",
+    task_iterate = EntailmentIterate(
+        engine="gpt-3.5-turbo",
         prompt_examples="data/prompt/gsm_iter/iterate.txt",
         temperature=0.7,
     )
