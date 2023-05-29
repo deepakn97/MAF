@@ -36,11 +36,21 @@ from src.gsm_iter.gsm_selfref_eval import check_corr
 import asyncio
 from time import sleep
 from typing import List, Dict, Union, Iterable, Tuple
+import subprocess
+
 
 OS_MODELS = ["vicuna", "alpaca"]
 OPENAI_MODELS = ["gpt-3.5-turbo", "text-davinci-003"]
 TASKS = ["gsm_baseline", "entailment_baseline"]
-PROMPTS = ["0cot_gsm", "1cot_gsm", "4cot_gsm", "pot_gsm", "ltm_gsm", "3shot_entailment"]
+PROMPTS = [
+    "0cot_gsm",
+    "1cot_gsm",
+    "4cot_gsm",
+    "pot_gsm",
+    "ltm_gsm",
+    "3shot_entailment",
+    "4shot_entailment",
+]
 QA_TEMPLATE = {
     "question_prefix": " # Q: ",
     "answer_prefix": "# A: ",
@@ -51,6 +61,7 @@ PYTHON_TEMPLATE = {
 }
 
 
+# I need to fix the memory allocation on OS Models
 class BaselineWrapper:
     def __init__(
         self,
@@ -93,7 +104,35 @@ class BaselineWrapper:
         self.results_filepaths = []
         self.logger = Logger("src/baselines/baseline_log.txt")
 
-    def run(self, parse=True, grade=True, batch_size=None):
+    def run_batch(self, data, save_file, batch_size=None):
+        if batch_size is None:
+            outputs = self.llm([parse_problem(d, self.task) for d in data])
+        else:
+            outputs = []
+            for i in tqdm(range(0, len(data), batch_size)):
+                outputs.extend(
+                    self.llm(
+                        [
+                            parse_problem(d, self.task)
+                            for d in data[i : min(i + batch_size, len(data))]
+                        ]
+                    )
+                )
+                data = [{**d, "output": o} for d, o in zip(data, outputs)]
+                with open(save_file, "w") as f:
+                    f.write(json.dumps(data, indent=4) + "\n")
+        data = [{**d, "output": o} for d, o in zip(data, outputs)]
+        return data
+
+    def run(
+        self,
+        parse=True,
+        grade=True,
+        batch_size=None,
+        data=None,
+        save_file=None,
+        num_problems=None,
+    ):
         prompt_file = f"prompt/{self.task}/{self.prompt}.json"
         self.llm.setup_prompt_from_examples_file(prompt_file)
         save_dir = os.path.join(
@@ -101,43 +140,41 @@ class BaselineWrapper:
         )
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        for data_file in os.listdir(self.data_dir):
-            if not data_file.endswith(".jsonl"):
-                continue
-            data = load_jsonl(os.path.join(self.data_dir, data_file))
-            self.logger.log(f"Running {data_file}")
-            self.logger.log(
-                "Example prompt: "
-                + self.llm.make_query(parse_problem(data[0], self.task))
-            )
-            save_file = os.path.join(
-                save_dir, data_file.replace(".jsonl", "_results.json")
-            )
-            if save_file not in self.results_filepaths:
-                self.results_filepaths.append(save_file)
-
-            if os.path.exists(save_file):
-                continue
-            if batch_size is None:
-                outputs = self.llm([parse_problem(d, self.task) for d in data])
-            else:
-                outputs = []
-                for i in tqdm(range(0, len(data), batch_size)):
-                    outputs.extend(
-                        self.llm(
-                            [
-                                parse_problem(d, self.task)
-                                for d in data[i : min(i + batch_size, len(data))]
-                            ]
-                        )
-                    )
-                    data = [{**d, "output": o} for d, o in zip(data, outputs)]
-                    with open(save_file, "w") as f:
-                        f.write(json.dumps(data, indent=4) + "\n")
-            data = [{**d, "output": o} for d, o in zip(data, outputs)]
+        if data is not None:
+            self.logger.log(f"Running data (NOT RUNNING FROM DATA DIRECTORY)")
+            if save_file is None:
+                raise ValueError(
+                    f"Invalid save file {save_file} (must pass explicitly if passing data explicitly)"
+                )
+            if num_problems is not None:
+                data = data[:num_problems]
+            if not os.path.exists(os.path.dirname(save_file)):
+                os.makedirs(os.path.dirname(save_file))
+            data = self.run_batch(data, save_file, batch_size=batch_size)
             data = get_relevant_fields(data, self.task)
             with open(save_file, "w") as f:
                 f.write(json.dumps(data, indent=4) + "\n")
+        else:
+            for data_file in os.listdir(self.data_dir):
+                if not data_file.endswith(".jsonl"):
+                    continue
+                data = load_jsonl(os.path.join(self.data_dir, data_file))
+                if num_problems is not None:
+                    data = data[:num_problems]
+                self.logger.log(f"Running {data_file}")
+                self.logger.log(
+                    "Example prompt: "
+                    + self.llm.make_query(parse_problem(data[0], self.task))
+                )
+                save_file = os.path.join(
+                    save_dir, data_file.replace(".jsonl", "_results.json")
+                )
+                if save_file not in self.results_filepaths:
+                    self.results_filepaths.append(save_file)
+                data = self.run_batch(data, save_file, batch_size=batch_size)
+                data = get_relevant_fields(data, self.task)
+                with open(save_file, "w") as f:
+                    f.write(json.dumps(data, indent=4) + "\n")
         if parse:
             self.parse_answers()
         if grade:
@@ -152,7 +189,14 @@ class BaselineWrapper:
             grade_answers(filepath, self.task)
 
 
-def eval_entailment(filepath):
+def eval_entailment(
+    filepath,
+    entailment_task,
+    split="dev",
+    bleurt_checkpoint="/data4/d_wang/nlp/models/bleurt-large-512",
+):
+    assert filepath.find(entailment_task) != -1
+    filepath = os.path.abspath(filepath)
     # convert filepath to TSV
     with open(filepath, "r") as f:
         data = json.load(f)
@@ -162,6 +206,34 @@ def eval_entailment(filepath):
     with open(tsv_filepath, "w") as f:
         f.write(data)
     # run eval script
+    if entailment_task not in ["task_1", "task_2"]:
+        raise ValueError(
+            f"Invalid entailment task {entailment_task} (should be task_1 or task_2)"
+        )
+    eval_script = "eval/run_scorer.py"
+    eval_cmd = f"conda run -n entbank python {eval_script}".split()
+    eval_cmd.extend(
+        [
+            "--task",
+            entailment_task,
+            "--output_dir",
+            os.path.dirname(filepath),
+            "--split",
+            split,
+            "--prediction_file",
+            tsv_filepath,
+            "--bleurt_checkpoint",
+            bleurt_checkpoint,
+        ]
+    )
+    subprocess.run(eval_cmd, cwd="data/entailment_data")
+    for postfix in [".json", ".metrics.json", ".diagnostics.tsv"]:
+        os.rename(
+            os.path.join(os.path.dirname(filepath), f"scores-{split}{postfix}"),
+            os.path.join(
+                os.path.dirname(filepath), f"scores-{entailment_task}-{split}{postfix}"
+            ),
+        )
 
 
 def nested_get_pair(d, keys, suppress_error=False):
@@ -203,7 +275,13 @@ def get_relevant_fields(data, task):
     FIELDS = {
         "common": ["output", "answer", "correct"],
         "gsm_baseline": ["input", "target", "n_steps"],
-        "entailment_baseline": ["hypothesis", "solution", "proof", ("meta", "triples")],
+        "entailment_baseline": [
+            "id",
+            "hypothesis",
+            "solution",
+            "proof",
+            ("meta", "triples"),
+        ],
     }
     if task not in TASKS:
         raise ValueError(f"Invalid task {task}")
@@ -228,36 +306,20 @@ def parse_problem(problem_dict, task):
         return p
 
 
-async def async_generate_answers(llm, prompt_template, problems):
-    """Generate the answer for the given problem."""
-    outputs = await llm([prompt_template.format(context=prob) for prob in problems])
-    return outputs
-
-
-async def run_model(llm, prompt_template, data, output_file=None):
-    problems = [d["input"] for d in data]
-    step = 5
-    for i in range(0, len(problems), step):
-        outputs = await async_generate_answers(
-            llm, prompt_template, problems[i : min(i + step, len(problems))]
-        )
-        if i == 0:
-            print(outputs[0])
-        for j in range(step):
-            if (i + j) < len(problems):
-                data[i + j]["output"] = outputs[j]
-        if output_file is not None:
-            with open(output_file, "w") as f:
-                f.write(json.dumps(data, indent=4) + "\n")
-        print(f"Completed {i + step} problems")
-    return data
-
-
 def grade_answers(filepath, task, overwrite=True):
     with open(filepath, "r") as f:
         data = json.loads(f.read())
-    for d in data:
-        d["correct"] = check_corr(d["answer"], d["target"], task)
+    if task == "gsm_baseline":
+        for d in data:
+            d["correct"] = check_corr(d["answer"], d["target"], task)
+    elif task == "entailment_baseline":
+        # assert that filepath is in the format task_{number}_{split}_results.json
+        assert re.match(r"([a-z]|[A-Z])*_(\d)_results.json", os.path.basename(filepath))
+        split = filepath.split("_")[-2]
+        entailment_task = f"task_{filepath.split('_')[1]}"
+        eval_entailment(filepath, entailment_task, split)
+    else:
+        raise ValueError(f"Invalid task {task}")
     if not overwrite:
         filepath = os.path.join(
             os.path.dirname(filepath), "graded_" + os.path.basename(filepath)
@@ -279,6 +341,12 @@ def parse_answers(filepath, task, prompt_technique, overwrite=True):
 
 def load_jsonl(filepath):
     """Loads jsonl file into list of dict objects"""
+    if (
+        not os.path.exists(filepath)
+        or not os.path.isfile(filepath)
+        or not filepath.endswith(".jsonl")
+    ):
+        raise ValueError(f"Invalid jsonl filepath {filepath}")
     with open(filepath, "r") as f:
         data = [json.loads(line) for line in f]
     return data
@@ -365,10 +433,10 @@ def parse_program_answer(answer):
         return "undefined"
 
 
-def parse_answer(answer, task, prompt_technique):
+def parse_answer(answer, task, prompt_technique: str):
     if prompt_technique == "pot_gsm":
         return parse_program_answer(answer)
-    elif prompt_technique == "3shot_entailment":
+    elif prompt_technique.find("entailment") != -1:
         answer = get_entailment_proof([answer])[0]
         # Split by lines, only take lines including and after 'Entailment Tree:'
         return "$proof$ = " + answer
