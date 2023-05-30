@@ -4,8 +4,7 @@ from src.baselines.baseline_utils import (
     OPENAI_MODELS,
     TASKS,
     PROMPTS,
-    QA_TEMPLATE,
-    PYTHON_TEMPLATE,
+    TEMPLATES,
     load_jsonl,
 )
 import os
@@ -50,11 +49,29 @@ def parse_args():
         default=None,
         help="number of problems to run (default is all)",
     )
+    parser.add_argument(
+        "-f", "--format", type=str, default="qa", help="prompt example format"
+    )
+    parser.add_argument(
+        "-c",
+        "--cuda_visible",
+        type=str,
+        default="0, 1, 2",
+        help="CUDA_VISIBLE_DEVICES",
+    )
     return parser.parse_args()
 
 
 def main():
-    baseline = BaselineWrapper(args.model, args.task, args.prompt)
+    if args.format not in TEMPLATES.keys():
+        raise ValueError(f"Format {args.format} not supported")
+    baseline = BaselineWrapper(
+        args.model,
+        args.task,
+        args.prompt,
+        **TEMPLATES[args.format],
+        cuda_visible_devices=args.cuda_visible,
+    )
     if args.data is None:
         baseline.run()
     if not os.path.exists(args.data):

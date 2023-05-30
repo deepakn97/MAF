@@ -1,0 +1,96 @@
+Hypothesis: the desert used to be covered by water in the past
+
+Text: 
+sent1: an ocean plant is a kind of water plant
+sent2: a desert is a kind of place
+sent3: if fossils of a water animal or plant are found in a place then that place used to be covered by water in the past
+sent4: a fossil of an ocean plant is found in the desert
+
+Entailment Tree:
+sent1 and sent3: an ocean plant is a kind of water plant and if fossils of a water animal or plant are found in a place then that place used to be covered by water in the past -> int1: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past
+int1 and sent4: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past and a fossil of an ocean plant is found in the desert -> hypothesis: the desert used to be covered by water in the past
+
+# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+
+
+# Let's go through line by line
+sent1 and sent3: an ocean plant is a kind of water plant and if fossils of a water animal or plant are found in a place then that place used to be covered by water in the past -> int1: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past
+# Looks good
+
+# Let's check the next line
+int1 and sent4: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past and a fossil of an ocean plant is found in the desert -> hypothesis: the desert used to be covered by water in the past
+# Wrong! This entailment is missing the key premise that a desert is a kind of place.
+
+# Given the feedback and the original entailment tree, let's rewrite the entailment tree to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
+
+sent1 and sent3: an ocean plant is a kind of water plant and if fossils of a water animal or plant are found in a place then that place used to be covered by water in the past -> int1: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past
+int1 and sent2 and sent4: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past and a desert is a kind of place and a fossil of an ocean plant is found in the desert -> hypothesis: the desert used to be covered by water in the past
+
+### END ###
+
+Hypothesis: pouring water onto soil is similar to the erosion on the canyon formation
+
+Text:
+sent1: pouring water onto soil causes that soil to wash away
+sent2: most canyons are formed by flowing rivers through erosion over long periods of time
+sent3: soil erosion is when moving water moves soil from fields / environments
+
+Entailment Tree:
+sent1 and sent3: pouring water onto soil causes that soil to wash away and soil erosion is when moving water moves soil from fields / environments -> int1: pouring water onto soil is a kind of soil erosion
+int1 and sent2: pouring water onto soil is a kind of soil erosion and most canyons are formed by flowing rivers through erosion over long periods of time -> hypothesis: pouring water onto soil is similar to the erosion on the canyon formation
+
+
+# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+
+# Let's go through line by line
+sent1 and sent3: pouring water onto soil causes that soil to wash away and soil erosion is when moving water moves soil from fields / environments -> int1: pouring water onto soil is a kind of soil erosion
+# Looks good
+
+# Let's check the next line
+int1 and sent2: pouring water onto soil is a kind of soil erosion and most canyons are formed by flowing rivers through erosion over long periods of time -> hypothesis: pouring water onto soil is similar to the erosion on the canyon formation
+# Looks good
+
+# There is no error in the entailment tree. It is correct! Here is the rewrite (for the sake of completeness)
+
+Entailment Tree:
+sent1 and sent3: pouring water onto soil causes that soil to wash away and soil erosion is when moving water moves soil from fields / environments -> int1: pouring water onto soil is a kind of soil erosion
+int1 and sent2: pouring water onto soil is a kind of soil erosion and most canyons are formed by flowing rivers through erosion over long periods of time -> hypothesis: pouring water onto soil is similar to the erosion on the canyon formation
+
+### END ###
+
+Hypothesis: when a person shivers, chemical energy is converted to mechanical energy
+
+Text:
+sent1: shaking is a kind of moving
+sent2: when an animal moves, chemical energy is converted to mechanical energy
+sent3: shivering is a kind of shaking,
+sent4: a person shivers
+sent5: a person is a kind of animal
+
+Entailment Tree:
+sent3 and sent4: shivering is a kind of shaking and a person shivers -> int1: a person shivers
+int1 and sent5: a person shivers and a person is a kind of animal -> int2: an animal shivers
+int2 and sent2: an animal shivers and when an animal moves, chemical energy is converted to mechanical energy -> hypothesis: when a person shivers, chemical energy is converted to mechanical energy
+
+# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+
+# Let's go through line by line
+sent3 and sent4: shivering is a kind of shaking and a person shivers -> int1: a person shivers
+# Wrong! This entailment has int1 repeat information that we already know from sent4. We can remove int1 and just use sent4.
+
+# Let's check the next line
+int1 and sent5: a person shivers and a person is a kind of animal -> int2: an animal shivers
+# Wrong! The intermediate that an animal shivers is not relevant and does not help us get to the hypothesis. We can remove this step.
+
+# Let's check the next line
+int2 and sent2: an animal shivers and when an animal moves, chemical energy is converted to mechanical energy -> hypothesis: when a person shivers, chemical energy is converted to mechanical energy
+# Wrong! This misses a key intermediate that shivering is a kind of moving. We can add this in.
+
+# Given the feedback and the original entailment tree, let's rewrite the entailment tree to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
+
+Entailment Tree:
+sent1 and sent3: shaking is a kind of moving and shivering is a kind of shaking -> int1: shivering is a kind of moving
+int1 and sent4: shivering is a kind of moving and a person shivers -> int2: a person moves when he is shivering
+int2 and sent2: a person moves when he is shivering and when an animal moves, chemical energy is converted to mechanical energy -> hypothesis: when a person shivers, chemical energy is converted to mechanical energy
+
+### END ###

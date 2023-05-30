@@ -59,6 +59,15 @@ PYTHON_TEMPLATE = {
     "question_prefix": "# Q: ",
     "answer_prefix": "# solution using Python:\n",
 }
+ENTAILMENT_TEMPLATE = {
+    "question_prefix": "",
+    "answer_prefix": "",
+}
+TEMPLATES = {
+    "qa": QA_TEMPLATE,
+    "python": PYTHON_TEMPLATE,
+    "entailment": ENTAILMENT_TEMPLATE,
+}
 
 
 # I need to fix the memory allocation on OS Models
@@ -194,6 +203,7 @@ def eval_entailment(
     entailment_task,
     split="dev",
     bleurt_checkpoint="/data4/d_wang/nlp/models/bleurt-large-512",
+    cleanup=True,
 ):
     assert filepath.find(entailment_task) != -1
     filepath = os.path.abspath(filepath)
@@ -234,6 +244,8 @@ def eval_entailment(
                 os.path.dirname(filepath), f"scores-{entailment_task}-{split}{postfix}"
             ),
         )
+    if cleanup:
+        os.remove(tsv_filepath)
 
 
 def nested_get_pair(d, keys, suppress_error=False):

@@ -13,7 +13,7 @@ def parse_args():
         "--file",
         type=str,
         required=True,
-        help="file to evaluate (must contain predictions and gold trees)",
+        help="file to evaluate (must be JSON file with a list of objects, each with the keys 'id', 'angle', 'prediction', and 'gold' where 'gold' contains the entire gold entailment dictionary (found in processed_data/slots or public_dataset))",
     )
     parser.add_argument(
         "-o", "--outfile", type=str, required=True, help="file to write results to"
