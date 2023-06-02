@@ -130,9 +130,12 @@ dmypy.json
 
 *.code-workspace
 .vscode/
-data/
+data/*
+
 outputs/
 models/
 temp_result.py
 *.eps
 *.png
+*.tsv
+*log.txt

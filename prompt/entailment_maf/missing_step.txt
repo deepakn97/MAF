@@ -1,126 +1,56 @@
-Hypothesis: Eruptions can cause plants to die
-
-Text:
-# sent 1: eruptions emit lava
-# sent 2: plants have green leaves
-# sent 3: eruptions produce ash clouds
-# sent 4: producers will die without sunlight
-# sent 5: ash blocks sunlight
-
-Entailment Tree:
-sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
-sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
-
-# Check the above entailment tree line by line for any missing steps and suggest fixes. Ignore all other types of errors.
-
-# Let us go through the entailment tree line by line.
-    sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-# Looks good
-
-# Let's check other parts
-    int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
-# Looks good
-
-# Let's check other parts
-    sent 4 and int 1: producers will die without sunlight and eruptions block sunlight -> H: Eruptions can cause plants to die
-# Looks good
-
-# There are no missing step errors! It is correct! Here is the rewrite (for the sake of completeness):
-
-Entailment Tree:
-sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
-sent 4 and int 1: producers will die without sunlight and eruptions block sunlight -> H: Eruptions can cause plants to die
-
-### END ###
-
-Hypothesis: An astronaut requires the oxygen in a spacesuit backpack to breathe
-
-Text:
-# sent 1: spacesuit backpacks contain oxygen
-# sent 2: an animal requires oxygen to breathe
-# sent 3: a vacuum does not contain oxygen
-# sent 4: an astronaut is a kind of human
-# sent 5: a human is a kind of animal
-# sent 6: space is a vacuum
-
-
-Entailment Tree:
-sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
-sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
-
-# Check the above entailment tree line by line for any missing steps and suggest fixes. Ignore all other types of errors.
-
-# Let us go through the entailment tree line by line.
-    sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
-# wrong! this step is missing the connection that humans are a kind of animal. Let's add that.
-
-# Let's check other parts
-    sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
-# wrong! missing step that there is no oxygen in space. Let's add that
-
-# Okay, here is the rewrite:
-
-Entailment Tree:
-sent 4 and sent 5: an astronaut is a kind of human and a human is a kind of animal -> int 1: an astronaut is a kind of animal
-sent 2 and int 1: an animal requires oxygen to breathe and an astronaut is a kind of animal -> int 2: an astronaut requires oxygen to breathe
-sent 3 and sent 6: a vacuum does not contain oxygen and space is a vacuum -> int 3: there is no oxygen in space
-sent 1 and int 2 and int 3: spacesuit backpacks contain oxygen and there is no oxygen in space and an astronaut requires oxygen to breathe -> H: an astronaut requires the oxygen in spacesuit backpack to breathe
-
-### END ###
-
-Hypothesis: evaporating and condensing can both be caused by changes in heat energy
+Hypothesis: it is winter in florida
 
 Text: 
-# sent 1: temperature is a measure of heat energy
-# sent 2: temperature changes can cause phase changes
-# sent 3: evaporating is a kind of phase change
-# sent 4: condensing is a kind of phase change
+sent1: summer is when a hemisphere is tilted towards the sun
+sent2: the south pole is tilted toward the sun
+sent3: florida is a state located in the united states of america
+sent4: united states is located in the northern hemisphere
+sent5: the south pole is located in the southern hemisphere
+sent6: the winter in the northern hemisphere is during the summer in the southern hemisphere
 
 Entailment Tree:
-sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
-sent 2 and sent 3: temperature changes can cause phase changes and evaporating is a kind of phase change -> int 2: temperature changes can cause evaporating
-sent 2 and sent 4: temperature changes can cause phase changes and condensing is a kind of phase change -> int 3: temperature changes can cause condensing
-sent 1 and int 2 and int 3: temperature is a mesaure of heat energy and temperature changes can cause evaporating and temperature changes can cause condensing -> int 4: changes in heat energy can cause evaporating and condensing
-sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> H: Evaporating can be caused by changes in heat energy
-sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> H: Condensing can be caused by changes in heat energy
+sent3 and sent4: florida is a state located in the united states of america and united states is located in the northern hemisphere -> int1: florida is located in the northern hemisphere
+int1 and sent6: florida is located in the northern hemisphere and the winter in the northern hemisphere is during the summer in the southern hemisphere -> hypothesis: it is winter in florida
 
-# Check the above entailment tree line by line for any missing steps and suggest fixes. Ignore all other types of errors.
+# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
 
-# Let us go through the entailment tree line by line.
-    sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
+# Let's go line by line
+sent3 and sent4: florida is a state located in the united states of america and united states is located in the northern hemisphere -> int1: florida is located in the northern hemisphere
 # Looks good
 
-# Let's check other parts
-    sent 2 and sent 3: temperature changes can cause phase changes and evaporating is a kind of phase change -> int 2: temperature changes can cause evaporating
-# Looks good
+# Let's check the next line
+int1 and sent6: florida is located in the northern hemisphere and the winter in the northern hemisphere is during the summer in the southern hemisphere -> hypothesis: it is winter in florida
+# Wrong! This entailment can only conclude that it is winter in florida when it is summer in the southern hemisphere. However, it is missing the step that establishes that it is summer in the southern hemisphere.
 
-# Let's check other parts
-    sent 2 and sent 4: temperature changes can cause phase changes and condensing is a kind of phase change -> int 3: temperature changes can cause condensing
-# Looks good
+# Given the feedback and the original entailment tree, let's rewrite the entailment tree to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
 
-# Let's check other parts
-    sent 1 and int 2 and int 3: temperature is a mesaure of heat energy and temperature changes can cause evaporating and temperature changes can cause condensing -> int 4: changes in heat energy can cause evaporating and condensing
-# Looks good
+sent3 and sent4: florida is a state located in the united states of america and united states is located in the northern hemisphere -> int1: florida is located in the northern hemisphere
+int1 and sent6: florida is located in the northern hemisphere and the winter in the northern hemisphere is during the summer in the southern hemisphere -> int2: it is winter in florida when it is summer in the southern hemisphere
+sent2 and sent5: the south pole is tilted toward the sun and the south pole is located in the southern hemisphere -> int3: the southern hemisphere is tilted towards the sun
+int3 and sent1: the southern hemisphere is tilted towards the sun and summer is when a hemisphere is tilted towards the sun -> int4: it is summer in the southern hemisphere
 
-# Let's check other parts
-    sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> H: Evaporating can be caused by changes in heat energy
-# wrong! The entailment tree only arrives at part of the hypothesis. The sentence 'Evaporating can be caused by changes in heat energy' must be an intermediate.
+### END ###
 
-# Let's check other parts
-    sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> H: Condensing can be caused by changes in heat energy
-# wrong! The entailment tree only arrives at part of the hypothesis. The sentence 'Condensing can be caused by changes in heat energy' must be an intermediate. We can combine this with 'Evaporating can be caused by changes in heat energy' to arrive at the conclusion.
+Hypothesis: a complete revolution of earth around the sun takes an earth year
 
-# Okay! Here is the rewrite:
+Text: 
+sent1: earth is a kind of planet
+sent2: the sun is a kind of star
+sent3: the earth revolves around the sun
+sent4: a complete revolution / orbit of a planet around its star takes 1 / one planetary year
 
 Entailment Tree:
-sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
-sent 2 and sent 3: temperature changes can cause phase changes and evaporating is a kind of phase change -> int 2: temperature changes can cause evaporating
-sent 2 and sent 4: temperature changes can cause phase changes and condensing is a kind of phase change -> int 3: temperature changes can cause condensing
-sent 1 and int 2 and int 3: temperature is a mesaure of heat energy and temperature changes can cause evaporating and temperature changes can cause condensing -> int 4: changes in heat energy can cause evaporating and condensing
-sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> int 5: Evaporating can be caused by changes in heat energy
-sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> int 6: Condensing can be caused by changes in heat energy
-int 5 and int 6: evaporating can be caused by changes in heat energy and condensing can be caused by changes in heat energy -> H: evaporating and condensing can both be caused by changes in heat energy
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
+int1 and sent4: earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
+
+# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+
+# Let's go line by line
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
+# Wrong! This line is missing steps because it does not follow directly from sent1 and sent2 that the earth revolves around the sun.
+
+# Let's check the next line
+int1 and sent4: earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
+# Wrong! This line misses a premise that establishes that the sun is a star. Otherwise, we cannot conclude that it takes one earth year to revolve around the sun based on sent4.
 
 ### END ###

@@ -1,119 +1,70 @@
-Hypothesis: Eruptions can cause plants to die
-
-Text:
-# sent 1: eruptions emit lava
-# sent 2: plants have green leaves
-# sent 3: eruptions produce ash clouds
-# sent 4: producers will die without sunlight
-# sent 5: ash blocks sunlight
-
-Entailment Tree:
-sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
-sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
-
-# Check the above entailment tree line by line for any repetition errors and suggest fixes. Ignore all other types of errors.
-
-# Let us go through the entailment tree line by line.
-    sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-# looks good
-
-# Let's check other parts
-    int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
-# looks good
-
-# Let's check other parts
-    sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
-# wrong! int 2 "eruptions can kill plants by blocking sunlight" is just paraphrased in the hypothesis "eruptions can cause plants to die". Let's remove it.
-
-# Okay, here is the rewrite:
-
-Entailment Tree:
-sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> H: Eruptions can cause plants to die
-
-### END ###
-
-Hypothesis: An astronaut requires the oxygen in a spacesuit backpack to breathe
-
-Text:
-# sent 1: spacesuit backpacks contain oxygen
-# sent 2: an animal requires oxygen to breathe
-# sent 3: a vacuum does not contain oxygen
-# sent 4: an astronaut is a kind of human
-# sent 5: a human is a kind of animal
-# sent 6: space is a vacuum
-
-Entailment Tree:
-sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
-sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
-
-
-# Check the above entailment tree line by line for any repetition errors and suggest fixes. Ignore all other types of errors.
-
-# Let us go through the entailment tree line by line.
-    sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
-# looks good
-
-# Let's check other parts
-    sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
-# looks good
-
-# There are no repetition errors! It is correct! Here is the rewrite (for the sake of completeness):
-
-Entailment Tree:
-sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
-sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
-
-### END ###
-
-Hypothesis: evaporating and condensing can both be caused by changes in heat energy
+Hypothesis: a complete revolution of earth around the sun takes an earth year
 
 Text: 
-# sent 1: temperature is a measure of heat energy
-# sent 2: temperature changes can cause phase changes
-# sent 3: evaporating is a kind of phase change
-# sent 4: condensing is a kind of phase change
+sent1: earth is a kind of planet
+sent2: the sun is a kind of star
+sent3: the earth revolves around the sun
+sent4: a complete revolution / orbit of a planet around its star takes 1 / one planetary year
 
 Entailment Tree:
-sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
-sent 2 and sent 3: temperature changes can cause phase changes and evaporating is a kind of phase change -> int 2: temperature changes can cause evaporating
-sent 2 and sent 4: temperature changes can cause phase changes and condensing is a kind of phase change -> int 3: temperature changes can cause condensing
-sent 1 and int 2 and int 3: temperature is a measure of heat energy and temperature changes can cause evaporating and temperature changes can cause condensing -> int 4: changes in heat energy can cause evaporating and condensing
-sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> H: Evaporating can be caused by changes in heat energy
-sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> H: Condensing can be caused by changes in heat energy
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
+int1 and sent4: earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
 
-# Check the above entailment tree line by line for any repetition errors and suggest fixes. Ignore all other types of errors.
+# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
 
-# Let us go through the entailment tree line by line.
-    sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
-# looks good
+# Let's go line by line
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
+# Wrong! This line directly restates the initial sentence sent3 in int1. We can remove this line from the entailment tree and use sent3 in place of int1.
 
-# Let's check other parts
-    sent 2 and sent 3: temperature changes can cause phase changes and evaporating is a kind of phase change -> int 2: temperature changes can cause evaporating
-# looks good
+# Let's check the next line
+int1 and sent4: earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
+# Wrong! Looks good
 
-# Let's check other parts
-    sent 2 and sent 4: temperature changes can cause phase changes and condensing is a kind of phase change -> int 3: temperature changes can cause condensing
-# looks good
+### END ###
 
-# Let's check other parts
-    sent 1 and int 2 and int 3: temperature is a measure of heat energy and temperature changes can cause evaporating and temperature changes can cause condensing -> int 4: changes in heat energy can cause evaporating and condensing
-# looks good
+Hypothesis: the sun will be the star that appears the brightest to the earth
 
-# Let's check other parts
-    sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> H: Evaporating can be caused by changes in heat energy
-# wrong! the hypothesis "evaporating can be caused by changes in heat energy" repeats information from int 4 "changes in heat energy can cause evaporating and condensing". Let's remove this repetition.
-
-# Let's check other parts
-    sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> H: Condensing can be caused by changes in heat energy
-# wrong! the hypothesis "condensing can be caused by changes in heat energy" repeats information from int 4 "changes in heat energy can cause evaporating and condensing". Let's remove this repetition.
-
-# Okay, here is the rewrite:
+Text:
+sent1: the sun is the star that is closest to earth
+sent2: the four planets farthest from the sun are made of gas
+sent3: far means great in distance
+sent4: furthest / farthest means greatest / most / highest in distance
+sent5: to be in the sun means to be in the sunlight
+sent6: appear is similar to apparent
+sent7: brightness means amount of light
+sent8: nearby is similar to near
+sent9: as distance from an object decreases , that object will appear larger
+sent10: as distance to an object increases , that object will appear smaller
+sent11: as a source of light becomes closer , the light will appear brighter
+sent12: apparent magnitude is a measure of the brightness of a celestial object / celestial body as observed on earth,
+sent13: a source of something produces that something
+sent14: near means close
+sent15: the sun is located near the edge of the milky way galaxy
+sent16: a star produces light
 
 Entailment Tree:
-sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
-sent 3 and int 1: evaporating is a kind of phase change and changes in heat energy can cause phase changes -> H: Evaporating can be caused by changes in heat energy
-sent 4 and int 1: condensing is a kind of phase change and changes in heat energy can cause phase changes -> H: Condensing can be caused by changes in heat energy
+sent1: the sun is the star that is closest to earth -> int1: the sun is the nearest star to earth
+int1 and sent6: the sun is the nearest star to earth and appear is similar to apparent -> int2: the sun will appear the most apparent to earth
+int2 and sent7: the sun will appear the most apparent to earth and brightness means amount of light -> int3: the sun will appear the brightest to earth
+int3: the sun will appear the brightest to earth -> hypothesis: the sun will be the star that appears the brightest to the earth
+
+# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+
+
+# Let's go through line by line
+sent1: the sun is the star that is closest to earth -> int1: the sun is the nearest star to earth
+# Wrong! This line directly restates one of the initial sentences. We can remove this line from the entailment tree.
+
+# Let's check the next line
+int1 and sent6: the sun is the nearest star to earth and appear is similar to apparent -> int2: the sun will appear the most apparent to earth
+# This line is correct. We can keep it.
+
+# Let's check the next line
+int2 and sent7: the sun will appear the most apparent to earth and brightness means amount of light -> int3: the sun will appear the brightest to earth
+# This line is correct. We can keep it.
+
+# Let's check the next line
+int3: the sun will appear the brightest to earth -> hypothesis: the sun will be the star that appears the brightest to the earth
+# Wrong! This line restates the hypothesis. We can remove this line from the entailment tree and replace int3 wih the hypothesis.
 
 ### END ###
