@@ -178,6 +178,8 @@ class BaselineWrapper:
                     f"Invalid save file {save_file} (must pass explicitly if passing data explicitly)"
                 )
             self.logger.log(f"Saving to {save_file}")
+            if save_file not in self.results_filepaths:
+                self.results_filepaths.append(save_file)
             if num_problems is not None:
                 data = data[:num_problems]
             if not os.path.exists(os.path.dirname(save_file)):
@@ -228,7 +230,7 @@ def eval_entailment(
     bleurt_checkpoint="/data4/d_wang/nlp/models/bleurt-large-512",
     cleanup=True,
 ):
-    assert filepath.find(entailment_task) != -1
+    # assert filepath.find(entailment_task) != -1
     filepath = os.path.abspath(filepath)
     # convert filepath to TSV
     with open(filepath, "r") as f:
@@ -352,7 +354,7 @@ def parse_problem(problem_dict, task):
         return p
 
 
-def grade_answers(filepath, task, overwrite=True):
+def grade_answers(filepath, task, split=None, overwrite=True):
     with open(filepath, "r") as f:
         data = json.loads(f.read())
     if task == "gsm_baseline":
@@ -361,8 +363,10 @@ def grade_answers(filepath, task, overwrite=True):
     elif task == "entailment_baseline":
         # assert that filepath is in the format task_{number}_{split}_results.json
         assert re.match(r"([a-z]|[A-Z])*_(\d)_results.json", os.path.basename(filepath))
-        split = filepath.split("_")[-2]
-        entailment_task = f"task_{filepath.split('_')[1]}"
+        filename = os.path.basename(filepath)
+        if split is None:
+            split = filename.split("_")[-2]
+        entailment_task = f"task_{filename.split('_')[1]}"
         eval_entailment(filepath, entailment_task, split)
     else:
         raise ValueError(f"Invalid task {task}")

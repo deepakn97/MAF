@@ -7,9 +7,10 @@ from tqdm import tqdm
 from pathlib import Path
 from typing import List
 import pandas as pd
+from dotenv import load_dotenv
 
-path_root = Path(__file__).parent[2]
-sys.path.append(str(path_root))
+# path_root = Path(__file__).parent[2]
+# sys.path.append(str(path_root))
 
 import src.entailment.feedback as feedback_utils
 from src.entailment.task_init import EntailmentInit
@@ -94,7 +95,7 @@ def iterative_entailment(
 
     while n_attempts < max_attempts:
         if n_attempts == 0:
-            usage, solution = task_init(solutions=[question], concurrent=False)
+            usage, solution = task_init(data=[question], concurrent=False)
         solution_fixed = [soln for soln in solution]
         if ms_retry:
             usage, ms_feedback = missing_step(
@@ -169,6 +170,7 @@ def fix_entailment(
     entailment_questions_df = pd.read_json(
         entailment_task_file, lines=True, orient="records"
     )
+    print(entailment_questions_df)
     # entailment_questions_df = entailment_questions_df[:5]
     entailment_questions_df["run_logs"] = None
     results = []
@@ -258,10 +260,25 @@ def parse_args():
 
 
 def test():
-    pass
+    with open("/tmp/debug_entailment.jsonl", "w") as fout:
+        fout.write(
+            json.dumps(
+                {
+                    # DEBUG
+                }
+            )
+        )
+    logs = fix_entailment(
+        entailment_task_file="/tmp/debug_entailment.jsonl",
+        max_attempts=3,
+        outfile="/tmp/debug_entailment_res.jsonl",
+        temperature=0.7,
+        engine="text-davinci-003",
+    )
+    for i, log in enumerate(logs):
+        print(log["generated_answer_ours"])
+        print(log["generated_answer_direct"])
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    logger = utils.Logger(os.path.join(args.outdir, "log.txt"))
-    fix_entailment(args)
+    test()

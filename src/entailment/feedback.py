@@ -17,7 +17,7 @@ class EntailmentLLMFeedback(LLMFeedback):
         query = f"{self.prompt}\n{self.question_prefix}{data['hypothesis']}{self.intra_example_sep}"
         for i, sent in enumerate(data["text"]):
             query += f"# sent {i+1}: {sent}\n"
-        query = f"{query}\n{self.answer_prefix}\n{data['soln']}{self.instruction}{self.instruction}"
+        query = f"{query}\n{self.answer_prefix}\n{data['soln']}{self.instruction}"
         return query
 
     def process_outputs(self, outputs: List[str]) -> List[str]:
