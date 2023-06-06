@@ -1,0 +1,337 @@
+{
+    "error_type": "repetition",
+    "question": "Betty is saving money for a new wallet which costs $100. Betty has only half of the money she needs. Her parents decided to give her $15 for that purpose, and her grandparents twice as much as her parents. How much more money does Betty need to buy the wallet?",
+    "incorrect_solution": """def solution():
+    wallet_cost = 100
+    money_needed = 100
+    betty_money = wallet_cost / 2
+    parents_money = 15
+    grandparents_money = 2 * parents_money
+    total_money = betty_money + parents_money + grandparents_money
+    money_needed = wallet_cost - total_money
+    return money_needed""",
+    "correct_solution": """def solution():
+    wallet_cost = 100
+    betty_money = wallet_cost / 2
+    parents_money = 15
+    grandparents_money = 2 * parents_money
+    total_money = betty_money + parents_money + grandparents_money
+    money_needed = wallet_cost - total_money
+    return money_needed""",
+    "feedback": """# Let us go through the code step-by-step
+    wallet_cost = 100
+# looks good
+
+# Let's check other parts
+    money_needed = 100
+# wrong! this line is conveying the same information as the wallet_cost variable. We do not need it.
+
+# Let's check other parts
+    betty_money = wallet_cost / 2
+# looks good
+
+# Let's check other parts
+    parents_money = 15
+    grandparents_money = 2 * parents_money
+# looks good
+
+# Let's check other parts
+    total_money = betty_money + parents_money + grandparents_money
+    money_needed = wallet_cost - total_money
+    return money_needed
+# looks good""",
+    "task_instruction": "Given a mathematical word problem, and an error category, you have to write an incorrect solution using Python that contains the error of given category and a detailed feedback."""
+}
+{
+    "error_type": "factuality",
+    "question": "Betty is saving money for a new wallet which costs $100. Betty has only half of the money she needs. Her parents decided to give her $15 for that purpose, and her grandparents twice as much as her parents. How much more money does Betty need to buy the wallet?",
+    "incorrect_solution": """def solution():
+    wallet_cost = 100
+    betty_money = wallet_cost / 2
+    parents_money = 15
+    grandparents_money = 2 * betty_money
+    total_money = betty_money + parents_money + grandparents_money
+    money_needed = wallet_cost - total_money
+    return money_needed""",
+    "correct_solution": """def solution():
+    wallet_cost = 100
+    betty_money = wallet_cost / 2
+    parents_money = 15
+    grandparents_money = 2 * parents_money
+    total_money = betty_money + parents_money + grandparents_money
+    money_needed = wallet_cost - total_money
+    return money_needed""",
+    "feedback": """# Let us go through the code step-by-step
+    wallet_cost = 100
+# looks good
+
+# Let's check other parts
+    betty_money = wallet_cost / 2
+# looks good
+
+# Let's check other parts
+    parents_money = 15
+    grandparents_money = 2 * betty_money
+# wrong! her grandparents give her twice as much as her parents. So we should use parents_money instead of betty_money. Let's fix it. 
+    parents_money = 15
+    grandparents_money = 2 * parents_money
+
+# Let's check other parts
+    total_money = betty_money + parents_money + grandparents_money
+    money_needed = wallet_cost - total_money
+    return money_needed
+# looks good""",
+    "task_instruction": "Given a mathematical word problem, and an error category, you have to write an incorrect solution using Python that contains the error of given category and a detailed feedback."
+}
+{
+    "error_type": "hallucination",
+    "question": "Betty is saving money for a new wallet which costs $100. Betty has only half of the money she needs. Her friend Kate's phone costs 50$. Her parents decided to give her $15 for that purpose, and her grandparents twice as much as her parents.  How much more money does Betty need to buy the wallet?",
+    "incorrect_solution": """def solution():
+    wallet_cost = 100
+    betty_money = wallet_cost / 2
+    parents_money = 15
+    grandparents_money = 2 * parents_money
+    total_money = betty_money + parents_money + grandparents_money
+    kate_phone_cost = 50
+    money_needed = wallet_cost - (total_money + kate_phone_cost)
+    return money_needed""",
+    "correct_solution": """def solution():
+    wallet_cost = 100
+    betty_money = wallet_cost / 2
+    parents_money = 15
+    grandparents_money = 2 * parents_money
+    total_money = betty_money + parents_money + grandparents_money
+    money_needed = wallet_cost - total_money
+    return money_needed""",
+    "feedback": """# Let us go through the code step-by-step
+    wallet_cost = 100
+# looks good
+
+# Let's check other parts
+    betty_money = wallet_cost / 2
+# looks good
+
+# Let's check other parts
+    parents_money = 15
+    grandparents_money = 2 * parents_money
+# looks good
+
+# Let's check other parts
+    total_money = betty_money + parents_money + grandparents_money
+# looks good
+
+# Let's check other parts
+    kate_phone_cost = 50
+# wrong! while this information is correct, it is irrelevant in this context. Let's remove it.
+
+# Let's check other parts
+    money_needed = wallet_cost - (total_money + kate_phone_cost)
+    return money_needed
+# wrong! we should not use kate_phone_cost in the calculation. Kate's phone cost is irrelevant information. Let's remove it.
+    money_needed = wallet_cost - total_money
+    return money_needed""",
+    "task_instruction": "Given a mathematical word problem, and an error category, you have to write an incorrect solution using Python that contains the error of given category and a detailed feedback."
+}
+{
+    "error_type": "redundancy",
+    "question": "Albert is wondering how much pizza he can eat in one day. He buys 2 large pizzas and 2 small pizzas. A large pizza has 16 slices and a small pizza has 8 slices. Albert also has 5 pieces of cake. If he eats it all, how many pieces does he eat that day?",
+    "incorrect_solution": """def solution():
+    large_pizzas = 2
+    small_pizzas = 2
+    large_pizza_slices = 16
+    small_pizza_slices = 8
+    cake_pieces = 5
+    total_slices = (large_pizzas * large_pizza_slices) + (small_pizzas * small_pizza_slices) + cake_pieces
+    return total_slices""",
+    "correct_solution": """def solution():
+    large_pizzas = 2
+    small_pizzas = 2
+    large_pizza_slices = 16
+    small_pizza_slices = 8
+    total_slices = (large_pizzas * large_pizza_slices) + (small_pizzas * small_pizza_slices)
+    return total_slices""",
+    "feedback": """# Let's go through the code step-by-step
+    large_pizzas = 2
+    small_pizzas = 2
+# looks good
+
+# Let's check other parts
+    large_pizza_slices = 16
+    small_pizza_slices = 8
+# looks good
+
+# Let's check other parts
+    cake_pieces = 5
+# wrong! while this information is accurate, we do not need this to calculate the answer. Let's remove it
+
+# Let's check other parts
+    total_slices = (large_pizzas * large_pizza_slices) + (small_pizzas * small_pizza_slices) + cake_pieces
+# wrong! we should not add cake_pieces because we want to calculate the number of pizza pieces he can eat. Let's fix it
+    total_slices = large_pizzas * large_pizza_slices + small_pizzas * small_pizza_slices""",
+    "task_instruction": "Given a mathematical word problem, and an error category, you have to write an incorrect solution using Python that contains the error of given category and a detailed feedback."
+}
+{
+    "error_type": "missing_step",
+    "question": "Natalia sold clips to 48 of her friends in April, and then she sold half as many clips in May. How many clips did Natalia sell altogether in April and May?",
+    "incorrect_solution": """def solution():
+    clips_sold_in_april = 48
+    total_clips_sold = clips_sold_in_april + 24
+    result = total_clips_sold
+    return result""",
+    "correct_solution": """def solution():
+    clips_sold_in_april = 48
+    clips_sold_in_may = clips_sold_in_april / 2
+    total_clips_sold = clips_sold_in_april + clips_sold_in_may
+    result = total_clips_sold
+    return result""",
+    "feedback": """# Let us go through the code step-by-step
+    clips_sold_in_april = 48
+# looks good
+
+# Let's check other parts
+    total_clips_sold = clips_sold_in_april + 24
+# wrong! total clips sold should add clips sold in april and may. We do not calculate clips sold in may before this step. Let's add it.
+# wrong! remove the 24. We will replace the arbitrary number with the variable clips_sold_in_may
+    clips_sold_in_may = clips_sold_in_april / 2
+    total_clips_sold = clips_sold_in_april + clips_sold_in_may
+
+# Let's check other parts
+    result = total_clips_sold
+    return result
+# looks good""",
+    "task_instruction": "Given a mathematical word problem, and an error category, you have to write an incorrect solution using Python that contains the error of given category and a detailed feedback."
+}
+{
+    "error_type": "commonsense",
+    "question": "Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Calculate the total cost of buying each cup.",
+    "incorrect_solution": """def solution():
+    plates_cost = 6000
+    num_plates = 0.5
+    total_plates_cost  = plates_cost * num_plates
+    twenty_dozen_cups_cost = total_plates_cost - 1200
+    total_cups = 20 * 0.5
+    cost_per_cup = twenty_dozen_cups_cost / total_cups
+    return cost_per_cup""",
+    "correct_solution": """def solution():
+    plates_cost = 6000
+    num_plates = 6
+    total_plates_cost  = plates_cost * num_plates
+    twenty_dozen_cups_cost = total_plates_cost - 1200
+    total_cups = 20 * 12
+    cost_per_cup = twenty_dozen_cups_cost / total_cups
+    return cost_per_cup""",
+    "feedback": """# Let us go through the code step-by-step
+    plates_cost = 6000
+# looks good
+
+# Let's check other parts
+    num_plates = 0.5
+# wrong! from the problem statement, we know that we have half a dozen plates. A dozen means 12, so half a dozen means 6. Let's fix it.
+    num_plates = 6
+
+# Let's check other parts
+    total_plates_cost  = plates_cost * num_plates
+# looks good
+
+# Let's check other parts
+    twenty_dozen_cups_cost = total_plates_cost - 1200
+# looks good
+
+# Let's check other parts
+    total_cups = 20 * 0.5
+# wrong! we know that we have 20 dozen cups. A dozen equals 12, so we have 20 * 12 cups. Let's fix it.
+    total_cups = 20 * 12
+
+# Let's check other parts
+    cost_per_cup = twenty_dozen_cups_cost / total_cups
+    return cost_per_cup
+# looks good""",
+    "task_instruction": "Given a mathematical word problem, and an error category, you have to write an incorrect solution using Python that contains the error of given category and a detailed feedback."
+}
+{
+    "error_type": "variable_naming",
+    "question": "Tobias is buying a new pair of shoes that costs $95. He has been saving up his money each month for the past three months. He gets a $5 allowance a month. He also mows lawns and shovels driveways. He charges $15 to mow a lawn and $7 to shovel. After buying the shoes, he has $15 in change. If he mows 4 lawns, how many driveways did he shovel?",
+    "incorrect_solution": """def solution():
+    shoes_cost = 95
+    allowance = 5
+    months = 3
+    lawn_mowing_cost = 15
+    shoveling_cost = 7
+    lawns_mowed = 4
+    change = 15
+
+    total_money_saved = shoes_cost + change
+    allowance_money = allowance * months
+    lawn_mowing_money = lawn_mowing_cost * lawns_mowed
+
+    shoveling_money = total_money_saved - allowance_money - lawn_mowing_money
+    driveways_shoveled = shoveling_money // shoveling_cost
+
+    return driveways_shoveled""",
+    "correct_solution": """def solution():
+    shoes_cost = 95
+    monthly_allowance = 5
+    num_months = 3
+    lawn_mowing_cost = 15
+    shoveling_cost = 7
+    num_lawns_mowed = 4
+    remaining_money = 15
+
+    total_money_saved = shoes_cost + remaining_money
+    allowance_money = monthly_allowance * num_months
+    lawn_mowing_money = lawn_mowing_fee * num_lawns_mowed
+
+    shoveling_money = total_money_saved - allowance_money - lawn_mowing_money
+    num_driveways_shoveled = shoveling_money // shoveling_fee
+
+    return num_driveways_shoveled""",
+    "feedback": """# Let us go through the code step-by-step
+    shoes_cost = 95
+# looks good
+
+# Let's check other parts
+    allowance = 5
+    months = 3
+# wrong! we should use monthly_allowance instead of allowance. Let's fix it.
+# wrong! we should use num_months instead of months for better readability. Let's fix it.
+    monthly_allowance = 5
+    num_months = 3
+
+# Let's check other parts
+    lawn_mowing_cost = 15
+    shoveling_cost = 7
+    lawns_mowed = 4
+    change = 15
+# wrong! we should use remaining_money instead of change becuase it is more intuitive. 
+# wrong! use num_lawns_mowed instead of lawns_mowed for better readability. Let's fix it.
+    lawn_mowing_cost = 15
+    shoveling_cost = 7
+    num_lawns_mowed = 4
+    remaining_money = 15
+
+# Let's check other parts
+    total_money_saved = shoes_cost + change
+    allowance_money = allowance * months
+    lawn_mowing_money = lawn_mowing_cost * lawns_mowed
+# wrong! use remaining_money instead of change. Let's fix it.
+# wrong! use monthly_allowance instead of allowance and num_months. Let's fix it.
+# wrong! use num_lawns_mowed instead of lawns_mowed. Let's fix it.
+    total_money_saved = shoes_cost + remaining_money
+    allowance_money = monthly_allowance * num_months
+    lawn_mowing_money = lawn_mowing_cost * num_lawns_mowed
+
+# Let's check other parts
+    shoveling_money = total_money_saved - allowance_money - lawn_mowing_money
+    driveways_shoveled = shoveling_money // shoveling_cost
+    return driveways_shoveled
+# looks good""",
+    "task_instruction": "Given a mathematical word problem, and an error category, you have to write an incorrect solution using Python that contains the error of given category and a detailed feedback."
+}
+{
+    "error_type": "no_error",
+    "question": "Every bedtime, Juwella reads a book. Three nights ago, she read 15 pages. Two nights ago she read twice that many pages, while last night she read 5 pages more than the previous night. She promised to read the remaining pages of the book tonight. If the book has 100 pages, how many pages will she read tonight?",
+    "incorrect_solution": "def solution():\n\t\"\"\"Every bedtime, Juwella reads a book. Three nights ago, she read 15 pages. Two nights ago she read twice that many pages, while last night she read 5 pages more than the previous night. She promised to read the remaining pages of the book tonight. If the book has 100 pages, how many pages will she read tonight?\"\"\"\n\tpages_read_three_nights_ago = 15\n\tpages_read_two_nights_ago = 2 * pages_read_three_nights_ago\n\tpages_read_one_night_ago = pages_read_two_nights_ago + 5\n\tpages_read = pages_read_three_nights_ago + pages_read_two_nights_ago + pages_read_one_night_ago\n\ttotal_pages = 100\n\tpages_to_read = total_pages - pages_read\n\tresult = pages_to_read\n\treturn result",
+    "correct_solution": "",
+    "feedback": "",
+    "task_instruction": ""
+}

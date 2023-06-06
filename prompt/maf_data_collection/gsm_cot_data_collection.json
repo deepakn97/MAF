@@ -1,8 +1,0 @@
-{
-    "error_type": "no_error",
-    "question": "Every bedtime, Juwella reads a book. Three nights ago, she read 15 pages. Two nights ago she read twice that many pages, while last night she read 5 pages more than the previous night. She promised to read the remaining pages of the book tonight. If the book has 100 pages, how many pages will she read tonight?",
-    "incorrect_solution": "Three nights ago, Juwella read 15 pages. Two nights ago, she read twice what she read three nights ago, so she read 15 * 2 = 30 pages. Last night she read 5 more pages than two nights ago, so she read 30 + 5 = 35 pages. In total, she read 15 + 30 + 35 = 80 pages during the last three nights. To finish the book, she must read 100 - 80 = 20 pages tonight.",
-    "correct_solution": "",
-    "feedback": "",
-    "task_instruction": ""
-}
