@@ -342,6 +342,7 @@ class LLMModel:
         temperature: float = 0.0,
         max_tokens: int = 600,
         openai_api_key: str = None,
+        **kwargs,
     ) -> None:
         self.instruction = instruction
         self.question_prefix = question_prefix

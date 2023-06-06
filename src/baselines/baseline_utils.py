@@ -41,7 +41,7 @@ import subprocess
 
 OS_MODELS = ["vicuna", "alpaca"]
 OPENAI_MODELS = ["gpt-3.5-turbo", "text-davinci-003"]
-TASKS = ["gsm_baseline", "entailment_baseline"]
+TASKS = ["gsm_baseline", "entailment_baseline", "drop_baseline"]
 PROMPTS = [
     "0cot_gsm",
     "1cot_gsm",
@@ -50,6 +50,7 @@ PROMPTS = [
     "ltm_gsm",
     "3shot_entailment",
     "4shot_entailment",
+    "3shot_drop",
 ]
 QA_TEMPLATE = {
     "question_prefix": " # Q: ",
@@ -63,10 +64,15 @@ ENTAILMENT_TEMPLATE = {
     "question_prefix": "",
     "answer_prefix": "",
 }
+ZERO_TEMPLATE = {
+    "instruction": 'Let\'s think step by step. End your answer with "final_answer: " and then the numeric answer to the question.',
+    **QA_TEMPLATE,
+}
 TEMPLATES = {
     "qa": QA_TEMPLATE,
     "python": PYTHON_TEMPLATE,
     "entailment": ENTAILMENT_TEMPLATE,
+    "zero": ZERO_TEMPLATE,
 }
 
 
@@ -114,6 +120,20 @@ class BaselineWrapper:
         self.logger = Logger("src/baselines/baseline_log.txt")
 
     def run_batch(self, data, save_file, batch_size=None):
+        if self.task == "drop_baseline":
+            # for each passage, go through all the qa pairs and make them a separate question
+            data_expand = []
+            for d in data:
+                for qa in d["qa_pairs"]:
+                    data_expand.append(
+                        {
+                            "id": d["id"],
+                            "passage": d["passage"],
+                            "question": qa["question"],
+                            "answer": qa["answer"],
+                        }
+                    )
+            data = data_expand
         if batch_size is None:
             outputs = self.llm([parse_problem(d, self.task) for d in data])
         else:
@@ -143,6 +163,8 @@ class BaselineWrapper:
         num_problems=None,
     ):
         prompt_file = f"prompt/{self.task}/{self.prompt}.json"
+        if not os.path.exists(prompt_file):
+            prompt_file = f"prompt/{self.task}/{self.prompt}.txt"
         self.llm.setup_prompt_from_examples_file(prompt_file)
         save_dir = os.path.join(
             self.save_dir, f"{self.engine}/{self.task}/{self.prompt}"
@@ -155,6 +177,7 @@ class BaselineWrapper:
                 raise ValueError(
                     f"Invalid save file {save_file} (must pass explicitly if passing data explicitly)"
                 )
+            self.logger.log(f"Saving to {save_file}")
             if num_problems is not None:
                 data = data[:num_problems]
             if not os.path.exists(os.path.dirname(save_file)):
@@ -294,6 +317,12 @@ def get_relevant_fields(data, task):
             "proof",
             ("meta", "triples"),
         ],
+        "drop_baseline": [
+            "id",
+            "passage",
+            "question",
+            "final_answer",
+        ],
     }
     if task not in TASKS:
         raise ValueError(f"Invalid task {task}")
@@ -315,6 +344,11 @@ def parse_problem(problem_dict, task):
         p = "Hypothesis: " + problem_dict["hypothesis"] + "\n\n" + "Text:"
         for sent, text in problem_dict["meta"]["triples"].items():
             p += "\n" + sent + ": " + text
+        return p
+    elif task == "drop_baseline":
+        p = "Passage: " + problem_dict["passage"] + "\n\n"
+        # TODO: don't assume we are only using first question later on
+        p += "Q: " + problem_dict["question"] + "\n\n"
         return p
 
 
@@ -453,23 +487,25 @@ def parse_answer(answer, task, prompt_technique: str):
         # Split by lines, only take lines including and after 'Entailment Tree:'
         return "$proof$ = " + answer
     else:
-        answer_key = "final_answer: "
-        if answer.find(answer_key) == -1:
-            return "undefined"
-        answer = answer[answer.find(answer_key) + len(answer_key) :]
-        answer = answer.split("\n")[0]
-        answer = "".join(
-            c for c in answer if c.isdigit() or c == "."
-        )  # note that commas are removed
-        try:
-            fl_answer = float(answer)
-            int_answer = int(fl_answer)
-            if fl_answer == int_answer:
-                return str(int_answer)
-            else:
-                return str(fl_answer)
-        except:
-            return "undefined"
+        answer_original = answer.lower()
+
+        for answer_key in ["final_answer: ", "final answer: ", "final answer is: "]:
+            answer = answer_original
+            answer = answer[answer.find(answer_key) + len(answer_key) :]
+            answer = answer.split("\n")[0]
+            answer = "".join(
+                c for c in answer if c.isdigit() or c == "."
+            )  # note that commas are removed
+            try:
+                fl_answer = float(answer)
+                int_answer = int(fl_answer)
+                if fl_answer == int_answer:
+                    return str(int_answer)
+                else:
+                    return str(fl_answer)
+            except:
+                return "undefined"
+        return "undefined"
 
 
 def to_tsv(filepath, lines):
