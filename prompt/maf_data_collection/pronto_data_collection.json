@@ -1,0 +1,8 @@
+{
+    "error_type": "no_error",
+    "question": "Rompuses are impuses and vumpuses. Yumpuses are lempuses and jompuses. Every tumpus is a brimpus. Every numpus is a yumpus and a zumpus. Zumpuses are shumpuses and dumpuses. Shumpuses are lorpuses and sterpuses. Every gorpus is fast and a wumpus. Each brimpus is a numpus and a rompus. Sally is a numpus and a yumpus. Sally is a lorpus and a sterpus. True or false: Sally is a zumpus?",
+    "incorrect_solution": "Sally is a numpus and a yumpus. Thus, Sally is a numpus. Every numpus is a yumpus and a zumpus. So, Sally is a yumpus and a sumpus. This means that Sally is a zumpus. The statement is true.",
+    "correct_solution": "",
+    "feedback": "",
+    "task_instruction": ""
+}

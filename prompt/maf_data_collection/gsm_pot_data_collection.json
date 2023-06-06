@@ -1,0 +1,8 @@
+{
+    "error_type": "no_error",
+    "question": "Every bedtime, Juwella reads a book. Three nights ago, she read 15 pages. Two nights ago she read twice that many pages, while last night she read 5 pages more than the previous night. She promised to read the remaining pages of the book tonight. If the book has 100 pages, how many pages will she read tonight?",
+    "incorrect_solution": "def solution():\n\t\"\"\"Every bedtime, Juwella reads a book. Three nights ago, she read 15 pages. Two nights ago she read twice that many pages, while last night she read 5 pages more than the previous night. She promised to read the remaining pages of the book tonight. If the book has 100 pages, how many pages will she read tonight?\"\"\"\n\tpages_read_three_nights_ago = 15\n\tpages_read_two_nights_ago = 2 * pages_read_three_nights_ago\n\tpages_read_one_night_ago = pages_read_two_nights_ago + 5\n\tpages_read = pages_read_three_nights_ago + pages_read_two_nights_ago + pages_read_one_night_ago\n\ttotal_pages = 100\n\tpages_to_read = total_pages - pages_read\n\tresult = pages_to_read\n\treturn result",
+    "correct_solution": "",
+    "feedback": "",
+    "task_instruction": ""
+}
