@@ -14,10 +14,16 @@ class EntailmentLLMFeedback(LLMFeedback):
         )
 
     def make_query(self, data: Dict[str, str]) -> str:
-        query = f"{self.prompt}\n{self.question_prefix}{data['hypothesis']}{self.intra_example_sep}"
-        for i, sent in enumerate(data["text"]):
-            query += f"# sent {i+1}: {sent}\n"
-        query = f"{query}\n{self.answer_prefix}\n{data['soln']}{self.instruction}"
+        query = f"{self.prompt}\n\n"
+        query += "Hypothesis: " + data["hypothesis"] + "\n\n"
+        query += (
+            "Text:\n"
+            + "\n".join(
+                [f"sent {i + 1}: {sent}" for i, sent in enumerate(data["text"])]
+            )
+            + "\n\n"
+        )
+        query += f"{data['soln']}\n{self.instruction}"
         return query
 
     def process_outputs(self, outputs: List[str]) -> List[str]:
