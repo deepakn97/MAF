@@ -33,7 +33,7 @@ def parse_args():
         "-p",
         "--prompt",
         type=str,
-        default="pot_gsm",
+        default="ltm_gsm",
         help="Prompt technique to use for the model",
     )
     parser.add_argument(
@@ -81,6 +81,7 @@ def main():
         cuda_visible_devices=args.cuda_visible,
         instruction=args.instruction,
     )
+
     if args.data is None:
         baseline.run(num_problems=args.num_problems)
     elif not os.path.exists(args.data):

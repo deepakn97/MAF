@@ -9,6 +9,7 @@ from langchain.prompts import (
     HumanMessagePromptTemplate,
     ChatPromptTemplate,
 )
+import itertools
 from langchain.schema import HumanMessage
 from io import StringIO
 from contextlib import redirect_stdout
@@ -40,7 +41,7 @@ import subprocess
 
 
 OS_MODELS = ["vicuna", "alpaca"]
-OPENAI_MODELS = ["gpt-3.5-turbo", "text-davinci-003"]
+OPENAI_MODELS = ["gpt-3.5-turbo", "text-davinci-003", "gpt-4", 'gpt-4-0613']
 TASKS = ["gsm_baseline", "entailment_baseline", "drop_baseline"]
 PROMPTS = [
     "0cot_gsm",
@@ -51,6 +52,7 @@ PROMPTS = [
     "3shot_entailment",
     "4shot_entailment",
     "3shot_drop",
+    "init_truncated",
 ]
 QA_TEMPLATE = {
     "question_prefix": " # Q: ",
@@ -62,7 +64,8 @@ PYTHON_TEMPLATE = {
 }
 ENTAILMENT_TEMPLATE = {
     "question_prefix": "",
-    "answer_prefix": "",
+    "answer_prefix": "Entailment Tree:\n",
+    "intra_example_sep": "\n",
 }
 ZERO_TEMPLATE = {
     "instruction": 'Let\'s think step by step. End your answer with "final_answer: " and then the numeric answer to the question.',
@@ -113,6 +116,10 @@ class BaselineWrapper:
                 self.data_dir = "data/gsm_data"
             elif task == "entailment_baseline":
                 self.data_dir = "data/entailment_data/baseline_data"
+            elif task == "drop_baseline":
+                self.data_dir = "data/drop_data/baseline_data"
+            else:
+                raise ValueError(f"Invalid task {task}")
         else:
             self.data_dir = data_dir
         self.save_dir = save_dir
@@ -120,44 +127,27 @@ class BaselineWrapper:
         self.logger = Logger("src/baselines/baseline_log.txt")
 
     def run_batch(self, data, save_file, batch_size=None):
-        if self.task == "drop_baseline":
-            # for each passage, go through all the qa pairs and make them a separate question
-            data_expand = []
-            for d in data:
-                for qa in d["qa_pairs"]:
-                    data_expand.append(
-                        {
-                            "id": d["id"],
-                            "passage": d["passage"],
-                            "question": qa["question"],
-                            "answer": qa["answer"],
-                        }
-                    )
-            data = data_expand
         if batch_size is None:
             outputs = self.llm([parse_problem(d, self.task) for d in data])
         else:
             outputs = []
             for i in tqdm(range(0, len(data), batch_size)):
-                outputs.extend(
-                    self.llm(
-                        [
-                            parse_problem(d, self.task)
-                            for d in data[i : min(i + batch_size, len(data))]
-                        ]
-                    )
-                )
-                data = [{**d, "output": o} for d, o in zip(data, outputs)]
+                problems = [
+                    parse_problem(d, self.task)
+                    for d in data[i : min(i + batch_size, len(data))]
+                ]
+                outputs.extend(self.llm(problems))
+                output_data = [{**d, "output": o} for d, o in zip(data, outputs)]
                 with open(save_file, "w") as f:
-                    f.write(json.dumps(data, indent=4) + "\n")
-        data = [{**d, "output": o} for d, o in zip(data, outputs)]
-        return data
+                    f.write(json.dumps(output_data, indent=4) + "\n")
+        output_data = [{**d, "output": o} for d, o in zip(data, outputs)]
+        return output_data
 
     def run(
         self,
         parse=True,
         grade=True,
-        batch_size=None,
+        batch_size=10,
         data=None,
         save_file=None,
         num_problems=None,
@@ -195,6 +185,20 @@ class BaselineWrapper:
                 data = load_jsonl(os.path.join(self.data_dir, data_file))
                 if num_problems is not None:
                     data = data[:num_problems]
+                if self.task == "drop_baseline":
+                    # for each passage, go through all the qa pairs and make them a separate question
+                    data_expand = []
+                    for d in data:
+                        for qa in d["qa_pairs"]:
+                            data_expand.append(
+                                {
+                                    "id": d["id"],
+                                    "passage": d["passage"],
+                                    "question": qa["question"],
+                                    "answer": qa["answer"],
+                                }
+                            )
+                    data = data_expand
                 self.logger.log(f"Running {data_file}")
                 self.logger.log(
                     "Example prompt: "
@@ -203,6 +207,7 @@ class BaselineWrapper:
                 save_file = os.path.join(
                     save_dir, data_file.replace(".jsonl", "_results.json")
                 )
+                self.logger.log(f"Saving to {save_file}")
                 if save_file not in self.results_filepaths:
                     self.results_filepaths.append(save_file)
                 data = self.run_batch(data, save_file, batch_size=batch_size)
@@ -360,14 +365,20 @@ def grade_answers(filepath, task, split=None, overwrite=True):
     if task == "gsm_baseline":
         for d in data:
             d["correct"] = check_corr(d["answer"], d["target"], task)
+        # return sum([d["correct"] for d in data]) / len(data)
     elif task == "entailment_baseline":
         # assert that filepath is in the format task_{number}_{split}_results.json
-        assert re.match(r"([a-z]|[A-Z])*_(\d)_results.json", os.path.basename(filepath))
+        assert re.match(
+            r"task_(\d)_(dev|train|test)_results.json", os.path.basename(filepath)
+        )
         filename = os.path.basename(filepath)
         if split is None:
             split = filename.split("_")[-2]
         entailment_task = f"task_{filename.split('_')[1]}"
         eval_entailment(filepath, entailment_task, split)
+    elif task == "drop_baseline":
+        for d in data:
+            d["correct"] = check_corr_drop(d["final_answer"], d["answer"])
     else:
         raise ValueError(f"Invalid task {task}")
     if not overwrite:
@@ -377,14 +388,18 @@ def grade_answers(filepath, task, split=None, overwrite=True):
     with open(filepath, "w") as f:
         f.write(json.dumps(data, indent=4) + "\n")
     # return accuracy
-    return sum([d["correct"] for d in data]) / len(data)
 
 
 def parse_answers(filepath, task, prompt_technique, overwrite=True):
     with open(filepath, "r") as f:
         problems = json.load(f)
+    final_answer_key = ""
+    if task in ["gsm_baseline", "entailment_baseline"]:
+        final_answer_key = "answer"
+    elif task == "drop_baseline":
+        final_answer_key = "final_answer"
     for p in problems:
-        p["answer"] = parse_answer(p["output"], task, prompt_technique)
+        p[final_answer_key] = parse_answer(p["output"], task, prompt_technique)
     with open(filepath, "w") as f:
         f.write(json.dumps(problems, indent=4) + "\n")
 
@@ -426,6 +441,34 @@ def check_corr(input: str, target: str, task: str, tol: float = 0.001):
             return False
     elif task == "entailment_baseline":
         raise NotImplementedError()
+
+
+def check_corr_drop(input: str, target: dict[str, str | dict[str, str]]):
+    # only one of number, date, and spans will be nonempty.
+    if target["number"] != "":
+        # remove units from input
+        input = re.sub(r"[a-zA-Z]", "", input)
+        return input == target["number"].lower()
+    elif (
+        target["date"]["day"] != ""
+        or target["date"]["month"] != ""
+        or target["date"]["year"] != ""
+    ):
+        items = []
+        for key in target["date"]:
+            if target["date"][key] != "":
+                items.append(target["date"][key])
+        # get all permutations of items
+        perms = list(itertools.permutations(items))
+        # check if any of the permutations are equal to input
+        return any(["-".join(p) == input for p in perms])
+    elif target["spans"] != "":
+        for span in target["spans"]:
+            if span.lower() not in input.lower():
+                return False
+        return True
+    else:
+        raise ValueError("No target answer found in 'number', 'date', or 'spans'")
 
 
 def manual_parse(filename):
@@ -483,32 +526,43 @@ def parse_program_answer(answer):
         return "undefined"
 
 
-def parse_answer(answer, task, prompt_technique: str):
-    if prompt_technique == "pot_gsm":
-        return parse_program_answer(answer)
-    elif prompt_technique.find("entailment") != -1:
+def parse_answer(answer: str, task: str, prompt_technique: str):
+    if task == "gsm_baseline":
+        if prompt_technique == "pot_gsm":
+            return parse_program_answer(answer)
+        else:
+            answer_original = answer.lower()
+            for answer_key in ["final_answer: ", "final answer: ", "final answer is: "]:
+                answer = answer_original
+                answer = answer[answer.find(answer_key) + len(answer_key) :]
+                answer = answer.split("\n")[0]
+                answer = "".join(
+                    c for c in answer if c.isdigit() or c == "."
+                )  # note that commas are removed
+                try:
+                    fl_answer = float(answer)
+                    int_answer = int(fl_answer)
+                    if fl_answer == int_answer:
+                        return str(int_answer)
+                    else:
+                        return str(fl_answer)
+                except:
+                    return "undefined"
+            return "undefined"
+    elif task == "entailment_baseline":
         answer = get_entailment_proof([answer])[0]
         # Split by lines, only take lines including and after 'Entailment Tree:'
         return "$proof$ = " + answer
-    else:
+    elif task == "drop_baseline":
         answer_original = answer.lower()
-
         for answer_key in ["final_answer: ", "final answer: ", "final answer is: "]:
+            if answer_key not in answer_original:
+                continue
             answer = answer_original
             answer = answer[answer.find(answer_key) + len(answer_key) :]
             answer = answer.split("\n")[0]
-            answer = "".join(
-                c for c in answer if c.isdigit() or c == "."
-            )  # note that commas are removed
-            try:
-                fl_answer = float(answer)
-                int_answer = int(fl_answer)
-                if fl_answer == int_answer:
-                    return str(int_answer)
-                else:
-                    return str(fl_answer)
-            except:
-                return "undefined"
+            answer = answer.strip()
+            return answer
         return "undefined"
 
 

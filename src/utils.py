@@ -7,7 +7,7 @@ import openai
 from openai.openai_response import OpenAIResponse
 import asyncio
 import backoff
-from typing import Callable, Dict, List, Union, Tuple
+from typing import Callable, Dict, List, Union, Tuple, Any
 from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
 import json
@@ -134,7 +134,9 @@ class LLMFeedback(Feedback):
 
         return fb_and_solns
 
-    def __call__(self, solutions: List[str], batch_size=10, concurrent=True):
+    def __call__(
+        self, solutions: List[str], batch_size=10, concurrent=True
+    ) -> Tuple[Any, List[str]]:
         generation_queries = [self.make_query(solution) for solution in solutions]
         if not concurrent:
             batch_size = 1
@@ -708,7 +710,7 @@ def call_gpt(
         for query in queries:
             response = openai.ChatCompletion.create(
                 model=engine,
-                messages=query,
+                messages=[query],
                 temperature=temperature,
                 max_tokens=max_tokens,
                 stop=stop_token,
