@@ -2,7 +2,17 @@
     "error_type": "no_error",
     "question": "Rompuses are impuses and vumpuses. Yumpuses are lempuses and jompuses. Every tumpus is a brimpus. Every numpus is a yumpus and a zumpus. Zumpuses are shumpuses and dumpuses. Shumpuses are lorpuses and sterpuses. Every gorpus is fast and a wumpus. Each brimpus is a numpus and a rompus. Sally is a numpus and a yumpus. Sally is a lorpus and a sterpus. True or false: Sally is a zumpus?",
     "incorrect_solution": "Sally is a numpus and a yumpus. Thus, Sally is a numpus. Every numpus is a yumpus and a zumpus. So, Sally is a yumpus and a sumpus. This means that Sally is a zumpus. The statement is true.",
-    "correct_solution": "",
-    "feedback": "",
-    "task_instruction": ""
+    "correct_solution": "Sally is a numpus and a yumpus. Thus, Sally is a numpus. Every numpus is a yumpus and a zumpus. So, Sally is a yumpus and a sumpus. This means that Sally is a zumpus. The statement is true.",
+    "feedback": """# Let us go through the reasoning step-by-step
+    Sally is a numpus and a yumpus. Thus, Sally is a numpus.
+# looks good
+
+# Let's check other parts
+    Every numpus is a yumpus and a zumpus. So, Sally is a yumpus and a sumpus.
+# looks good
+
+# Let's check other parts
+    This means that Sally is a zumpus. The statement is true.
+# looks good""",
+    "task_instruction": "Given a set of logical statements and a true or false question at the end, along with an error category, generate a reasoning chain with an error of the given category and a detailed feedback."
 }
