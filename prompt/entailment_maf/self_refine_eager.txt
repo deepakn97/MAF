@@ -19,39 +19,42 @@ sent1 and sent3: an ocean plant is a kind of water plant and if fossils of a wat
 
 # Let's check the next line
 int1 and sent4: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past and a fossil of an ocean plant is found in the desert -> hypothesis: the desert used to be covered by water in the past
-# Wrong! This entailment is missing the key premise from sent2 that a desert is a kind of place. Otherwise we cannot conclude that the desert used to be covered by water in the past just based on int1 and sent4.
+# Wrong! This entailment is missing the key premise that a desert is a kind of place.
+
+# Given the feedback and the original entailment tree, let's rewrite the entailment tree to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
+
+sent1 and sent3: an ocean plant is a kind of water plant and if fossils of a water animal or plant are found in a place then that place used to be covered by water in the past -> int1: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past
+int1 and sent2 and sent4: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past and a desert is a kind of place and a fossil of an ocean plant is found in the desert -> hypothesis: the desert used to be covered by water in the past
 
 ### END ###
 
-Hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+Hypothesis: pouring water onto soil is similar to the erosion on the canyon formation
 
 Text:
-sent1: safety goggles are used for protecting the eyes during experiments
-sent2: students have to work with acids and bases for experiments
-sent3: corrosive substance can cause harm to the eyes
-sent4: acids are corrosive
-sent5: a base is corrosive
+sent1: pouring water onto soil causes that soil to wash away
+sent2: most canyons are formed by flowing rivers through erosion over long periods of time
+sent3: soil erosion is when moving water moves soil from fields / environments
 
 Entailment Tree:
-sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and acids are corrosive and a base is corrosive -> int1: acids and bases can cause harm to the eyes
-int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
-int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+sent1 and sent3: pouring water onto soil causes that soil to wash away and soil erosion is when moving water moves soil from fields / environments -> int1: pouring water onto soil is a kind of soil erosion
+int1 and sent2: pouring water onto soil is a kind of soil erosion and most canyons are formed by flowing rivers through erosion over long periods of time -> hypothesis: pouring water onto soil is similar to the erosion on the canyon formation
+
 
 # There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
 
 # Let's go through line by line
-sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and acids are corrosive and a base is corrosive -> int1: acids and bases can cause harm to the eyes
-# Looks good.
+sent1 and sent3: pouring water onto soil causes that soil to wash away and soil erosion is when moving water moves soil from fields / environments -> int1: pouring water onto soil is a kind of soil erosion
+# Looks good
 
 # Let's check the next line
-int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
-# Looks good.
+int1 and sent2: pouring water onto soil is a kind of soil erosion and most canyons are formed by flowing rivers through erosion over long periods of time -> hypothesis: pouring water onto soil is similar to the erosion on the canyon formation
+# Looks good
 
-# Let's check the next line
-int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
-# Looks good.
+# There is no error in the entailment tree. It is correct! Here is the rewrite (for the sake of completeness)
 
-# There is no error in the entailment tree. It is correct!
+Entailment Tree:
+sent1 and sent3: pouring water onto soil causes that soil to wash away and soil erosion is when moving water moves soil from fields / environments -> int1: pouring water onto soil is a kind of soil erosion
+int1 and sent2: pouring water onto soil is a kind of soil erosion and most canyons are formed by flowing rivers through erosion over long periods of time -> hypothesis: pouring water onto soil is similar to the erosion on the canyon formation
 
 ### END ###
 
@@ -82,5 +85,12 @@ int1 and sent5: a person shivers and a person is a kind of animal -> int2: an an
 # Let's check the next line
 int2 and sent2: an animal shivers and when an animal moves, chemical energy is converted to mechanical energy -> hypothesis: when a person shivers, chemical energy is converted to mechanical energy
 # Wrong! This misses a key intermediate that shivering is a kind of moving. We can add this in.
+
+# Given the feedback and the original entailment tree, let's rewrite the entailment tree to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
+
+Entailment Tree:
+sent1 and sent3: shaking is a kind of moving and shivering is a kind of shaking -> int1: shivering is a kind of moving
+int1 and sent4: shivering is a kind of moving and a person shivers -> int2: a person moves when he is shivering
+int2 and sent2: a person moves when he is shivering and when an animal moves, chemical energy is converted to mechanical energy -> hypothesis: when a person shivers, chemical energy is converted to mechanical energy
 
 ### END ###

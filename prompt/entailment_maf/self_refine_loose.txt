@@ -1,0 +1,77 @@
+Hypothesis: the desert used to be covered by water in the past
+
+Text: 
+sent1: an ocean plant is a kind of water plant
+sent2: a desert is a kind of place
+sent3: if fossils of a water animal or plant are found in a place then that place used to be covered by water in the past
+sent4: a fossil of an ocean plant is found in the desert
+
+Entailment Tree:
+sent1 and sent3: an ocean plant is a kind of water plant and if fossils of a water animal or plant are found in a place then that place used to be covered by water in the past -> int1: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past
+int1 and sent4: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past and a fossil of an ocean plant is found in the desert -> hypothesis: the desert used to be covered by water in the past
+
+# There may be an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+
+# In the line 'int1 and sent4: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past and a fossil of an ocean plant is found in the desert -> hypothesis: the desert used to be covered by water in the past', we are missing the premise that a desert is a kind of place. This premise is sent2 from the initial text, so we can add it in directly.
+
+# Here is the rewrite:
+
+sent1 and sent3: an ocean plant is a kind of water plant and if fossils of a water animal or plant are found in a place then that place used to be covered by water in the past -> int1: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past
+int1 and sent2 and sent4: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past and a desert is a kind of place and a fossil of an ocean plant is found in the desert -> hypothesis: the desert used to be covered by water in the past
+
+### END ###
+
+Hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+
+Text:
+sent1: safety goggles are used for protecting the eyes during experiments
+sent2: students have to work with acids and bases for experiments
+sent3: corrosive substance can cause harm to the eyes
+sent4: acids are corrosive
+sent5: a base is corrosive
+
+Entailment Tree:
+sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and acids are corrosive and a base is corrosive -> int1: acids and bases can cause harm to the eyes
+int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
+int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+
+# There may be an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+
+# There is no error in the entailment tree. It is correct!
+
+# Here is the rewrite (for the sake of completeness):
+sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and acids are corrosive and a base is corrosive -> int1: acids and bases can cause harm to the eyes
+int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
+int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+
+### END ###
+
+Hypothesis: when a person shivers, chemical energy is converted to mechanical energy
+
+Text:
+sent1: shaking is a kind of moving
+sent2: when an animal moves, chemical energy is converted to mechanical energy
+sent3: shivering is a kind of shaking,
+sent4: a person shivers
+sent5: a person is a kind of animal
+
+Entailment Tree:
+sent3 and sent4: shivering is a kind of shaking and a person shivers -> int1: a person shivers
+int1 and sent5: a person shivers and a person is a kind of animal -> int2: an animal shivers
+int2 and sent2: an animal shivers and when an animal moves, chemical energy is converted to mechanical energy -> hypothesis: when a person shivers, chemical energy is converted to mechanical energy
+
+# There may be an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+
+# In the line 'sent3 and sent4: shivering is a kind of shaking and a person shivers -> int1: a person shivers', the intermediate conclusion int1 is that a person shivers. We already know that a person shivers from sent4 in the initial text, so we can remove int1 and just use sent4.
+
+# In the line 'int1 and sent5: a person shivers and a person is a kind of animal -> int2: an animal shivers', the intermediate conclusion int2 is that an animal shivers. However, int2 is not relevant to the problem because we want to conclude something about a person shivering and we do not need to know that an animal shivers. Thus we can remove this line from the entailment tree altogether.
+
+# In the line 'int1 and sent2: a person shivers and when an animal moves, chemical energy is converted to mechanical energy -> hypothesis: when a person shivers, chemical energy is converted to mechanical energy', we need two more premises to get to the hypothesis. First, we need to know that a person is a kind of animal. This is sent5 from the initial text, so we can add it in directly. Second, we need to know shivering is a kind of moving. This is not in the initial text, so we cannot add it in directly. We can add it in by using sent3 and sent1 to get the intermediate conclusion that shivering is a kind of moving. Then we can use this intermediate conclusion to get to the hypothesis.
+
+# Here is the rewrite:
+sent2 and sent5: when an animal moves, chemical energy is converted to mechanical energy and a person is a kind of animal -> int1: when a person moves, chemical energy is converted to mechanical energy
+sent1 and sent3: shaking is a kind of moving and shivering is a kind of shaking -> int2: shivering is a kind of moving
+int2 and sent4: shivering is a kind of moving and a person shivers -> int3: the person moves when he is shivering
+int1 and int3: when a person moves, chemical energy is converted to mechanical energy and the person moves when he is shivering -> hypothesis: when a person shivers, chemical energy is converted to mechanical energy
+
+### END ###
