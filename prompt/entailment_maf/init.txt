@@ -1,48 +1,98 @@
-Hypothesis: Eruptions can cause plants to die
+Hypothesis: the earth revolving around the sun causes leo to appear in different areas in the sky at different times of year
 
 Text:
-# sent 1: eruptions emit lava
-# sent 2: plants have green leaves
-# sent 3: eruptions produce ash clouds
-# sent 4: producers will die without sunlight
-# sent 5: ash blocks sunlight
+# sent 1: leo is a kind of constellation
+# sent 2: pthe earth revolving around the sun causes stars to appear in different areas in the sky at different times of year
+# sent 3: a constellation contains stars
 
 Entailment Tree:
-sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-sent 4 and int 1: producers will die without sunlight and eruptions block sunlight -> H: Eruptions can cause plants to die
+sent 1 and sent 3: leo is a kind of constellation and a constellation contains stars -> int 1: leo is a constellation containing stars
+int 1 and sent 2: leo is a constellation containing stars and the earth revolving around the sun causes stars to appear in different areas in the sky at different times of year -> hypothesis: the earth revolving around the sun causes leo to appear in different areas in the sky at different times of year
 
 ### END ###
 
-Hypothesis: An astronaut requires the oxygen in a spacesuit backpack to breathe
+Hypothesis: mitosis produces two cells with the same number of chromosomes as the parent cell
 
 Text:
-# sent 1: spacesuit backpacks contain oxygen
-# sent 2: an animal requires oxygen to breathe
-# sent 3: a vacuum does not contain oxygen
-# sent 4: an astronaut is a kind of human
-# sent 5: a human is a kind of animal
-# sent 6: space is a vacuum
+# sent 1: things that are identical will have the same number of parts
+# sent 2: a chromosome is a part of a cell
+# sent 3: mitosis produces two diploid cells from a diploid parent cell
+# sent 4: a cell is a kind of thing
+# sent 5: mitosis produces cells that are identical to the parent cell
 
 Entailment Tree:
-sent 4 and sent 5: an astronaut is a kind of human and a human is a kind of animal -> int 1: an astronaut is a kind of animal
-sent 3 and sent 6: a vacuum does not contain oxygen and space is a vacuum -> int 2: there is no oxygen in space
-sent 2 and int 1: an animal requires oxygen to breathe and an astronaut is a kind of animal -> int 3: an astronaut requires oxygen to breathe
-sent 1 and int 2 and int 3: spacesuit backpacks contain oxygen and there is no oxygen in space and an astronaut requires oxygen to breathe -> H: an astronaut requires the oxygen in spacesuit backpack to breathe
+sent1 and sent2 and sent4: things that are identical will have the same number of parts and a chromosome is a part of a cell and a cell is a kind of thing -> int1: cells that are identical will have the same number of chromosomes
+sent3 and sent5: mitosis produces two diploid cells from a diploid parent cell and mitosis produces cells that are identical to the parent cell -> int2: mitosis produces two diploid cells that are identical to the parent diploid cell
+int1 and int2: cells that are identical will have the same number of chromosomes and mitosis produces two diploid cells that are identical to the parent diploid cell -> hypothesis: mitosis produces two cells with the same number of chromosomes as the parent cell
 
 ### END ###
 
-Hypothesis: evaporating and condensing can both be caused by changes in heat energy
+Hypothesis: chemical weathering can cause iron in rock to oxidize and change the color of the rock to yellow, red, or orange
 
-Text: 
-# sent 1: temperature is a measure of heat energy
-# sent 2: temperature changes can cause phase changes
-# sent 3: evaporating is a kind of phase change
-# sent 4: condensing is a kind of phase change
+Text:
+# sent 1: the color of an environment means the color of the things that environment contains
+# sent 2: color is a property of an object / a material
+# sent 3: if an object undergoes chemical change then that object will have new chemical properties
+# sent 4: igneous rock is a kind of rock
+# sent 5: a change in soil chemistry is a kind of chemical weathering
+# sent 6: the rock cycle is a cyclical process, with stages of formation, weathering, erosion
+# sent 7: phase means state
+# sent 8: the color of an object can be discovered by looking at that object
+# sent 9: oxidation of iron will change the iron to yellow, red, or orange color
+# sent 10: to change means to cause a change
+# sent 11: a cause of something is a reason for that something
+# sent 12: if something is caused by something else , then that something can be explained by that something else
+# sent 13: as the state of matter changes , the color of the object will stay the same
+# sent 14: the chemistry of something is similar to what that something is made of
+# sent 15: weathering occurs at the the surface of the earth
+# sent 16: rocks sometimes contain iron
+# sent 17: to change means to have an effect
+# sent 18: alteration means change
+# sent 19: temperature changing can cause phase changes
+# sent 20: pink is a combination of red and white
+# sent 21: chemical weathering causes iron in rock to oxidize
+# sent 22: iron element in soil causes soil to be red
+# sent 23: chemical change is a kind of chemical reaction
+# sent 24: sedimentary rocks are often light brown in color
+# sent 25: chemical reactions cause new substances / different substances to form
 
 Entailment Tree:
-sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
-sent 3 and sent 4: evaporating is a kind of phase change and condensing is a kind of phase change -> int 2: evaporating and condensing are both kinds of phase changes
-int 1 and int 2: changes in heat energy can cause phase changes and evaporating and condensing are both kinds of phase changes -> H: evaporating and condensing can both be caused by changes in heat energy
+sent16 and sent21 and sent9: rocks sometimes contain iron and chemical weathering causes iron in rock to oxidize and oxidation of iron will change the iron to yellow, red, or orange color -> hypothesis: chemical weathering can cause iron in rock to oxidize and change the color of the rock to yellow, red, or orange
 
 ### END ###
 
+Hypothesis: drought can cause plants to dry out and cause wildfires
+
+Text:
+# sent 1: a drought is a kind of slow environmental change
+# sent 2: drought is when available water decreases in an environment
+# sent 3: rainfall is the amount of rain an area receives
+# sent 4: a plants / living things require water for survival / to grow
+# sent 5: water is a kind of natural resource
+# sent 6: decreasing something negative has a positive impact on a thing
+# sent 7: if water vapor is limited to reach a location , then that location will be dry
+# sent 8: rain is a kind of water
+# sent 9: rainfall means precipitation
+# sent 10: precipitation is a kind of natural occurrence / cause
+# sent 11: plants require water to survive
+# sent 12: el nio causes drought in the western united states
+# sent 13: humans changing an environment sometimes causes that environment to be destroyed
+# sent 14: wildfire means forest fire
+# sent 15: if a plant / crop requires less water then that plant / crop will survive in a drought
+# sent 16: if something causes a process then that something is required for that process
+# sent 17: drought may cause wildfires
+# sent 18: humans changing ecosystems / environments usually has a negative impact on an ecosystem / organisms living in an ecosystem
+# sent 19: drying up means losing all water
+# sent 20: to cause means to have an effect
+# sent 21: moisture means liquid / liquid water
+# sent 22: to cause means to result in
+# sent 23: plants drying out means plants do not have enough water to survive
+# sent 24: rainfall means the amount of precipitation
+# sent 25: as the amount of rainfall increases in an area , the amount of available water in that area will increase
+
+Entailment Tree:
+sent11 and sent2: plants require water to survive and drought is when available water decreases in an environment -> int1: drought will decrease the water plants need to survive
+int1 and sent23: drought will decrease the water plants need to survive and plants drying out means plants do not have enough water to survive -> int2: drought can cause plants to dry out
+int2 and sent17: drought can cause plants to dry out and drought may cause wildfires -> hypothesis: drought can cause plants to dry out and cause wildfires
+
+### END ###

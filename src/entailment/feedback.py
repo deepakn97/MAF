@@ -13,13 +13,13 @@ class EntailmentLLMFeedback(LLMFeedback):
             **kwargs,
         )
 
-    def make_query(self, data: Dict[str, str]) -> str:
+    def make_query(self, data: Dict[str, str | List[str]]) -> str:
         query = f"{self.prompt}\n\n"
         query += "Hypothesis: " + data["hypothesis"] + "\n\n"
         query += (
             "Text:\n"
             + "\n".join(
-                [f"sent {i + 1}: {sent}" for i, sent in enumerate(data["text"])]
+                [f"# sent{i + 1}: {sent}" for i, sent in enumerate(data["text"])]
             )
             + "\n\n"
         )
@@ -51,7 +51,7 @@ class EntailmentLLMFeedback(LLMFeedback):
 class SelfRefineFeedback(EntailmentLLMFeedback):
     def __init__(self, prompt_examples: str, **kwargs) -> None:
         super().__init__(name="", max_tokens=600, eager_refine=True, **kwargs)
-        self.instruction = "There is an error in the entailment tree above because of lack of understanding of the context. What is the error? To find the error, go through each step of the entailment tree, and check if everything looks good."
+        self.instruction = "# There may be an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good."
         self.setup_prompt_from_examples_file(prompt_examples)
 
 
@@ -61,7 +61,7 @@ class MissingStepFeedback(EntailmentLLMFeedback):
         super().__init__(
             name="Missing Step Feedback", max_tokens=600, eager_refine=True, **kwargs
         )
-        self.instruction = "# Check the above entailment tree line by line for any missing steps and suggest fixes. Ignore all other types of errors."
+        self.instruction = "# There may be a missing step in the entailment tree above. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good. Ignore all other types of errors."
         self.setup_prompt_from_examples_file(prompt_examples)
 
 
@@ -81,7 +81,7 @@ class RepetitionFeedback(EntailmentLLMFeedback):
         super().__init__(
             name="Repetition Feedback", max_tokens=600, eager_refine=True, **kwargs
         )
-        self.instruction = "# Check the above entailment tree line by line for any repetition errors and suggest fixes. Ignore all other types of errors."
+        self.instruction = "# There may be repeated information in the entailment tree above. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good. Only check for cases where information is repeated exactly. Ignore all other types of errors."
         self.setup_prompt_from_examples_file(prompt_examples)
 
 
@@ -91,17 +91,7 @@ class RedundancyFeedback(EntailmentLLMFeedback):
         super().__init__(
             name="Redundancy Feedback", max_tokens=600, eager_refine=True, **kwargs
         )
-        self.instruction = "# Check the above entailment tree line by line for any redundant steps and suggest fixes. Ignore all other types of errors."
-        self.setup_prompt_from_examples_file(prompt_examples)
-
-
-@FeedbackFactory.register("irrelevancy")
-class IrrelevancyFeedback(EntailmentLLMFeedback):
-    def __init__(self, prompt_examples: str, **kwargs) -> None:
-        super().__init__(
-            name="Irrelevancy Feedback", max_tokens=600, eager_refine=True, **kwargs
-        )
-        self.instruction = "# Check the above entailment tree line by line for any irrelevant information and suggest fixes. Ignore all other types of errors."
+        self.instruction = "# There may be redundant information in the above entailment tree that is not relevant to entailing the hypothesis. To find the error, look through the entailment tree line by line and check that everything looks good. Ignore all other types of errors."
         self.setup_prompt_from_examples_file(prompt_examples)
 
 
@@ -147,7 +137,7 @@ sent 1 and int 2 and int 3: spacesuit backpacks contain oxygen and there is no o
             feedback,
             prompt_examples=fb_prompt_path,
             engine="text-davinci-003",
-            temperature=0.0,
+            temperature=0.7,
         )
         usage, fb_and_maybe_solns = fm(wrong_solns)
         for i, fb_and_soln in enumerate(fb_and_maybe_solns):

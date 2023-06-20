@@ -12,7 +12,7 @@ Entailment Tree:
 sent3 and sent4: florida is a state located in the united states of america and united states is located in the northern hemisphere -> int1: florida is located in the northern hemisphere
 int1 and sent6: florida is located in the northern hemisphere and the winter in the northern hemisphere is during the summer in the southern hemisphere -> hypothesis: it is winter in florida
 
-# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+# There may be a missing step in the entailment tree above. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
 
 # Let's go line by line
 sent3 and sent4: florida is a state located in the united states of america and united states is located in the northern hemisphere -> int1: florida is located in the northern hemisphere
@@ -20,14 +20,7 @@ sent3 and sent4: florida is a state located in the united states of america and 
 
 # Let's check the next line
 int1 and sent6: florida is located in the northern hemisphere and the winter in the northern hemisphere is during the summer in the southern hemisphere -> hypothesis: it is winter in florida
-# Wrong! This entailment can only conclude that it is winter in florida when it is summer in the southern hemisphere. However, it is missing the step that establishes that it is summer in the southern hemisphere.
-
-# Given the feedback and the original entailment tree, let's rewrite the entailment tree to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.
-
-sent3 and sent4: florida is a state located in the united states of america and united states is located in the northern hemisphere -> int1: florida is located in the northern hemisphere
-int1 and sent6: florida is located in the northern hemisphere and the winter in the northern hemisphere is during the summer in the southern hemisphere -> int2: it is winter in florida when it is summer in the southern hemisphere
-sent2 and sent5: the south pole is tilted toward the sun and the south pole is located in the southern hemisphere -> int3: the southern hemisphere is tilted towards the sun
-int3 and sent1: the southern hemisphere is tilted towards the sun and summer is when a hemisphere is tilted towards the sun -> int4: it is summer in the southern hemisphere
+# Wrong! This entailment can only conclude that it is winter in florida when it is summer in the southern hemisphere. However, we do not have an initial sentence or an intermediate sentence that establishes that it is summer in the southern hemisphere. We must add step(s) to establish that it is summer in the southern hemisphere and then add it as a premise to the line above to turn it into a valid entailment.
 
 ### END ###
 
@@ -43,14 +36,86 @@ Entailment Tree:
 sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
 int1 and sent4: earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
 
-# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
-
 # Let's go line by line
 sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
-# Wrong! This line is missing steps because it does not follow directly from sent1 and sent2 that the earth revolves around the sun.
+# Wrong! We cannot conclude that the earth revolves around the sun based on just sent1 and sent2. From the initial text, we can see that sent3 establishes that the earth revolves around the sun. We can add sent3 to this line to turn it into a valid entailment.
 
 # Let's check the next line
 int1 and sent4: earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
-# Wrong! This line misses a premise that establishes that the sun is a star. Otherwise, we cannot conclude that it takes one earth year to revolve around the sun based on sent4.
+# Wrong! This line misses premises that establish that earth is a planet and that the sun is a star. Otherwise, we cannot conclude that "a complete revolution of earth around the sun takes an earth year" since we do not know that the earth is a planet revolving around its star or that the sun is earth's star From the initial text, we can see that sent1 establishes that earth is a kind of planet and sent2 establishes that the sun is a star. We can add sent1 and sent2 to this entailment tree to turn it into a valid entailment.
+
+
+### END ###
+
+Hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+
+Text:
+sent1: safety goggles are used for protecting the eyes during experiments
+sent2: students have to work with acids and bases for experiments
+sent3: corrosive substance can cause harm to the eyes
+sent4: acids are corrosive
+sent5: a base is corrosive
+
+Entailment Tree:
+sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and acids are corrosive and a base is corrosive -> int1: acids and bases can cause harm to the eyes
+int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
+int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+
+# There may be a missing step in the entailment tree above. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+
+# Let's go through line by line
+sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and acids are corrosive and a base is corrosive -> int1: acids and bases can cause harm to the eyes
+# Looks good.
+
+# Let's check the next line
+int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
+# Looks good.
+
+# Let's check the next line
+int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+# Looks good.
+
+# There is no error in the entailment tree. It is correct!
+
+### END ###
+
+Hypothesis: the sun will be the star that appears the brightest to the earth
+
+Text:
+sent1: the sun is the star that is closest to earth
+sent2: the four planets farthest from the sun are made of gas
+sent3: far means great in distance
+sent4: furthest / farthest means greatest / most / highest in distance
+sent5: to be in the sun means to be in the sunlight
+sent6: appear is similar to apparent
+sent7: brightness means amount of light
+sent8: nearby is similar to near
+sent9: as distance from an object decreases , that object will appear larger
+sent10: as distance to an object increases , that object will appear smaller
+sent11: as a source of light becomes closer , the light will appear brighter
+sent12: apparent magnitude is a measure of the brightness of a celestial object / celestial body as observed on earth,
+sent13: a source of something produces that something
+sent14: near means close
+sent15: the sun is located near the edge of the milky way galaxy
+sent16: a star produces light
+
+Entailment Tree:
+sent1: the sun is the star that is closest to earth -> int1: the sun is the nearest star to earth
+int1 and sent6: the sun is the nearest star to earth and appear is similar to apparent -> int2: the sun will appear the most apparent to earth
+int2 and sent7: the sun will appear the most apparent to earth and brightness means amount of light -> hypothesis: the sun will appear the brightest to earth
+
+# There may be redundant information in the above entailment tree that is not relevant to entailing the hypothesis. To find the error, look through the entailment tree line by line and check that everything looks good. Ignore all other types of errors.
+
+# Let's go through line by line
+sent1: the sun is the star that is closest to earth -> int1: the sun is the nearest star to earth
+# Looks good.
+
+# Let's check the next line
+int1 and sent6: the sun is the nearest star to earth and appear is similar to apparent -> int2: the sun will appear the most apparent to earth
+# Wrong! This line is missing a premise that establishes that the sun being the nearest star to earth means that it will appear the most apparent to earth. From the initial text, we can see that sent11 states that "as a source of light becomes closer, the light will appear brighter". We can add sent11 to this line to turn it into a valid entailment
+
+# Let's check the next line
+int2 and sent7: the sun will appear the most apparent to earth and brightness means amount of light -> hypothesis: the sun will appear the brightest to earth
+# Wrong! This line is missing a premise that establishes that the sun appearing the most apparent to earth means that it will appear the brightest to earth. From the initial text, we can see that sent12 states that "apparent magnitude is a measure of the brightness of a celestial object / celestial body as observed on earth". We can add sent12 to this line to turn it into a valid entailment.
 
 ### END ###

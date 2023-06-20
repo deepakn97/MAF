@@ -22,7 +22,7 @@ class EntailmentIterate(Prompt):
             temperature=temperature,
         )
         self.max_tokens = max_tokens
-        self.instruction = "# Given the feedback and the original answer, let's rewrite the answer to incorporate all the feedback. Don't change anything unless it is mentioned in the feedback."
+        self.instruction = "# Given the feedback and the original answer, let's rewrite the entailment tree to incorporate all the feedback. Don't change anything unless it is mentioned in the feedback."
         self.setup_prompt_from_examples_file(prompt_examples)
 
     def setup_prompt_from_examples_file(self, prompt_examples: str) -> None:
@@ -30,12 +30,6 @@ class EntailmentIterate(Prompt):
             self.prompt = f.read()
 
     def make_query(self, solution: Dict[str, str], feedback: Dict[str, str]) -> str:
-        print(
-            "TASK ITERATE QUERY DATA:",
-            json.dumps(solution, indent=4),
-            "\n",
-            json.dumps(feedback, indent=4),
-        )
         query = f"""{self.question_prefix}{solution['hypothesis']}{self.intra_example_sep}Text:\n"""
         for i, sent in enumerate(solution["text"]):
             query += f"# sent {i+1}: {sent}\n"

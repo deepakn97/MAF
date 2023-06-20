@@ -18,7 +18,7 @@ class EntailmentInit(Prompt):
         max_tokens: int = 300,
     ) -> None:
         super().__init__(
-            question_prefix="Hypothesis:",
+            question_prefix="Hypothesis: ",
             answer_prefix="Entailment Tree:\n",
             intra_example_sep="\n\n",
             inter_example_sep="### END ###",
@@ -32,10 +32,10 @@ class EntailmentInit(Prompt):
         with open(prompt_examples, "r") as f:
             self.prompt = f.read()
 
-    def make_query(self, data: Dict[str, str]) -> str:
-        query = f"{self.prompt}\n{self.question_prefix}: {data['hypothesis']}{self.intra_example_sep}"
+    def make_query(self, data: Dict[str, str | List[str]]) -> str:
+        query = f"{self.prompt}\n{self.question_prefix}{data['hypothesis']}{self.intra_example_sep}"
         for i, sent in enumerate(data["text"]):
-            query += f"# sent {i+1}: {sent}\n"
+            query += f"# sent{i+1}: {sent}\n"
         query = f"{query}\n{self.answer_prefix}"
         return query
 

@@ -7,18 +7,18 @@ sent3: the earth revolves around the sun
 sent4: a complete revolution / orbit of a planet around its star takes 1 / one planetary year
 
 Entailment Tree:
-sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
-int1 and sent4: earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: the earth revolves around the sun
+int1 and sent4: the earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
 
-# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+# There may be repeated information in the entailment tree above. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good. Ignore all other types of errors.
 
 # Let's go line by line
-sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
-# Wrong! This line directly restates the initial sentence sent3 in int1. We can remove this line from the entailment tree and use sent3 in place of int1.
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: the earth revolves around the sun
+# Wrong! The intermediate conclusion int1 that "the earth revolves around the sun" is exactly the same as the initial sentence sent3 that "the earth revolves around the sun". We can remove this line from the entailment tree and use sent3 in place of int1.
 
 # Let's check the next line
 int1 and sent4: earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
-# Wrong! Looks good
+# Looks good.
 
 ### END ###
 
@@ -45,26 +45,52 @@ sent16: a star produces light
 Entailment Tree:
 sent1: the sun is the star that is closest to earth -> int1: the sun is the nearest star to earth
 int1 and sent6: the sun is the nearest star to earth and appear is similar to apparent -> int2: the sun will appear the most apparent to earth
-int2 and sent7: the sun will appear the most apparent to earth and brightness means amount of light -> int3: the sun will appear the brightest to earth
-int3: the sun will appear the brightest to earth -> hypothesis: the sun will be the star that appears the brightest to the earth
+int2 and sent7: the sun will appear the most apparent to earth and brightness means amount of light -> hypothesis: the sun will appear the brightest to earth
 
-# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
-
+# There may be repeated information in the entailment tree above. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good. Ignore all other types of errors.
 
 # Let's go through line by line
 sent1: the sun is the star that is closest to earth -> int1: the sun is the nearest star to earth
-# Wrong! This line directly restates one of the initial sentences. We can remove this line from the entailment tree.
+# Wrong! This entailment only has a single premise going to the conclusion which is never valid. The intermediate conclusion int1 that "the sun is the nearest star to earth" repeats initial sentence sent1 that "the sun is the star that is closest to earth" without contributing any new information. We can remove this line from the entailment tree and use sent1 in place of int1.
 
 # Let's check the next line
 int1 and sent6: the sun is the nearest star to earth and appear is similar to apparent -> int2: the sun will appear the most apparent to earth
-# This line is correct. We can keep it.
+# Looks good.
 
 # Let's check the next line
-int2 and sent7: the sun will appear the most apparent to earth and brightness means amount of light -> int3: the sun will appear the brightest to earth
-# This line is correct. We can keep it.
+int2 and sent7: the sun will appear the most apparent to earth and brightness means amount of light -> hypothesis: the sun will appear the brightest to earth
+# Looks good.
+
+### END ###
+
+Hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+
+Text:
+sent1: safety goggles are used for protecting the eyes during experiments
+sent2: students have to work with acids and bases for experiments
+sent3: corrosive substance can cause harm to the eyes
+sent4: acids are corrosive
+sent5: a base is corrosive
+
+Entailment Tree:
+sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and acids are corrosive and a base is corrosive -> int1: acids and bases can cause harm to the eyes
+int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
+int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+
+# There may be repeated information in the entailment tree above. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good. Only check for cases where information is repeated exactly. Ignore all other types of errors.
+
+# Let's go through line by line
+sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and acids are corrosive and a base is corrosive -> int1: acids and bases can cause harm to the eyes
+# Looks good.
 
 # Let's check the next line
-int3: the sun will appear the brightest to earth -> hypothesis: the sun will be the star that appears the brightest to the earth
-# Wrong! This line restates the hypothesis. We can remove this line from the entailment tree and replace int3 wih the hypothesis.
+int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
+# Looks good.
+
+# Let's check the next line
+int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+# Looks good.
+
+# There is no error in the entailment tree. It is correct!
 
 ### END ###

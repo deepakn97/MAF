@@ -34,3 +34,21 @@ def get_entailment_proof(generated_trees: List[str]) -> List[str]:
                 continue
         proofs.append(("; ".join(proof_steps)).strip())
     return proofs
+
+
+def extract_eager(feedbacks: List[str]) -> List[str]:
+    rewrites = []
+    for feedback in feedbacks:
+        key = "here is the rewrite"
+        # find the line with "here is the rewrite" and take all lines up to that until "### END ###"
+        if key in feedback.lower():
+            feedback = feedback.lower()
+            feedback = feedback.split(key)[1]
+            feedback = feedback.split("### end ###")[0]
+            feedback = feedback.split("\n")
+            feedback = [f.strip() for f in feedback[1:]]
+            feedback = '\n'.join([f for f in feedback if f != ""])
+            rewrites.append(feedback)
+        else:
+            rewrites.append("")
+    return rewrites

@@ -1,0 +1,144 @@
+Hypothesis: the mountain used to be covered by oceans in the past
+
+Text:
+sent1: fossils of sharks are found on top of a mountain
+sent2: sharks live in oceans
+sent3: a shark is a kind of fish
+sent4: if fossils of an aquatic animal or plant are found in a place then that place used to be covered by water in the past
+sent5: the top of a mountain is a kind of place
+sent6: an ocean is a kind of body of water
+sent7: a fish is a kind of aquatic animal
+
+sent3 and sent7: a shark is a kind of fish and a fish is a kind of aquatic animal -> int1: a shark is a kind of aquatic animal
+sent1 and int1: fossils of sharks are found on top of a mountain and a shark is a kind of aquatic animal -> int2: fossils of an aquatic animal are found on top of a mountain
+sent2 and sent6: sharks live in oceans and an ocean is a kind of body of water -> int3: sharks live in a kind of body of water
+int2 and int3 and sent4: fossils of an aquatic animal are found on top of a mountain and sharks live in a kind of body of water and if fossils of an aquatic animal or plant are found in a place then that place used to be covered by water in the past -> int4: the top of a mountain used to be covered by water in the past
+int4 and sent5: the top of a mountain used to be covered by water in the past and the top of a mountain is a kind of place -> hypothesis: the mountain used to be covered by oceans in the past
+
+# There may be redundant information in the above entailment tree that is not relevant to entailing the hypothesis. To find the error, look through the entailment tree line by line and check that everything looks good. Ignore all other types of errors.
+
+# Let's go line by line
+sent3 and sent7: a shark is a kind of fish and a fish is a kind of aquatic animal -> int1: a shark is a kind of aquatic animal
+# Looks good.
+
+# Let's check the next line
+sent1 and int1: fossils of sharks are found on top of a mountain and a shark is a kind of aquatic animal -> int2: fossils of an aquatic animal are found on top of a mountain
+# Looks good.
+
+# Let's check the next line
+sent2 and sent6: sharks live in oceans and an ocean is a kind of body of water -> int3: sharks live in a kind of body of water
+# Looks good.
+
+# Let's check the next line
+int2 and int3 and sent4: fossils of an aquatic animal are found on top of a mountain and sharks live in a kind of body of water and if fossils of an aquatic animal or plant are found in a place then that place used to be covered by water in the past -> int4: the top of a mountain used to be covered by water in the past
+# Wrong! The premise int3 that "sharks live in a kind of body of water" is not needed to prove the hypothesis int4 that "the top of a mountain used to be covered by water in the past". So, we can remove the premise int3 from this line and rewrite it as the following valid entailment: 
+int2 and sent4: fossils of an aquatic animal are found on top of a mountain and if fossils of an aquatic animal or plant are found in a place then that place used to be covered by water in the past -> int4: the top of a mountain used to be covered by water in the past
+
+# Let's check the next line
+int4 and sent5: the top of a mountain used to be covered by water in the past and the top of a mountain is a kind of place -> hypothesis: the mountain used to be covered by oceans in the past
+# Looks good.
+
+### END ###
+
+Hypothesis: the earth rotating on its axis causes stars to move relative to the horizon during the night
+
+Text:
+sent1: earth is a kind of celestial object,
+sent2: stars appear to move relative to the horizon during the night,
+sent3: a star is a kind of celestial object / celestial body,
+sent4: the earth rotating on its axis causes stars to appear to move across the sky at night,
+sent5: apparent motion is when an object appears to move relative to another object 's position
+
+Entailment Tree:
+sent1 and sent4: earth is a kind of celestial object and the earth rotating on its axis causes stars to appear to move across the sky at night -> int1: the earth rotating on its axis is a celestial event
+int1 and sent3: the earth rotating on its axis is a celestial event and a star is a kind of celestial object -> int2: the earth rotating on its axis can cause stars to move
+int2 and sent2: the earth rotating on its axis can cause stars to move and stars appear to move relative to the horizon during the night -> hypothesis: the earth rotating on its axis causes stars to move relative to the horizon during the night
+
+# There may be redundant information in the above entailment tree that is not relevant to entailing the hypothesis. To find the error, look through the entailment tree line by line and check that everything looks good. Ignore all other types of errors.
+
+# Let's go line by line
+sent1 and sent4: earth is a kind of celestial object and the earth rotating on its axis causes stars to appear to move across the sky at night -> int1: the earth rotating on its axis is a celestial event
+# Wrong! The conclusion int1 that "the earth rotating on its axis is a celestial event" is not needed to prove the hypothesis that "the earth rotating on its axis causes stars to move relative to the horizon during the night". So, we can remove this line from the entailment tree entirely.
+
+# Let's check the next line
+int1 and sent3: the earth rotating on its axis is a celestial event and a star is a kind of celestial object -> int2: the earth rotating on its axis can cause stars to move
+# Wrong! The premise int1 that "the earth rotating on its axis is a celestial event" and the premise int2 that "a star is a kind of celestial object" are both irrelevant to the conclusion int2 that "the earth rotating on its axis can cause stars to move". Because all premises of this step are invalid, we can remove this line from the entailment tree entirely.
+
+# Let's check the next line
+int2 and sent2: the earth rotating on its axis can cause stars to move and stars appear to move relative to the horizon during the night -> hypothesis: the earth rotating on its axis causes stars to move relative to the horizon during the night
+# Looks good.
+
+### END ###
+
+Hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+
+Text:
+sent1: safety goggles are used for protecting the eyes during experiments
+sent2: students have to work with acids and bases for experiments
+sent3: corrosive substance can cause harm to the eyes
+sent4: acids are corrosive
+sent5: a base is corrosive
+
+Entailment Tree:
+sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and acids are corrosive and a base is corrosive -> int1: acids and bases can cause harm to the eyes
+int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
+int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+
+# There may be redundant information in the above entailment tree that is not relevant to entailing the hypothesis. To find the error, look through the entailment tree line by line and check that everything looks good. Ignore all other types of errors.
+
+# Let's go through line by line
+sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and acids are corrosive and a base is corrosive -> int1: acids and bases can cause harm to the eyes
+# Looks good.
+
+# Let's check the next line
+int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
+# Looks good.
+
+# Let's check the next line
+int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
+# Looks good.
+
+# There is no error in the entailment tree. It is correct!
+
+### END ###
+
+Hypothesis: the sun will be the star that appears the brightest to the earth
+
+Text:
+sent1: the sun is the star that is closest to earth
+sent2: the four planets farthest from the sun are made of gas
+sent3: far means great in distance
+sent4: furthest / farthest means greatest / most / highest in distance
+sent5: to be in the sun means to be in the sunlight
+sent6: appear is similar to apparent
+sent7: brightness means amount of light
+sent8: nearby is similar to near
+sent9: as distance from an object decreases , that object will appear larger
+sent10: as distance to an object increases , that object will appear smaller
+sent11: as a source of light becomes closer , the light will appear brighter
+sent12: apparent magnitude is a measure of the brightness of a celestial object / celestial body as observed on earth,
+sent13: a source of something produces that something
+sent14: near means close
+sent15: the sun is located near the edge of the milky way galaxy
+sent16: a star produces light
+
+Entailment Tree:
+sent1: the sun is the star that is closest to earth -> int1: the sun is the nearest star to earth
+int1 and sent6: the sun is the nearest star to earth and appear is similar to apparent -> int2: the sun will appear the most apparent to earth
+int2 and sent7: the sun will appear the most apparent to earth and brightness means amount of light -> hypothesis: the sun will appear the brightest to earth
+
+# There may be redundant information in the above entailment tree that is not relevant to entailing the hypothesis. To find the error, look through the entailment tree line by line and check that everything looks good. Ignore all other types of errors.
+
+# Let's go through line by line
+sent1: the sun is the star that is closest to earth -> int1: the sun is the nearest star to earth
+# Looks good.
+
+# Let's check the next line
+int1 and sent6: the sun is the nearest star to earth and appear is similar to apparent -> int2: the sun will appear the most apparent to earth
+# The premise sent6 that "appear is similar to apparent" is irrelevant to the conclusion int2 that "the sun will appear the most apparent to earth". Let's remove that premise from this step.
+
+# Let's check the next line
+int2 and sent7: the sun will appear the most apparent to earth and brightness means amount of light -> hypothesis: the sun will appear the brightest to earth
+# Both premises that "the sun will appear the most apparent to earth" and "brightness means amount of light" are irrelevant to the conclusion that "the sun will appear the brightest to earth". Let's remove both premises from this line. Because this line entails the hypothesis and we know the hypothesis must be in the correct entailment tree, we do not remove this line entirely.
+
+### END ###

@@ -10,7 +10,7 @@ Entailment Tree:
 sent1 and sent3: an ocean plant is a kind of water plant and if fossils of a water animal or plant are found in a place then that place used to be covered by water in the past -> int1: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past
 int1 and sent4: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past and a fossil of an ocean plant is found in the desert -> hypothesis: the desert used to be covered by water in the past
 
-# There may be an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
 
 # In the line 'int1 and sent4: if a fossil of an ocean plant is found in a place then that place used to be covered by water in the past and a fossil of an ocean plant is found in the desert -> hypothesis: the desert used to be covered by water in the past', we are missing the premise that a desert is a kind of place. This premise is sent2 from the initial text, so we can add it in directly.
 
@@ -35,7 +35,7 @@ sent3 and sent4 and sent5: corrosive substance can cause harm to the eyes and ac
 int1 and sent2: acids and bases can cause harm to the eyes and students have to work with acids and bases for experiments -> int2: acids and bases may cause harm to students' eyes during experiments
 int2 and sent1: acids and bases may cause harm to students' eyes during experiments and safety goggles are used for protecting the eyes during experiments -> hypothesis: safety goggles can be used to protect students' eyes from acids and bases
 
-# There may be an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
 
 # There is no error in the entailment tree. It is correct!
 
@@ -60,7 +60,7 @@ sent3 and sent4: shivering is a kind of shaking and a person shivers -> int1: a 
 int1 and sent5: a person shivers and a person is a kind of animal -> int2: an animal shivers
 int2 and sent2: an animal shivers and when an animal moves, chemical energy is converted to mechanical energy -> hypothesis: when a person shivers, chemical energy is converted to mechanical energy
 
-# There may be an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
+# There is an error in the entailment tree above due to lack of understanding of the problem. What is the error? To find the error, go through the entailment tree line by line and check that everything looks good.
 
 # In the line 'sent3 and sent4: shivering is a kind of shaking and a person shivers -> int1: a person shivers', the intermediate conclusion int1 is that a person shivers. We already know that a person shivers from sent4 in the initial text, so we can remove int1 and just use sent4.
 

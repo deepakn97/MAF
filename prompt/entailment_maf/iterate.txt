@@ -1,180 +1,51 @@
-Hypothesis: Eruptions can cause plants to die
+Hypothesis: a complete revolution of earth around the sun takes an earth year
 
-Text:
-# sent 1: eruptions emit lava
-# sent 2: plants have green leaves
-# sent 3: eruptions produce ash clouds
-# sent 4: producers will die without sunlight
-# sent 5: ash blocks sunlight
-# sent 6: ash is a kind of fine rock, mineral, and glass particles
-# sent 7: lava is hot
+Text: 
+sent1: earth is a kind of planet
+sent2: the sun is a kind of star
+sent3: the earth revolves around the sun
+sent4: a complete revolution / orbit of a planet around its star takes 1 / one planetary year
 
 Entailment Tree:
-sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-sent 1 and sent 7: eruptions emit lava and lava is hot -> int 2: eruptions are hot
-int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
-sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
+int1 and sent4: earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
 
-Missing Step Feedback:
-# Let us go through the entailment tree line by line.
-    sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-# Looks good
+# Missing Step Feedback
+# Let's go line by line
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
+# Wrong! We cannot conclude that the earth revolves around the sun based on just sent1 and sent2. From the initial text, we can see that sent3 establishes that the earth revolves around the sun. We can add sent3 to this line to turn it into a valid entailment.
 
-# Let's check other parts
-    sent 1 and sent 7: eruptions emit lava and lava is hot -> int 2: eruptions are hot
-# looks good
+# Let's check the next line
+int1 and sent4: earth revolves around the sun and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
+# Wrong! This line misses premises that establish that earth is a planet and that the sun is a star. Otherwise, we cannot conclude that "a complete revolution of earth around the sun takes an earth year" since we do not know that the earth is a planet revolving around its star or that the sun is earth's star From the initial text, we can see that sent1 establishes that earth is a kind of planet and sent2 establishes that the sun is a star. We can add sent1 and sent2 to this entailment tree to turn it into a valid entailment.
 
-# Let's check other parts
-    int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
-# Looks good
-
-# Let's check other parts
-    sent 4 and int 1: producers will die without sunlight and eruptions block sunlight -> H: Eruptions can cause plants to die
-# Looks good
-
-# There are no missing step errors! It is correct!
-
-Repetition Feedback:
-# Let us go through the entailment tree line by line.
-    sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-# looks good
-
-# Let's check other parts
-    sent 1 and sent 7: eruptions emit lava and lava is hot -> int 2: eruptions are hot
-# looks good
-
-# Let's check other parts
-    int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
-# looks good
-
-# Let's check other parts
-    sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
-# wrong! int 2 "eruptions can kill plants by blocking sunlight" is just paraphrased in the hypothesis "eruptions can cause plants to die". Let's remove it.
-
-Redundancy Feedback:
-# Let us go through the entailment tree line by line.
-    sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-# looks good
-
-# Let's check other parts
-    sent 1 and sent 7: eruptions emit lava and lava is hot -> int 2: eruptions are hot
-# wrong! the conclusion that eruptions are hot is true but not relevant to the hypothesis. Let's remove it.
-
-# Let's check other parts
-    int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
-# looks good
-
-# Let's check other parts
-    sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
-# looks good
-
-Irrelevancy Feedback:
-# Let us go through the entailment tree line by line.
-    sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-# looks good
-
-# Let's check other parts
-    sent 1 and sent 7: eruptions emit lava and lava is hot -> int 2: eruptions are hot
-# looks good
-
-# Let's check other parts
-    int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> int 2: eruptions can kill plants by blocking sunlight
-# looks good
-
-# Let's check other parts
-    sent 4 and int 2: producers will die without sunlight and eruptions can kill plants by blocking sunlight -> H: Eruptions can cause plants to die
-# looks good
-
-# There is no irrelevant information in the entailment tree. It is correct!
-
-# Given the feedback and the original answer, let's rewrite the answer to incorporate all the feedback. Don't change anything unless it is mentioned in the feedback.
-
-# Okay, here is the rewrite:
-
-Entailment Tree:
-sent 3 and sent 5: eruptions produce ash clouds and ash blocks sunlight -> int 1: eruptions block sunlight
-int 1 and sent 4: eruptions block sunlight and producers will die without sunlight -> H: Eruptions can cause plants to die
-
-### END ###
-
-Hypothesis: An astronaut requires the oxygen in a spacesuit backpack to breathe
-
-Text:
-# sent 1: spacesuit backpacks contain oxygen
-# sent 2: an animal requires oxygen to breathe
-# sent 3: a vacuum does not contain oxygen
-# sent 4: an astronaut is a kind of human
-# sent 5: a human is a kind of animal
-# sent 6: space is a vacuum
-
-Entailment Tree:
-sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
-sent 6 and int 1: space is a vacuum and an astronaut requires oxygen to breathe -> int 2: an astronaut cannot breathe without oxygen
-sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
-
-Missing Step Feedback:
-# Let us go through the entailment tree line by line.
-    sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
-# wrong! this step is missing the connection that humans are a kind of animal. Let's add that.
-
-# Let's check other parts
-    sent 6 and int 1: space is a vacuum and an astronaut requires oxygen to breathe -> int 2: an astronaut cannot breathe without oxygen
-# looks good
-
-# Let's check other parts
-    sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
-# wrong! missing step that there is no oxygen in space. Let's add that
-
-Repetition Feedback:
-# Let us go through the entailment tree line by line.
-    sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
-# looks good
-
-# Let's check other parts
-    sent 6 and int 1: space is a vacuum and an astronaut requires oxygen to breathe -> int 2: an astronaut cannot breathe without oxygen
-# wrong! this step just restates the premise that an astronaut requires oxygen to breathe. Let's remove it.
-
-# Let's check other parts
-    sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
-# looks good
+# Repetition Feedback:
+# Let's go line by line
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
+# Wrong! The intermediate conclusion int1 that "earth revolves around the sun" is exactly the same as the initial sentence sent3 that "earth revolves around the sun". We can remove this line from the entailment tree and use sent3 in place of int1.
 
 # Redundancy Feedback:
-# Let us go through the entailment tree line by line.
-    sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
-# looks good
+# Let's go line by line
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
+# Wrong! The premise sent1 that "earth is a kind of planet" and the premise sent2 that "the sun is a kind of star" are irrelevant to the intermediate conclusion int1 that "earth revolves around the sun". Because all premises are invalid, we can remove this line from the entailment tree.
 
-# Let's check other parts
-    sent 6 and int 1: space is a vacuum and an astronaut requires oxygen to breathe -> int 2: an astronaut cannot breathe without oxygen
-# looks good
+# Given the feedback and the original answer, let's rewrite the answer to incorporate all the feedback. Let's think step by step. Don't change anything unless it is mentioned in the feedback.
 
-# Let's check other parts
-    sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
-# looks good
+# First, let's remove the following line:
+sent1 and sent2: earth is a kind of planet and the sun is a kind of star -> int1: earth revolves around the sun
+# This is the intermediate conclusion int1 is exactly the same as the initial sentence sent3. We can remove this line from the entailment tree and use sent3 in place of int1.
 
-# There are no redundant steps in the entailment tree. It is correct!
+# Next, let's add the following line:
+sent1 and sent2 and sent3: earth is a kind of planet and the sun is a kind of star and the earth revolves around the sun -> int1: earth revolving the sun is an example of a planet revolving around its star
+# From the missing step feedback, we know that we need to establish that earth is a planet revolving around its star and that the sun is earth's star. We can use sent1 and sent2 to establish that earth is a planet revolving around its star and we can use sent3 to establish that the sun is earth's star. We can combine sent1, sent2, and sent3 to form the premise int1 that "earth revolving the sun is an example of a planet revolving around its star". We do not add all three sentences to the original line with int1 because then the line would have four premises which is too many for a single step.
 
-# Irrelevancy Feedback:
-# Let us go through the entailment tree line by line.
-    sent 4 and sent 2: an astronaut is a kind of human and an animal requires oxygen to breathe -> int 1: an astronaut requires oxygen to breathe
-# looks good
-
-# Let's check other parts
-    sent 6 and int 1: space is a vacuum and an astronaut requires oxygen to breathe -> int 2: an astronaut cannot breathe without oxygen
-# wrong! in this step, the premise that space is a vacuum is irrelevant to the intermediate conclusion that an astronaut cannot breathe without oxygen. Let's remove it.
-
-# Let's check other parts
-    sent 1 and int 1: spacesuit backpacks contain oxygen and an astronaut requires oxygen to breathe -> H: An astronaut requires the oxygen in a spacesuit backpack to breathe
-# looks good
-
-# Given the feedback and the original answer, let's rewrite the answer to incorporate all the feedback. Don't change anything unless it is mentioned in the feedback.
+# Finally, let's change the last line into the following:
+int1 and sent4: earth revolving the sun is an example of a planet revolving around its star and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
+# From the missing step feedback, we know that we need to establish that earth revolving the sun is an example of a planet revolving around its star in order to use sent4 to conclude that "a complete revolution of earth around the sun takes an earth year". This is stated in the new int1 in the rewrite so we can combine int1 and sent4 which states that "a complete revolution of earth around the sun takes an earth year" to conclude the hypothesis that "a complete revolution of earth around the sun takes an earth year".
 
 # Okay, here is the rewrite:
-
-Entailment Tree:
-sent 4 and sent 5: an astronaut is a kind of human and a human is a kind of animal -> int 1: an astronaut is a kind of animal
-sent 2 and int 1: an animal requires oxygen to breathe and an astronaut is a kind of animal -> int 2: an astronaut requires oxygen to breathe
-sent 3 and sent 6: a vacuum does not contain oxygen and space is a vacuum -> int 3: there is no oxygen in space
-sent 1 and int 2 and int 3: spacesuit backpacks contain oxygen and there is no oxygen in space and an astronaut requires oxygen to breathe -> H: an astronaut requires the oxygen in spacesuit backpack to breathe
+sent1 and sent2 and sent3: earth is a kind of planet and the sun is a kind of star and the earth revolves around the sun -> int1: earth revolving the sun is an example of a planet revolving around its star
+int1 and sent4: earth revolving the sun is an example of a planet revolving around its star and a complete revolution / orbit of a planet around its star takes 1 / one planetary year -> hypothesis: a complete revolution of earth around the sun takes an earth year
 
 ### END ###
 
@@ -189,67 +60,19 @@ Text:
 Entailment Tree:
 sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
 sent 3 and sent 4: evaporating is a kind of phase change and condensing is a kind of phase change -> int 2: evaporating and condensing are both kinds of phase changes
-int 1 and int 2: changes in heat energy can cause phase changes and evaporating and condensing are both kinds of phase changes -> H: evaporating and condensing can both be caused by changes in heat energy
+int 1 and int 2: changes in heat energy can cause phase changes and evaporating and condensing are both kinds of phase changes -> hypothesis: evaporating and condensing can both be caused by changes in heat energy
 
 Missing Step Feedback:
-# Let us go through the entailment tree line by line.
-    sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
-# looks good
-
-# Let's check other parts
-    sent 3 and sent 4: evaporating is a kind of phase change and condensing is a kind of phase change -> int 2: evaporating and condensing are both kinds of phase changes
-# looks good
-
-# Let's check the other parts
-    int 1 and int 2: changes in heat energy can cause phase changes and evaporating and condensing are both kinds of phase changes -> H: evaporating and condensing can both be caused by changes in heat energy
-# looks good
 
 # There are no missing steps in the entailment tree! It is correct!
 
 Repetition Feedback:
-# Let us go through the entailment tree line by line.
-    sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
-# looks good
-
-# Let's check other parts
-    sent 3 and sent 4: evaporating is a kind of phase change and condensing is a kind of phase change -> int 2: evaporating and condensing are both kinds of phase changes
-# looks good
-
-# Let's check the other parts
-    int 1 and int 2: changes in heat energy can cause phase changes and evaporating and condensing are both kinds of phase changes -> H: evaporating and condensing can both be caused by changes in heat energy
-# looks good
 
 # There are no repetition errors in the entailment tree! It is correct!
 
 Redundancy Feedback:
-# Let us go through the entailment tree line by line.
-    sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
-# looks good
-
-# Let's check other parts
-    sent 3 and sent 4: evaporating is a kind of phase change and condensing is a kind of phase change -> int 2: evaporating and condensing are both kinds of phase changes
-# looks good
-
-# Let's check the other parts
-    int 1 and int 2: changes in heat energy can cause phase changes and evaporating and condensing are both kinds of phase changes -> H: evaporating and condensing can both be caused by changes in heat energy
-# looks good
 
 # There are no redundant steps in the entailment tree! It is correct!
-
-Irrelevancy Feedback:
-# Let us go through the entailment tree line by line.
-    sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
-# looks good
-
-# Let's check other parts
-    sent 3 and sent 4: evaporating is a kind of phase change and condensing is a kind of phase change -> int 2: evaporating and condensing are both kinds of phase changes
-# looks good
-
-# Let's check the other parts
-    int 1 and int 2: changes in heat energy can cause phase changes and evaporating and condensing are both kinds of phase changes -> H: evaporating and condensing can both be caused by changes in heat energy
-# looks good
-
-# There is no irrelevant information in the entailment tree! It is correct!
 
 # Given the feedback and the original answer, let's rewrite the answer to incorporate all the feedback. Don't change anything unless it is mentioned in the feedback.
 
@@ -258,6 +81,6 @@ Irrelevancy Feedback:
 Entailment Tree:
 sent 1 and sent 2: temperature is a measure of heat energy and temperature changes can cause phase changes -> int 1: changes in heat energy can cause phase changes
 sent 3 and sent 4: evaporating is a kind of phase change and condensing is a kind of phase change -> int 2: evaporating and condensing are both kinds of phase changes
-int 1 and int 2: changes in heat energy can cause phase changes and evaporating and condensing are both kinds of phase changes -> H: evaporating and condensing can both be caused by changes in heat energy
+int 1 and int 2: changes in heat energy can cause phase changes and evaporating and condensing are both kinds of phase changes -> hypothesis: evaporating and condensing can both be caused by changes in heat energy
 
 ### END ###
