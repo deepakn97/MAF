@@ -4,18 +4,60 @@ Question: How many groups were held hostage in lieu of John II?
 
 Answer: The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of him. The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France. Thus, there were a total of twenty-four groups held hostage in lieu of John II. final_answer: 24
 
-# There is a commonsense error in the answer above. What is the error? To find the error go through the answer line by line and check that everything looks good.
+# Check each semantically complete block of the reasoning to check for any commonsense errors. Commonsense reasoning errors are errors about any relation or knowledge that is should be known from general world such as "all ducks are birds". State the assumptions you made clearly. Ignore all the other types of errors.
 
 # Let's go line by line
-The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of him.
-# Looks good.
+    The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of him.
+# looks good.
 
 # Let's check the next line
-The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France.
-# Looks good
+    The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France.
+# looks good
 
 # Let's check the next line
-Thus, there were a total of twenty-four groups held hostage in lieu of John II.
-# Wrong! This answer counts each person held hostage as a group, which doesn't make sense, since a group generally isn't a single person. The different groups that are held hostage in lieu of John II are his sons, princes and nobles, inhabitants of Paris, and citizens from each of the nineteen principal towns of France. Thus, there are four groups held hostage in lieu of John II.
+    Thus, there were a total of twenty-four groups held hostage in lieu of John II.
+# wrong! This answer counts each person held hostage as a group, which doesn't make sense, since a group generally isn't a single person. The different groups that are held hostage in lieu of John II are his sons, princes and nobles, inhabitants of Paris, and citizens from each of the nineteen principal towns of France. Thus, there are four groups held hostage in lieu of John II.
+
+### END ###
+
+Passage: As of the census of 2000, there were 218,590 people, 79,667 households, and 60,387 families residing in the county.  The population density was 496 people per square mile (192/km\u00b2). There were 83,146 housing units at an average density of 189 per square mile (73/km\u00b2). The racial makeup of the county was 86.77% Race (United States Census), 9.27% Race (United States Census), 0.23% Race (United States Census), 1.52% Race (United States Census), 0.06% Race (United States Census), 0.69% from Race (United States Census), and 1.47% from two or more races.  1.91% of the population were Race (United States Census) or Race (United States Census) of any race. 22.5% were of German people, 13.1% Irish people, 9.8% Italian people, 9.2% English, 8.1% \"American\" and 6.0% Polish ancestry.
+
+Question: How many more housing units are there than families?
+
+Answer: The passage states that there were 79,667 households and 60,387 families residing in the county. 79,667 households minus 60,387 families equals 19,280. Thus, there are 19,280 more housing units than families. final_answer: 19,280
+
+# Check each semantically complete block of the reasoning to check for any commonsense errors. Commonsense reasoning errors are errors about any relation or knowledge that is should be known from general world such as "all ducks are birds". State the assumptions you made clearly. Ignore all the other types of errors.
+
+# Let's go line by line
+    The passage states that there were 79,667 households and 60,387 families residing in the county.
+# wrong! We are asked to calculate distance between housing units and families. Households and Housing Units are not the same thing. So we should use the number of housing units (83,146) instead of households. Let's fix it.
+
+Let's check the next line
+    79,667 households minus 60,387 families equals 19,280. Thus, there are 19,280 more housing units than families. final_answer: 19,280
+# wrong! Due to the error in the previous step, this final answer is wrong. Let's fix it.
+
+### END ###
+
+Passage: Trying to snap a two-game skid, the Bills flew to Gillette Stadium for a Week 3 divisional fight with the New England Patriots.  In the first quarter, QB J. P. Losman was immediately injured on the first offensive play of the game.  He would finish the series, but ended up on the bench for the rest of the game.  After New England took the lead with kicker Stephen Gostkowski's 24-yard field goal, rookie QB Trent Edwards played the rest of the game for Buffalo.  The Bills would get their only score of the game as RB Marshawn Lynch got an 8-yard TD run, and a Rian Lindell extra point put the Bills ahead surprisingly 7-3.  However, in the second quarter, the Patriots were able to open up their running game when Bills rookie standout Paul Posluszny was lost due to a broken arm. This left passing lanes open, and for the rest of the game, the Patriots dominated. QB Tom Brady's 8-yard TD pass to TE Benjamin Watson and a 3-yard TD pass to WR Randy Moss made it 17-7 at the half.  In the third quarter, New England continued its conquest with Brady's 4-yard TD pass to WR Jabar Gaffney and RB Sammy Morris' 4-yard TD run.  In the fourth quarter, the Patriots ended the day with Brady and Moss hooking up with each other again on a 45-yard TD pass.
+
+Question: How many points did Moss get at the end of the game?
+
+Answer: At the end of the game, Randy Moss caught a 45-yard TD pass from Tom Brady. A touchdown is worth 6 points in American football. Thus, Moss got 6 points at the end of the game. final_answer: 6
+
+# Check each semantically complete block of the reasoning to check for any commonsense errors. Commonsense reasoning errors are errors about any relation or knowledge that is should be known from general world such as "all ducks are birds". State the assumptions you made clearly. Ignore all the other types of errors.
+
+# Let's go line by line
+    At the end of the game, Randy Moss caught a 45-yard TD pass from Tom Brady.
+# looks good
+
+# Let's check the next line
+    A touchdown is worth 6 points in American football.
+# looks good
+
+# Let's check the next line
+    Thus, Moss got 6 points at the end of the game. final_answer: 6
+# looks good
+
+# There are no commonsense reasoning errors in the answer above. It is correct!
 
 ### END ###

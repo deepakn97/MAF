@@ -41,7 +41,7 @@ import subprocess
 
 
 OS_MODELS = ["vicuna", "alpaca"]
-OPENAI_MODELS = ["gpt-3.5-turbo", "text-davinci-003", "gpt-4", 'gpt-4-0613']
+OPENAI_MODELS = ["gpt-3.5-turbo-0613", "gpt-3.5-turbo", "text-davinci-003", "gpt-4", 'gpt-4-0613']
 TASKS = ["gsm_baseline", "entailment_baseline", "drop_baseline"]
 PROMPTS = [
     "0cot_gsm",

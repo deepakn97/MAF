@@ -47,9 +47,17 @@ class DropLLMFeedback(LLMFeedback):
 class SelfRefineFeedback(DropLLMFeedback):
     def __init__(self, prompt_examples: str, **kwargs) -> None:
         super().__init__(name="", max_tokens=600, eager_refine=True, **kwargs)
-        self.instruction = "There is an error in the answer above because of lack of understanding of the problem. What is the error? To find the error, go through the reasoning and check if everything looks good."
+        self.instruction = "# There is an error in the answer above because of lack of understanding of the question. What is the error? To find the error, go through semantically complete blocks of reasoning, and check if everything looks good."
         self.setup_prompt_from_examples_file(prompt_examples)
 
+@FeedbackFactory.register("arithmetic")
+class ArithmeticFeedback(DropLLMFeedback):
+    def __init__(self, prompt_examples: str, **kwargs) -> None:
+        super().__init__(
+            name="Arithmetic Feedback", max_tokens=300, **kwargs
+        )
+        self.instruction = "# Check each semantically complete block of reasoning for any arithmetic errors and suggest the correction. Ignore all the other types of errors."
+        self.setup_prompt_from_examples_file(prompt_examples)
 
 @FeedbackFactory.register("missing_step")
 class MissingStepFeedback(DropLLMFeedback):
@@ -57,7 +65,7 @@ class MissingStepFeedback(DropLLMFeedback):
         super().__init__(
             name="Missing Step Feedback", max_tokens=600, eager_refine=True, **kwargs
         )
-        self.instruction = "# There is an error in the answer above because of missing steps. What is the error? To find the error, go through the reasoning and check if everything looks good. Ignore all other types of errors."
+        self.instruction = "# Check each semantically complete block of reasoning for any missing steps and suggest the correct way to add them. Ignore all the other types of errors."
         self.setup_prompt_from_examples_file(prompt_examples)
 
 
@@ -67,7 +75,7 @@ class CommonsenseFeedback(DropLLMFeedback):
         super().__init__(
             name="Commonsense Feedback", max_tokens=600, eager_refine=True, **kwargs
         )
-        self.instruction = "# There is a commonsense reasoning error in the answer above. What is the error? To find the error, go through the reasoning and check if everything looks good. Ignore all other types of errors."
+        self.instruction = """# Check each semantically complete block of the reasoning to check for any commonsense errors. Commonsense reasoning errors are errors about any relation or knowledge that is should be known from general world such as "all ducks are birds". State the assumptions you made clearly. Ignore all the other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
 
@@ -77,7 +85,7 @@ class RepetitionFeedback(DropLLMFeedback):
         super().__init__(
             name="Repetition Feedback", max_tokens=600, eager_refine=True, **kwargs
         )
-        self.instruction = "# There is an error in the answer above because of repetitions. What is the error? To find the error, go through the reasoning and check if everything looks good. Ignore all other types of errors."
+        self.instruction = "# Check each semantically complete block of reasoning for any repetited information and suggest the correct way to add them. Ignore all the other types of errors."
         self.setup_prompt_from_examples_file(prompt_examples)
 
 
@@ -87,17 +95,17 @@ class RedundancyFeedback(DropLLMFeedback):
         super().__init__(
             name="Redundancy Feedback", max_tokens=600, eager_refine=True, **kwargs
         )
-        self.instruction = "# There is an error in the answer above because of redundant steps. What is the error? To find the error, go through the reasoning and check if everything looks good. Ignore all other types of errors."
+        self.instruction = "# Check each semantically complete block of reasoning for any redundancy errors and suggest fixes. Redundancy errors are steps that contain redundant information, which even though might be factual, is not required to answer the question. Ignore all other types of errors."
         self.setup_prompt_from_examples_file(prompt_examples)
 
 
-@FeedbackFactory.register("irrelevancy")
-class IrrelevancyFeedback(DropLLMFeedback):
+@FeedbackFactory.register("factuality")
+class FactualityFeedback(DropLLMFeedback):
     def __init__(self, prompt_examples: str, **kwargs) -> None:
         super().__init__(
-            name="Irrelevancy Feedback", max_tokens=600, eager_refine=True, **kwargs
+            name="Factual Feedback", max_tokens=600, eager_refine=True, **kwargs
         )
-        self.instruction = "# There is an error in the answer above because of irrelevant information. What is the error? To find the error, go through the reasoning and check if everything looks good. Ignore all other types of errors."
+        self.instruction = "# Check each semantically complete block of reasoning for any infactual information and remove or fix it. Any information not present in the context is considered infactual. Ignore all other types of errors."
         self.setup_prompt_from_examples_file(prompt_examples)
 
 

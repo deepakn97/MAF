@@ -4,18 +4,36 @@ Question: How many more inhabitants of Paris than sons of John II could be hosta
 
 Answer: The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of John. The hostages included two of his sons and four inhabitants of Paris. Thus, there were four more inhabitants of Paris than sons of John II that could be hostages held in lieu. final_answer: 4
 
-# There is an arithmetic mistake in the answer above. What is the error? To find the error go through the answer line by line and check that everything looks good.
+# Check each semantically complete block of reasoning for any arithmetic errors and suggest the correction. Ignore all the other types of errors.
 
 # Let's go line by line
-The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of John.
-# Looks good
+    The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of John.
+# looks good
 
 # Let's check the next line
-The hostages included two of his sons and four inhabitants of Paris.
-# Looks good
+    The hostages included two of his sons and four inhabitants of Paris.
+# looks good
 
 # Let's check the next line
-Thus, there were four more inhabitants of Paris than sons of John II that could be hostages held in lieu.
-# Wrong! If there were four inhabitants of Paris and two sons of John II, then there were (4 - 2 = 2) two more inhabitants of Paris than sons of John II that could be hostages held in lieu.
+    Thus, there were four more inhabitants of Paris than sons of John II that could be hostages held in lieu. final_answer: 4
+# wrong! If there were four inhabitants of Paris and two sons of John II, then there were (4 - 2 = 2) two more inhabitants of Paris than sons of John II that could be hostages held in lieu.
+
+### END ###
+
+Passage: Trying to snap a two-game skid, the Bills flew to Gillette Stadium for a Week 3 divisional fight with the New England Patriots. In the first quarter, QB J. P. Losman was immediately injured on the first offensive play of the game. He would finish the series, but ended up on the bench for the rest of the game. After New England took the lead with kicker Stephen Gostkowski's 24-yard field goal, rookie QB Trent Edwards played the rest of the game for Buffalo. The Bills would get their only score of the game as RB Marshawn Lynch got an 8-yard TD run, and a Rian Lindell extra point put the Bills ahead surprisingly 7-3. However, in the second quarter, the Patriots were able to open up their running game when Bills rookie standout Paul Posluszny was lost due to a broken arm. This left passing lanes open, and for the rest of the game, the Patriots dominated. QB Tom Brady's 8-yard TD pass to TE Benjamin Watson and a 3-yard TD pass to WR Randy Moss made it 17-7 at the half. In the third quarter, New England continued its conquest with Brady's 4-yard TD pass to WR Jabar Gaffney and RB Sammy Morris' 4-yard TD run. In the fourth quarter, the Patriots ended the day with Brady and Moss hooking up with each other again on a 45-yard TD pass.
+
+Question: How many points were Bills trailing by at halftime?
+
+Answer: The score at halftime was 17-7. So, the Bills were trailing by 17 points at halftime. final_answer: 17
+
+# Check each semantically complete block of reasoning for any arithmetic errors and suggest the correction. Ignore all the other types of errors.
+
+# Let's go line by line
+    The score at halftime was 17-7.
+# looks good
+
+# Let's check the next line
+    So, the Bills were trailing by 17 points at halftime. final_answer: 17
+# wrong! The score at halftime was 17-7 in favour of Patriots. So, the Bills were trailing by 17 - 7 = 10 points at halftime. Final answer should be 10.
 
 ### END ###

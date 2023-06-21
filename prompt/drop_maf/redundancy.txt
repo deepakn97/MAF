@@ -4,18 +4,60 @@ Question: How many groups were held hostage in lieu of John II?
 
 Answer: The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of him. The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France. Thus, there were a total of twenty-four groups held hostage in lieu of John II. final_answer: 24
 
-# There is redundant information in the answer above. What is the error? To find the error go through the answer line by line and check that everything looks good.
+# Check each semantically complete block of reasoning for any redundancy errors and suggest fixes. Redundancy errors are steps that contain redundant information, which even though might be factual, is not required to answer the question. Ignore all other types of errors.
 
 # Let's go line by line
-The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of him.
-# Wrong! The information that John II's ransom was set at 3 million crowns is redundant and and not relevant to the question of how many groups were held hostage in lieu of him. Let's remove that information.
+    The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of him.
+# wrong! The information that John II's ransom was set at 3 million crowns is redundant and and not relevant to the question of how many groups were held hostage in lieu of him. Let's remove that information.
 
 # Let's check the next line
-The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France.
-# Wrong! The exact number of hostages in each group is not relevant to the question of how many groups were held hostage in lieu of John II. Let's remove that information.
+    The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France.
+# wrong! The exact number of hostages in each group is not relevant to the question of how many groups were held hostage in lieu of John II. Let's remove that information.
 
 # Let's check the next line
-Thus, there were a total of twenty-four groups held hostage in lieu of John II.
-# Looks good
+    Thus, there were a total of twenty-four groups held hostage in lieu of John II.
+# looks good
+
+### END ###
+
+Passage: Trying to snap a two-game skid, the Bills flew to Gillette Stadium for a Week 3 divisional fight with the New England Patriots.  In the first quarter, QB J. P. Losman was immediately injured on the first offensive play of the game.  He would finish the series, but ended up on the bench for the rest of the game.  After New England took the lead with kicker Stephen Gostkowski's 24-yard field goal, rookie QB Trent Edwards played the rest of the game for Buffalo.  The Bills would get their only score of the game as RB Marshawn Lynch got an 8-yard TD run, and a Rian Lindell extra point put the Bills ahead surprisingly 7-3.  However, in the second quarter, the Patriots were able to open up their running game when Bills rookie standout Paul Posluszny was lost due to a broken arm. This left passing lanes open, and for the rest of the game, the Patriots dominated. QB Tom Brady's 8-yard TD pass to TE Benjamin Watson and a 3-yard TD pass to WR Randy Moss made it 17-7 at the half.  In the third quarter, New England continued its conquest with Brady's 4-yard TD pass to WR Jabar Gaffney and RB Sammy Morris' 4-yard TD run.  In the fourth quarter, the Patriots ended the day with Brady and Moss hooking up with each other again on a 45-yard TD pass.
+
+Question: How many points were scored by Patriots in the first half?
+
+Answer: In the first half, the Bills scored 7 points with a Marshawn Lynch 8-yard TD run and a Rian Lindell extra point. The Patriots scored 17 points with a Stephen Gostkowski 24-yard field goal, a Tom Brady 8-yard TD pass to TE Benjamin Watson, and a 3-yard TD pass to WR Randy Moss. Thus, a total of 24 points were scored in the first half. final_answer: 24
+
+# Check each semantically complete block of reasoning for any redundancy errors and suggest fixes. Redundancy errors are steps that contain redundant information, which even though might be factual, is not required to answer the question. Ignore all other types of errors.
+
+# Let's go line by line
+    In the first half, the Bills scored 7 points with a Marshawn Lynch 8-yard TD run and a Rian Lindell extra point.
+# wrong! We are asked about points scored by Patriots. This line is redundant. Let's remove it.
+
+# Let's check the next line
+    The Patriots scored 17 points with a Stephen Gostkowski 24-yard field goal, a Tom Brady 8-yard TD pass to TE Benjamin Watson, and a 3-yard TD pass to WR Randy Moss.
+# looks good
+
+# Let's check the next line
+    Thus, a total of 24 points were scored in the first half. final_answer: 24
+# wrong! Due to the error in one of the previous steps, the final answer is wrong. It is also counting the points scored by Bills in the first half. Let's fix it.
+
+### END ###
+
+Passage: Uroš III's decision not to attack the Byzantines after the victory at the Battle of Velbazhd against Bulgaria resulted in the alienation of many nobles, who sought to expand to the south. By January or February 1331, Dušan was quarreling with his father, perhaps pressured by the nobility. According to contemporary pro-Dušan sources, evil advisors turned Uroš III against his son; he decided to seize and exclude Dušan of his inheritance. Uroš III sent an army into Zeta against his son, the army ravaged Skadar, but Dušan had crossed the Bojana. A brief period of anarchy in parts of Serbia took place before the father and son concluded peace in April 1331. Three months later, Uroš III ordered Dušan to meet him. Dušan feared for his life and his advisors persuaded him to resist, so Dušan marched from Skadar to Nerodimlje, where he besieged his father. Uroš III fled, and Dušan captured the treasury and family. He then pursued his father, catching up with him at Petrić. On 21 August 1331, Uroš III surrendered, and on the advice or insistence of Dušan's advisors, he was imprisoned. Dušan was crowned King of All Serbian and Maritime lands in the first week of September. The civil war had prevented Serbia from aiding Ivan Stephen and Anna Neda in Bulgaria, who were deposed in March 1331, taking refuge in the mountains. Ivan Alexander of Bulgaria feared for the danger of Serbia as the situation there had settled, and immediately sought peace with Dušan. As Dušan wanted to move against richer Byzantium, the two made peace and an alliance in December 1331, accepting Ivan Alexander as ruler. It was sealed with the marriage of Dušan and Helena, the sister of Ivan Alexander.
+
+Question: How many months passed between the concluding of peace and the surrender of Uroš III?
+
+Answer: The peace was concluded in April 1331, and Uroš III surrendered on 21 August 1331. Thus, four months passed between the concluding of peace and the surrender of Uroš III. final_answer: 4
+
+# Check each semantically complete block of reasoning for any redundancy errors and suggest fixes. Redundancy errors are steps that contain redundant information, which even though might be factual, is not required to answer the question. Ignore all other types of errors.
+
+# Let's go line by line
+    The peace was concluded in April 1331, and Uroš III surrendered on 21 August 1331.
+# looks good
+
+# Let's check the next line
+    Thus, four months passed between the concluding of peace and the surrender of Uroš III. final_answer: 4
+# looks good
+
+# There are no redundancy errors in the answer. It is correct!
 
 ### END ###

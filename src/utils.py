@@ -21,9 +21,10 @@ CODEX = "code-davinci-002"
 GPT3 = "text-davinci-002"
 GPT35 = "text-davinci-003"
 GPT3TURBO = "gpt-3.5-turbo"
+GPT3TURBO_OLD = "gpt-3.5-turbo-0613"
 GPT4 = "gpt-4"
 ENGINE = GPT35
-OPENAI_ENGINES = [CODEX, GPT3, GPT35, GPT3TURBO, GPT4]
+OPENAI_ENGINES = [CODEX, GPT3, GPT35, GPT3TURBO, GPT3TURBO_OLD, GPT4]
 OS_ENGINES = ["vicuna", "alpaca"]
 
 
@@ -641,9 +642,9 @@ def parse_feedback(feedback):
 
 def backoff_handler(details):
     print(
-        f"Try: {details['tries']}, waiting {details['wait']} because: {details['exception']}"
+        f"Try: {details['tries']}, waiting {float(details['wait']) + 30} because: {details['exception']}"
     )
-
+    time.sleep(30)
 
 @backoff.on_exception(
     backoff.expo,

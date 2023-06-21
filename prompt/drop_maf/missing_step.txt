@@ -1,0 +1,55 @@
+Passage: To start the season, the Lions traveled south to Tampa, Florida to take on the Tampa Bay Buccaneers. The Lions scored first in the first quarter with a 23-yard field goal by Jason Hanson. The Buccaneers tied it up with a 38-yard field goal by Connor Barth, then took the lead when Aqib Talib intercepted a pass from Matthew Stafford and ran it in 28 yards. The Lions responded with a 28-yard field goal. In the second quarter, Detroit took the lead with a 36-yard touchdown catch by Calvin Johnson, and later added more points when Tony Scheffler caught an 11-yard TD pass. Tampa Bay responded with a 31-yard field goal just before halftime. The second half was relatively quiet, with each team only scoring one touchdown. First, Detroit's Calvin Johnson caught a 1-yard pass in the third quarter. The game's final points came when Mike Williams of Tampa Bay caught a 5-yard pass.  The Lions won their regular season opener for the first time since 2007.
+
+Question: Who caught the shortest touchdown pass?
+
+Answer: The shortest touchdown pass was caught by Tony Scheffler. He caught an 11-yard TD pass. final_answer: Tony Scheffler
+
+# Check each semantically complete block of reasoning for any missing steps and suggest the correct way to add them. Ignore all the other types of errors.
+
+# Let's check the answer step-by-step
+    The shortest touchdown pass was caught by Tony Scheffler. He caught an 11-yard TD pass. final_answer: Tony Scheffler
+# wrong! This answer missed the 1-yard pass caught by Calvin Johnson and 5-yard pass caught by Mike Williams. So the answer should be Let's add this information to the answer.
+
+### END ###
+
+Passage: The French king, John II, had been held captive in England. The Treaty of Br\u00e9tigny set his ransom at 3\u00a0million\u00a0crowns and allowed for hostages to be held in lieu of John. The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France. While these hostages were held, John returned to France to try and raise funds to pay the ransom. In 1362 John's son Louis of Anjou, a hostage in English-held Calais, escaped captivity. So, with his stand-in hostage gone, John felt honor-bound to return to captivity in England. The French crown had been at odds with Navarre  since 1354, and in 1363 the Navarrese used the captivity of John II in London and the political weakness of the Dauphin to try to seize power. Although there was no formal treaty, Edward III supported the Navarrese moves, particularly as there was a prospect that he might gain control over the northern and western provinces as a consequence. With this in mind, Edward deliberately slowed the peace negotiations. In 1364, John II died in London, while still in honourable captivity. Charles V succeeded him as king of France. On 7 May 1364, one month after the dauphin's accession and three days before his coronation as Charles V, the Navarrese suffered a crushing defeat at the Battle of Cocherel.
+
+Question: At least how many people were held hostage in place of John II?
+
+Answer: The Treaty of Br\u00e9tigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of John. The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France. Thus at least 2 + 19 * 2 = 40 people were held hostage in place of John II. final_answer: 40
+
+# Check each semantically complete block of reasoning for any missing steps and suggest the correct way to add them. Ignore all the other types of errors.
+
+# Let's check the answer step-by-step
+   The Treaty of Br\u00e9tigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of John. 
+# looks good
+
+# Let's check other parts
+    The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France.
+# looks good
+
+# Let's check other parts
+    Thus at least 2 + 19 * 2 = 40 people were held hostage in place of John II. final_answer: 44
+# wrong! this step missed counting the 4 inhabitants of Paris. So the answer should be changed. So the answer will be 40 + 4 = 44. Let's add this.
+
+### END ###
+
+Passage: Uroš III's decision not to attack the Byzantines after the victory at the Battle of Velbazhd against Bulgaria resulted in the alienation of many nobles, who sought to expand to the south. By January or February 1331, Dušan was quarreling with his father, perhaps pressured by the nobility. According to contemporary pro-Dušan sources, evil advisors turned Uroš III against his son; he decided to seize and exclude Dušan of his inheritance. Uroš III sent an army into Zeta against his son, the army ravaged Skadar, but Dušan had crossed the Bojana. A brief period of anarchy in parts of Serbia took place before the father and son concluded peace in April 1331. Three months later, Uroš III ordered Dušan to meet him. Dušan feared for his life and his advisors persuaded him to resist, so Dušan marched from Skadar to Nerodimlje, where he besieged his father. Uroš III fled, and Dušan captured the treasury and family. He then pursued his father, catching up with him at Petrić. On 21 August 1331, Uroš III surrendered, and on the advice or insistence of Dušan's advisors, he was imprisoned. Dušan was crowned King of All Serbian and Maritime lands in the first week of September. The civil war had prevented Serbia from aiding Ivan Stephen and Anna Neda in Bulgaria, who were deposed in March 1331, taking refuge in the mountains. Ivan Alexander of Bulgaria feared for the danger of Serbia as the situation there had settled, and immediately sought peace with Dušan. As Dušan wanted to move against richer Byzantium, the two made peace and an alliance in December 1331, accepting Ivan Alexander as ruler. It was sealed with the marriage of Dušan and Helena, the sister of Ivan Alexander.
+
+Question: How many months passed between the concluding of peace and the surrender of Uroš III?
+
+Answer: The peace was concluded in April 1331, and Uroš III surrendered on 21 August 1331. Thus, four months passed between the concluding of peace and the surrender of Uroš III. final_answer: 4
+
+# Check each semantically complete block of reasoning for any missing steps and suggest the correct way to add them. Ignore all the other types of errors.
+
+# Let's go line by line
+    The peace was concluded in April 1331, and Uroš III surrendered on 21 August 1331.
+# looks good
+
+# Let's check the next line
+    Thus, four months passed between the concluding of peace and the surrender of Uroš III. final_answer: 4
+# looks good
+
+# There are no missing steps in the answer. It is correct!
+
+### END ###

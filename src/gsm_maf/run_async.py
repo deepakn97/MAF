@@ -80,9 +80,6 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 # print(f"GPU Memory 0: {torch.cuda.memory_allocated(0)/1e9} GB")
                 # print(f"GPU Memory 1: {torch.cuda.memory_allocated(1)/1e9} GB")
                 # print(f"GPU Memory 2: {torch.cuda.memory_allocated(2)/1e9} GB")
-            else:
-                if not debug:
-                    time.sleep(60)
 
             del task_init
 
@@ -151,9 +148,6 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 del fm.model
                 del fm.tokenizer
                 torch.cuda.empty_cache()
-            elif fm.type == "lm" and engine in OPENAI_ENGINES:
-                if not debug:
-                    time.sleep(60)
 
             del fm
 
@@ -193,9 +187,6 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 task_iterate.model = task_iterate.model.cpu()
                 del task_iterate.model
                 torch.cuda.empty_cache()
-            else:
-                if not debug:
-                    time.sleep(60)
 
             del task_iterate
 
@@ -239,7 +230,7 @@ def fix_gsm(gsm_task_file: str, prompt_dir: str, max_attempts: int, outfile: str
         row_copy["generated_answer_direct"] = run_logs[j][0]["solution_curr"]
         row_copy["generated_answer_ours"] = run_logs[j][-1]["solution_fixed"]
         results.append(row_copy)
-            
+    
     pd.DataFrame(results).to_json(outfile, orient="records", lines=True)
     return results
 
@@ -296,4 +287,4 @@ if __name__ == '__main__':
     else:
         args = parse_args()
         logger = Logger(os.path.join(args.outdir, f"log.txt"))
-        fix_gsm(gsm_task_file=args.gsm_task_file, prompt_dir=args.prompt_dir, max_attempts=args.max_attempts, outfile=args.outfile, temperature=args.temperature, feedback_types = args.feedback_types, engine=args.engine, batch_size=args.batch_size, gpus=args.gpus, summarize_fb=args.summarize_fb, debug=args.debug)
+        fix_gsm(gsm_task_file=args.gsm_task_file, prompt_dir=args.prompt_dir, max_attempts=args.max_attempts, outfile=args.outfile, temperature=args.temperature, feedback_types = args.feedback_types, engine=args.engine, batch_size=args.batch_size, gpus=args.gpus, summarize_fb=args.summarize_fb, early_stop=args.early_stop, debug=args.debug)

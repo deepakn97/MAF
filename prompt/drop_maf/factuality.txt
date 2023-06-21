@@ -4,14 +4,60 @@ Question: How many years before Navarrase used the captivity of John II?
 
 Answer: The French crown had been at odds with Navarre since 1354. Thus, Navarrase used the captivity of John II 10 years later in 1364. final_answer: 10
 
-# There is infactual information in the answer above. What is the error? To find the error go through the answer line by line and check that everything looks good.
+# Check each semantically complete block of reasoning for any infactual information and remove or fix it. Any information not present in the context is considered infactual. Ignore all other types of errors.
 
 # Let's go line by line
-The French crown had been at odds with Navarre since 1354.
-# Looks good
+    The French crown had been at odds with Navarre since 1354.
+# looks good
 
 # Let's check the next line
-Thus, Navarrase used the captivity of John II 10 years later in 1364.
-# Wrong! From the passage, "in 1363 the Navarrese used the captivity of John II in London". This line falsely states that the Navarrese used the captivity of John II in 1364 when they actually used it in 1363.
+    Thus, Navarrase used the captivity of John II 10 years later in 1364.
+# wrong! From the passage, "in 1363 the Navarrese used the captivity of John II in London". This line falsely states that the Navarrese used the captivity of John II in 1364 when they actually used it in 1363. Let's fix it
+
+### END ###
+
+Passage: To start the season, the Lions traveled south to Tampa, Florida to take on the Tampa Bay Buccaneers. The Lions scored first in the first quarter with a 23-yard field goal by Jason Hanson. The Buccaneers tied it up with a 38-yard field goal by Connor Barth, then took the lead when Aqib Talib intercepted a pass from Matthew Stafford and ran it in 28 yards. The Lions responded with a 28-yard field goal. In the second quarter, Detroit took the lead with a 36-yard touchdown catch by Calvin Johnson, and later added more points when Tony Scheffler caught an 11-yard TD pass. Tampa Bay responded with a 31-yard field goal just before halftime. The second half was relatively quiet, with each team only scoring one touchdown. First, Detroit's Calvin Johnson caught a 1-yard pass in the third quarter. The game's final points came when Mike Williams of Tampa Bay caught a 5-yard pass.  The Lions won their regular season opener for the first time since 2007
+
+Question: How many field goals did the Lions score?
+
+Answer: The first was a 23-yard field goal by Jason Hanson in the first quarter. The second was a 28-yard field goal in response to the Buccaneers' interception. And the third was a 36-yard field goal in the second quarter. So they scored three field goals. final_answer: 3
+
+# Check each semantically complete block of reasoning for any infactual information and remove or fix it. Any information not present in the context is considered infactual. Ignore all other types of errors.
+
+# Let's go line by line
+    The first was a 23-yard field goal by Jaon Hanson in the first quarter.
+# looks good
+
+# Let's check the next line
+    The second was a 28-yard field goal in response to the Buccaneers' interception.
+# looks good
+
+# Let's check next line
+    And the third was a 36-yard field goal in the second quarter.
+# wrong! This answer count the 36-yard touchdown catch by Calvin Johnson in second quarter as a field goal. This is wrong because a touchdown is not a field goal. Thus, this should not be counted in the answer.
+
+# Let's check next line
+    So they scored three field goals. final_answer: 3
+# wrong! Based of the mistake in previous step, the answer is wrong. We have to remove one field goal, so the lions score two field goals, not three. Thus, the final answer should be 2.
+
+### END ###
+
+Passage: Uroš III's decision not to attack the Byzantines after the victory at the Battle of Velbazhd against Bulgaria resulted in the alienation of many nobles, who sought to expand to the south. By January or February 1331, Dušan was quarreling with his father, perhaps pressured by the nobility. According to contemporary pro-Dušan sources, evil advisors turned Uroš III against his son; he decided to seize and exclude Dušan of his inheritance. Uroš III sent an army into Zeta against his son, the army ravaged Skadar, but Dušan had crossed the Bojana. A brief period of anarchy in parts of Serbia took place before the father and son concluded peace in April 1331. Three months later, Uroš III ordered Dušan to meet him. Dušan feared for his life and his advisors persuaded him to resist, so Dušan marched from Skadar to Nerodimlje, where he besieged his father. Uroš III fled, and Dušan captured the treasury and family. He then pursued his father, catching up with him at Petrić. On 21 August 1331, Uroš III surrendered, and on the advice or insistence of Dušan's advisors, he was imprisoned. Dušan was crowned King of All Serbian and Maritime lands in the first week of September. The civil war had prevented Serbia from aiding Ivan Stephen and Anna Neda in Bulgaria, who were deposed in March 1331, taking refuge in the mountains. Ivan Alexander of Bulgaria feared for the danger of Serbia as the situation there had settled, and immediately sought peace with Dušan. As Dušan wanted to move against richer Byzantium, the two made peace and an alliance in December 1331, accepting Ivan Alexander as ruler. It was sealed with the marriage of Dušan and Helena, the sister of Ivan Alexander.
+
+Question: How many months passed between the concluding of peace and the surrender of Uroš III?
+
+Answer: The peace was concluded in April 1331, and Uroš III surrendered on 21 August 1331. Thus, four months passed between the concluding of peace and the surrender of Uroš III. final_answer: 4
+
+# Check each semantically complete block of reasoning for any infactual information and remove or fix it. Any information not present in the context is considered infactual. Ignore all other types of errors.
+
+# Let's go line by line
+    The peace was concluded in April 1331, and Uroš III surrendered on 21 August 1331.
+# looks good
+
+# Let's check the next line
+    Thus, four months passed between the concluding of peace and the surrender of Uroš III. final_answer: 4
+# looks good
+
+# There are no factual errors in the answer. It is correct!
 
 ### END ###

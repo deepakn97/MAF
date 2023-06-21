@@ -1,0 +1,71 @@
+Passage: The French king, John II, had been held captive in England. The Treaty of Brétigny set his ransom at 3 million crowns and allowed for hostages to be held in lieu of John. The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France. While these hostages were held, John returned to France to try and raise funds to pay the ransom. In 1362 John's son Louis of Anjou, a hostage in English-held Calais, escaped captivity. So, with his stand-in hostage gone, John felt honor-bound to return to captivity in England. The French crown had been at odds with Navarre  since 1354, and in 1363 the Navarrese used the captivity of John II in London and the political weakness of the Dauphin to try to seize power. Although there was no formal treaty, Edward III supported the Navarrese moves, particularly as there was a prospect that he might gain control over the northern and western provinces as a consequence. With this in mind, Edward deliberately slowed the peace negotiations. In 1364, John II died in London, while still in honourable captivity. Charles V succeeded him as king of France. On 7 May 1364, one month after the dauphin's accession and three days before his coronation as Charles V, the Navarrese suffered a crushing defeat at the Battle of Cocherel.
+
+Question: How many groups were held hostage in lieu of John II?
+
+Answer: The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of him. The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France. Thus, there were a total of twenty-four groups held hostage in lieu of John II. final_answer: 24
+
+# There is a error in the answer above. What is the error? To find the error go through the answer line by line and check that everything looks good.
+
+# Let's go line by line
+    The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of him.
+# wrong! this information is not needed to answer the question. Let's remove it.
+
+# Let's check the next line
+    The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France.
+# looks good
+
+# Let's check the next line
+    Thus, there were a total of twenty-four groups held hostage in lieu of John II.
+# wrong! This answer counts each person held hostage as a group, which doesn't make sense, since a group generally isn't a single person. The different groups that are held hostage in lieu of John II are his sons, princes and nobles, inhabitants of Paris, and citizens from each of the nineteen principal towns of France. Thus, there are four groups held hostage in lieu of John II.
+
+### END ###
+
+Passage: To start the season, the Lions traveled south to Tampa, Florida to take on the Tampa Bay Buccaneers. The Lions scored first in the first quarter with a 23-yard field goal by Jason Hanson. The Buccaneers tied it up with a 38-yard field goal by Connor Barth, then took the lead when Aqib Talib intercepted a pass from Matthew Stafford and ran it in 28 yards. The Lions responded with a 28-yard field goal. In the second quarter, Detroit took the lead with a 36-yard touchdown catch by Calvin Johnson, and later added more points when Tony Scheffler caught an 11-yard TD pass. Tampa Bay responded with a 31-yard field goal just before halftime. The second half was relatively quiet, with each team only scoring one touchdown. First, Detroit's Calvin Johnson caught a 1-yard pass in the third quarter. The game's final points came when Mike Williams of Tampa Bay caught a 5-yard pass.  The Lions won their regular season opener for the first time since 2007
+
+Question: How many field goals did the Lions score?
+
+Answer: The first was a 23-yard field goal by Jason Hanson in the first quarter. The second was a 28-yard field goal in response to the Buccaneers' interception. And the third was a 36-yard field goal in the second quarter. So they scored three field goals. final_answer: 3
+
+# There is a error in the answer above. What is the error? To find the error go through the answer line by line and check that everything looks good.
+
+# Let's go line by line
+    The first was a 23-yard field goal by Jaon Hanson in the first quarter.
+# looks good
+
+# Let's check the next line
+    The second was a 28-yard field goal in response to the Buccaneers' interception.
+# looks good
+
+# Let's check next line
+    And the third was a 36-yard field goal in the second quarter.
+# wrong! This answer count the 36-yard touchdown catch by Calvin Johnson in second quarter as a field goal. This is wrong because a touchdown is not a field goal. Thus, this should not be counted in the answer.
+
+# Let's check next line
+    So they scored three field goals. final_answer: 3
+# wrong! Based of the mistake in previous step, the answer is wrong. We have to remove one field goal, so the lions score two field goals, not three. Thus, the final answer should be 2.
+
+### END ###
+
+Passage: Trying to snap a two-game skid, the Bills flew to Gillette Stadium for a Week 3 divisional fight with the New England Patriots.  In the first quarter, QB J. P. Losman was immediately injured on the first offensive play of the game.  He would finish the series, but ended up on the bench for the rest of the game.  After New England took the lead with kicker Stephen Gostkowski's 24-yard field goal, rookie QB Trent Edwards played the rest of the game for Buffalo.  The Bills would get their only score of the game as RB Marshawn Lynch got an 8-yard TD run, and a Rian Lindell extra point put the Bills ahead surprisingly 7-3.  However, in the second quarter, the Patriots were able to open up their running game when Bills rookie standout Paul Posluszny was lost due to a broken arm. This left passing lanes open, and for the rest of the game, the Patriots dominated. QB Tom Brady's 8-yard TD pass to TE Benjamin Watson and a 3-yard TD pass to WR Randy Moss made it 17-7 at the half.  In the third quarter, New England continued its conquest with Brady's 4-yard TD pass to WR Jabar Gaffney and RB Sammy Morris' 4-yard TD run.  In the fourth quarter, the Patriots ended the day with Brady and Moss hooking up with each other again on a 45-yard TD pass.
+
+Question: How many points did Moss get at the end of the game?
+
+Answer: At the end of the game, Randy Moss caught a 45-yard TD pass from Tom Brady. A touchdown is worth 6 points in American football. Thus, Moss got 6 points at the end of the game. final_answer: 6
+
+# There is a error in the answer above. What is the error? To find the error go through the answer line by line and check that everything looks good.
+
+# Let's go line by line
+    At the end of the game, Randy Moss caught a 45-yard TD pass from Tom Brady.
+# looks good
+
+# Let's check the next line
+    A touchdown is worth 6 points in American football.
+# looks good
+
+# Let's check the next line
+    Thus, Moss got 6 points at the end of the game. final_answer: 6
+# looks good
+
+# There are no errors in the answer above. It is correct!
+
+### END ###
