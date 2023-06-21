@@ -31,7 +31,7 @@ Missing Step Feedback:
     apple_cost = strawberry_cost / 2
 # wrong! we need the total cost of apples to calculate remaining budget. Let's add it.
 
-Logical Reasoning Feedback:
+Commonsense Feedback:
 # Let's check other parts
     chicken_packs = 6
     chicken_cost = 2 * bacon_total_cost
@@ -96,7 +96,7 @@ Missing Step Feedback:
     return result
 # wrong! we need to calculate the cost of each cup to answer the question. Let's add it.
 
-Logical Reasoning Feedback: 
+Commonsense Feedback: 
 # Let us go through the code step-by-step
     plates = 0.5
     plate_cost = 6000
@@ -143,7 +143,7 @@ def solution():
 Missing Step Feedback: 
 There are no missing steps in the code! It is correct! 
 
-Logical Reasoning Feedback: 
+Commonsense Feedback: 
 There are no logical errors in the code! It is correct!
 
 # Given the feedback and the original code, let's rewrite the code to incorporate all of the feedback. Don't change anything unless it is mentioned in the feedback.

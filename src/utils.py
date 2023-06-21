@@ -49,9 +49,11 @@ class Prompt:
 
 
 class Feedback(metaclass=ABCMeta):
-    def __init__(self, name: str = "Feedback", **kwargs):
+    def __init__(self, name: str = "Feedback", eager_refine: bool = False, type: str = "tool", **kwargs):
         super().__init__(**kwargs)
         self.name = name
+        self.eager_refine = eager_refine
+        self.type = type
 
     @abstractmethod
     def __call__(self, solutions: List[str], **kwargs) -> Union[str, Dict[str, str]]:
@@ -90,7 +92,6 @@ class LLMFeedback(Feedback):
         inter_example_sep: str = "### END ###",
         temperature: float = 0.0,
         max_tokens: int = 300,
-        eager_refine: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
@@ -101,7 +102,6 @@ class LLMFeedback(Feedback):
         self.intra_example_sep = intra_example_sep
         self.inter_example_sep = inter_example_sep
         self.max_tokens = max_tokens
-        self.eager_refine = eager_refine
         self.instruction = "# There is an error in the code above because of lack of understanding of the question. What is the error? To find the error, go through semantically complete blocks of the code, and check if everything looks good."
 
     def setup_prompt_from_examples_file(self, examples_path: str, **kwargs) -> str:

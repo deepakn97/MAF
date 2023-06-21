@@ -20,7 +20,7 @@ from src.gsm_maf.task_iterate import GSMIterate, OSIterate
 from src.utils import OPENAI_ENGINES, OS_ENGINES
 from src.utils import FeedbackFactory, Logger, parse_feedback
 
-def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feedback_types: str, engine: str, temperature: float, batch_size: int = 5, gpus: str = "0,1", summarize_fb: bool = False, debug: bool = False):
+def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feedback_types: str, engine: str, temperature: float, batch_size: int = 5, gpus: str = "0,1", summarize_fb: bool = False, early_stop: bool = False, debug: bool = False):
     # initialize all the required components
     n_attempts = 0
     feedbacks_given = [ft.strip() for ft in feedback_types.split(",")]
@@ -89,7 +89,9 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
         solutions_fixed = [solution for solution in solutions]
         for i, feedback in enumerate(feedbacks_given):
             # print(fm.prompt)
-            if "os" not in feedback:
+            if feedback in ["syntax"]:
+                fm = FeedbackFactory.create_feedback(feedback)
+            elif "os" not in feedback:
                 fb_prompt_path = os.path.join(prompt_dir, f"{feedback}.txt")
                 fm = FeedbackFactory.create_feedback(feedback, prompt_examples=fb_prompt_path, engine=engine, temperature=temperature)
             else:
@@ -105,8 +107,9 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 else:
                     feedbacks[fm.name] = ["" for i in range(len(questions))]
 
-                logger.write(f"Generating {fm.name}\n")
-                logger.write(f"Args for feedback - temperature: {fm.temperature}, max_tokens: {fm.max_tokens}, engine: {fm.engine}\n")
+                if fm.type == "lm":
+                    logger.write(f"Generating {fm.name}\n")
+                    logger.write(f"Args for feedback - temperature: {fm.temperature}, max_tokens: {fm.max_tokens}, engine: {fm.engine}\n")
 
                 # call the feedback module
                 retry_idxs = list(np.where(feedbacks_retry[i])[0])
@@ -122,7 +125,7 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                 # if eager_refine is on, get the solutions and feedbacks
                 for j, idx in enumerate(retry_idxs):
                     # print(j, idx)
-                    if "it is correct" in fb_and_maybe_solns[j]['feedback'].lower():
+                    if early_stop and "it is correct" in fb_and_maybe_solns[j]['feedback'].lower():
                         feedbacks_retry[i][idx] = False
                     if fm.eager_refine:
                         solutions_fixed[idx] = fb_and_maybe_solns[j]["solution"]
@@ -143,12 +146,12 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
             logger.write(f"{fm.name} generation took {mins} minutes\n")
             logger.write(f"Token usage per minute: {usage/mins}")
 
-            if engine in OS_ENGINES:
+            if fm.type == "lm" and engine in OS_ENGINES:
                 fm.model = fm.model.cpu()
                 del fm.model
                 del fm.tokenizer
                 torch.cuda.empty_cache()
-            else:
+            elif fm.type == "lm" and engine in OPENAI_ENGINES:
                 if not debug:
                     time.sleep(60)
 
@@ -219,7 +222,7 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
     return log
 
 
-def fix_gsm(gsm_task_file: str, prompt_dir: str, max_attempts: int, outfile: str, temperature: float, feedback_types: str, engine: str, batch_size: int = 5, gpus: str = "0,1", summarize_fb: bool = False, debug: bool = False):
+def fix_gsm(gsm_task_file: str, prompt_dir: str, max_attempts: int, outfile: str, temperature: float, feedback_types: str, engine: str, batch_size: int = 5, gpus: str = "0,1", summarize_fb: bool = False, early_stop: bool = False, debug: bool = False):
 
     # prepare feedback modules
 
@@ -229,7 +232,7 @@ def fix_gsm(gsm_task_file: str, prompt_dir: str, max_attempts: int, outfile: str
     df["run_logs"] = [None] * len(df)
     results = []
     # loop over number of attempts instead of number of datapoints to use async calls
-    run_logs = iterative_gsm(questions=df["input"], prompt_dir=prompt_dir, max_attempts=max_attempts, feedback_types=feedback_types, engine=engine, temperature=temperature, batch_size=batch_size, gpus=gpus, summarize_fb=summarize_fb, debug=debug)
+    run_logs = iterative_gsm(questions=df["input"], prompt_dir=prompt_dir, max_attempts=max_attempts, feedback_types=feedback_types, engine=engine, temperature=temperature, batch_size=batch_size, gpus=gpus, summarize_fb=summarize_fb, early_stop=early_stop, debug=debug)
     for j, row in enumerate(df.iterrows()):
         row_copy = row[-1].to_dict()
         row_copy["run_logs"] = run_logs[j]
@@ -265,6 +268,7 @@ def parse_args():
     args.add_argument("--prompt_dir", type=str, default="prompt/gsm_maf")
     args.add_argument("--temperature", type=float, default=0.7)
     args.add_argument("--summarize_fb", action="store_true", default=False)
+    args.add_argument("--early_stop", action="store_true", default=False)
     args.add_argument("--engine", type=str, default="text-davinci-003", choices=OPENAI_ENGINES + OS_ENGINES)
     args.add_argument("--gpus", type=str, default="0,1")
     args.add_argument("--batch_size", type=int, default=5)
@@ -273,8 +277,11 @@ def parse_args():
     args.outdir = os.path.join(args.save_dir, f"{args.exp_label}.temp_{args.temperature}.engine_{args.engine}")
     print(args.save_dir)
     os.makedirs(args.outdir, exist_ok=True)
-    args.outfile = os.path.join(args.outdir, f"results.jsonl")    # print and save the args
-
+    if args.debug:
+        args.outfile = os.path.join(args.outdir, f"results_debug.jsonl")
+    else:
+        args.outfile = os.path.join(args.outdir, f"results.jsonl")    
+    
     _logger = Logger(os.path.join(args.outdir, f"args.txt"))
 
     print('=====Input Arguments=====')

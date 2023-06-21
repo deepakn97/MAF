@@ -8,19 +8,20 @@ from pathlib import Path
 from langchain.python import PythonREPL
 from src.utils import OSFeedback, LLMFeedback, FeedbackFactory, Feedback
 
-@FeedbackFactory.register("python_executer")
+@FeedbackFactory.register("syntax")
 class PythonExecuter(Feedback):
     def __init__(
         self,
         **kwargs
     ) -> None:
-        super().__init__(name="Python Executor Feedback", **kwargs)
+        super().__init__(name="Syntax Error Feedback", **kwargs)
         self.repl = PythonREPL()
+        self.type = "tool"
 
-    def __call__(self, solutions: List[str]) -> List[str]:
-        executable_solutions = [solution + "\nprint(solution())" for solution in solutions]
-        results = [self.repl.run(solution) for solution in executable_solutions]
-        return results
+    def __call__(self, solutions: List[str], **kwargs) -> List[str]:
+        executable_solutions = [solution + "\n(solution())" for solution in solutions]
+        feedbacks = [{"feedback": self.repl.run(solution)} for solution in executable_solutions]
+        return feedbacks
 
 @FeedbackFactory.register("self_refine")
 class SelfRefineFeedback(LLMFeedback):
@@ -30,6 +31,7 @@ class SelfRefineFeedback(LLMFeedback):
         **kwargs
     ) -> None:
         super().__init__(name="Original Self-Refine", max_tokens=600, answer_prefix="def solution():", eager_refine=True, **kwargs)
+        self.type = "lm"
         self.instruction = "# There is an error in the code above because of lack of understanding of the question. What is the error? To find the error, go through semantically complete blocks of the code, and check if everything looks good."
         self.setup_prompt_from_examples_file(prompt_examples)
 
@@ -41,6 +43,7 @@ class MissingStepFeedback(LLMFeedback):
         **kwargs
     ) -> None:
         super().__init__(name="Missing Step Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
         self.instruction = """# Check each semantically complete block of code for any missing steps and suggest the correct way to add them. Ignore all the other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
@@ -52,18 +55,20 @@ class VariableNameFeedback(LLMFeedback):
         **kwargs
     ) -> None:
         super().__init__(name="Variable Naming Feedback", max_tokens=600, eager_refine=True, answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
         self.instruction = """# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
-@FeedbackFactory.register("logical")
-class LogicalFeedback(LLMFeedback):
+@FeedbackFactory.register("commonsense")
+class CommonsenseFeedback(LLMFeedback):
     def __init__(
         self,
         prompt_examples: str,
         **kwargs,
     ) -> None:
-        super().__init__(name="Logical Reasoning Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
-        self.instruction = """# Check each semantically complete block of the code to check for any logical reasoning errors. Logical reasoning errors may include errors in the mathematical calculations, errors in the order of the steps, or errors in the assumptions made. State the assumptions you made clearly. Ignore all the other types of errors."""
+        super().__init__(name="Commonsense Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
+        self.instruction = """# Check each semantically complete block of the code to check for any commonsense errors. Commonsense reasoning errors are errors about any relation or knowledge that is should be known from general world such as "all ducks are birds". State the assumptions you made clearly. Ignore all the other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
         
 @FeedbackFactory.register("hallucination")
@@ -74,6 +79,7 @@ class HallucinationFeedback(LLMFeedback):
         **kwargs
     ) -> None:
         super().__init__(name="Hallucination Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
         self.instruction = """# Check each semantically complete block of code for any hallucination errors and suggest fixes. Hallucination errors are steps that are supported by neither the context nor the real world. Ignore all other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
@@ -85,7 +91,20 @@ class CoherencyFeedback(LLMFeedback):
         **kwargs
     ) -> None:
         super().__init__(name="Coherency Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
         self.instruction = """# Check the code for any coherency errors and suggest fixes. Coherency errors are steps that contradict each other or do not follow a cohesive story. Ignore all other types of errors."""
+        self.setup_prompt_from_examples_file(prompt_examples)
+
+@FeedbackFactory.register("redundancy")
+class RedundancyFeedback(LLMFeedback):
+    def __init__(
+        self,
+        prompt_examples: str,
+        **kwargs
+    ) -> None:
+        super().__init__(name="Redundancy Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
+        self.instruction = """# Check each semantically complete block of code for any redundancy errors and suggest fixes. Redundancy errors are steps that contain redundant information, which even though might be factual, is not required to answer the question. Ignore all other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
 @FeedbackFactory.register("missing_step_os")
@@ -96,6 +115,7 @@ class MissingStepFeedbackOS(OSFeedback):
         **kwargs
     ) -> None:
         super().__init__(name="Missing Step Feedback", max_tokens=300, answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
         self.instruction = """# Check each semantically complete block of code for any missing steps and suggest the correct way to add them. Ignore all the other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
@@ -107,18 +127,20 @@ class VariableNameFeedbackOS(OSFeedback):
         **kwargs
     ) -> None:
         super().__init__(name="Variable Naming Feedback", max_tokens=900, eager_refine=True, answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
         self.instruction = """# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
-@FeedbackFactory.register("logical_os")
-class LogicalFeedbackOS(OSFeedback):
+@FeedbackFactory.register("commonsense_os")
+class CommonsenseFeedbackOS(OSFeedback):
     def __init__(
         self,
         prompt_examples: str,
         **kwargs,
     ) -> None:
-        super().__init__(name="Logical Reasoning Feedback", max_tokens=300,answer_prefix="def solution():", **kwargs)
-        self.instruction = """# Check each semantically complete block of the code to check for any logical reasoning errors. Logical reasoning errors may include errors in the mathematical calculations, errors in the order of the steps, or errors in the assumptions made. State the assumptions you made clearly. Ignore all the other types of errors."""
+        super().__init__(name="Commonsense Feedback", max_tokens=300,answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
+        self.instruction = """# Check each semantically complete block of the code to check for any commonsense errors. Commonsense reasoning errors are errors about any relation or knowledge that is should be known from general world such as "all ducks are birds". State the assumptions you made clearly. Ignore all the other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
         
 @FeedbackFactory.register("hallucination_os")
@@ -129,6 +151,7 @@ class HallucinationFeedbackOS(OSFeedback):
         **kwargs
     ) -> None:
         super().__init__(name="Hallucination Feedback", max_tokens=600,answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
         self.instruction = """# Check each semantically complete block of code for any hallucination errors and suggest fixes. Hallucination errors are steps that are supported by neither the context nor the real world. Ignore all other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
@@ -140,6 +163,7 @@ class CoherencyFeedbackOS(OSFeedback):
         **kwargs
     ) -> None:
         super().__init__(name="Coherency Feedback", max_tokens=300,answer_prefix="def solution():", **kwargs)
+        self.type = "lm"
         self.instruction = """# Check the code for any coherency errors and suggest fixes. Coherency errors are steps that contradict each other or do not follow a cohesive story. Ignore all other types of errors."""
         self.setup_prompt_from_examples_file(prompt_examples)
 
