@@ -8,3 +8,14 @@ Answer: The Treaty of Brétigny set John II's ransom at 3 million crowns and all
 
 # Let's go line by line
 The Treaty of Brétigny set John II's ransom at 3 million crowns and allowed for hostages to be held in lieu of him.
+# Looks good.
+
+# Let's check the next line
+The hostages included two of his sons, several princes and nobles, four inhabitants of Paris, and two citizens from each of the nineteen principal towns of France.
+# Looks good
+
+# Let's check the next line
+Thus, there were a total of twenty-four groups held hostage in lieu of John II.
+# Wrong! This answer counts each person held hostage as a group, which doesn't make sense, since a group generally isn't a single person. The different groups that are held hostage in lieu of John II are his sons, princes and nobles, inhabitants of Paris, and citizens from each of the nineteen principal towns of France. Thus, there are four groups held hostage in lieu of John II.
+
+### END ###
