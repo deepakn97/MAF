@@ -51,7 +51,7 @@ int2 and sent7: the sun will appear the most apparent to earth and brightness me
 
 # Let's go through line by line
 sent1: the sun is the star that is closest to earth -> int1: the sun is the nearest star to earth
-# Wrong! This entailment only has a single premise going to the conclusion which is never valid. The intermediate conclusion int1 that "the sun is the nearest star to earth" repeats initial sentence sent1 that "the sun is the star that is closest to earth" without contributing any new information. We can remove this line from the entailment tree and use sent1 in place of int1.
+# Wrong! This line only has a single premise which is never valid because it means that a statement is just being restated. We can remove this line from the entailment tree and use sent1 in place of int1.
 
 # Let's check the next line
 int1 and sent6: the sun is the nearest star to earth and appear is similar to apparent -> int2: the sun will appear the most apparent to earth
