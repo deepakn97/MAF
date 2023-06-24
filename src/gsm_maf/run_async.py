@@ -20,9 +20,10 @@ from src.gsm_maf.task_iterate import GSMIterate, OSIterate
 from src.utils import OPENAI_ENGINES, OS_ENGINES
 from src.utils import FeedbackFactory, Logger, parse_feedback
 
-def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feedback_types: str, engine: str, temperature: float, batch_size: int = 5, gpus: str = "0,1", summarize_fb: bool = False, early_stop: bool = False, debug: bool = False):
+def iterative_gsm(outfile: str, data:pd.DataFrame, prompt_dir: str, max_attempts: int, feedback_types: str, engine: str, temperature: float, batch_size: int = 5, gpus: str = "0,1", summarize_fb: bool = False, early_stop: bool = False, debug: bool = False):
     # initialize all the required components
     n_attempts = 0
+    questions = data["input"]
     feedbacks_given = [ft.strip() for ft in feedback_types.split(",")]
     available_feedbacks= list(FeedbackFactory.registry.keys())
     for feedback in feedbacks_given:
@@ -103,16 +104,20 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
                     feedbacks_refine[fm.name] = ["" for i in range(len(questions))]
                 else:
                     feedbacks[fm.name] = ["" for i in range(len(questions))]
-
+                
+                actual_batch_size = batch_size
                 if fm.type == "lm":
+                    if fm.max_tokens > 300:
+                        actual_batch_size = 10
+
                     logger.write(f"Generating {fm.name}\n")
-                    logger.write(f"Args for feedback - temperature: {fm.temperature}, max_tokens: {fm.max_tokens}, engine: {fm.engine}\n")
+                    logger.write(f"Args for feedback - temperature: {fm.temperature}, max_tokens: {fm.max_tokens}, engine: {fm.engine}, batch_size: {batch_size}\n")
 
                 # call the feedback module
                 retry_idxs = list(np.where(feedbacks_retry[i])[0])
                 logger.write(f"Stopped {fm.name} generation for {len(questions) - len(retry_idxs)} questions\n")
                 solutions_retry = [solutions_fixed[idx] for idx in retry_idxs]
-                fb_and_maybe_solns = fm(solutions=solutions_retry, batch_size=batch_size, concurrent=True)
+                fb_and_maybe_solns = fm(solutions=solutions_retry, batch_size=actual_batch_size, concurrent=True)
 
                 usage = 0
                 if type(fb_and_maybe_solns) == tuple:
@@ -209,6 +214,16 @@ def iterative_gsm(questions: List[str], prompt_dir: str, max_attempts: int, feed
         n_attempts += 1
         iter_end = time.time()
         logger.write(f"Iteration {n_attempts} took {(iter_end - iter_start)/60}minutes\n")
+        logger.write(f"writing intermediate results\n")
+        results = []
+        for j, row in enumerate(data.iterrows()):
+            row_copy = row[-1].to_dict()
+            row_copy["run_logs"] = log[j]
+            row_copy["generated_answer_direct"] = log[j][0]["solution_curr"]
+            row_copy["generated_answer_ours"] = log[j][-1]["solution_fixed"]
+            results.append(row_copy)
+    
+        pd.DataFrame(results).to_json(outfile, orient="records", lines=True)
 
     return log
 
@@ -223,7 +238,8 @@ def fix_gsm(gsm_task_file: str, prompt_dir: str, max_attempts: int, outfile: str
     df["run_logs"] = [None] * len(df)
     results = []
     # loop over number of attempts instead of number of datapoints to use async calls
-    run_logs = iterative_gsm(questions=df["input"], prompt_dir=prompt_dir, max_attempts=max_attempts, feedback_types=feedback_types, engine=engine, temperature=temperature, batch_size=batch_size, gpus=gpus, summarize_fb=summarize_fb, early_stop=early_stop, debug=debug)
+    run_logs = iterative_gsm(outfile=outfile, data=df, prompt_dir=prompt_dir, max_attempts=max_attempts, feedback_types=feedback_types, engine=engine, temperature=temperature, batch_size=batch_size, gpus=gpus, summarize_fb=summarize_fb, early_stop=early_stop, debug=debug)
+
     for j, row in enumerate(df.iterrows()):
         row_copy = row[-1].to_dict()
         row_copy["run_logs"] = run_logs[j]

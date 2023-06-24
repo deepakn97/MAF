@@ -35,7 +35,7 @@ def read_json(path):
     task_df = pd.DataFrame(rows)
     return task_df
 
-def evaluate_code_prompt(path, num_gsm: int = 1319):
+def evaluate_code_prompt(path, num_gsm: int = 1319, oracle: bool = False):
     data = read_json(path)
     if "question" not in data.columns:
         data["question"] = data["input"]
@@ -100,9 +100,10 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
                     reports.append(report)  # Step 3
                 if is_corr == 1:
                     attempt_to_acc_[iter_idx] = 1
-                    for j in range(iter_idx, 5):
-                        attempt_to_acc_[j] = 1
-                    break
+                    if oracle:
+                        for j in range(iter_idx, 5):
+                            attempt_to_acc_[j] = 1
+                        break
                 else:
                     # print(f"Example Idx: {idx}, idx = {iter_idx}, actual answer: {correct_solution}, result: {result.strip()}")
                     attempt_to_acc_[iter_idx] = 0
@@ -158,6 +159,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", type=str, default="data/quco/quco_test.jsonl")
+    parser.add_argument("--oracle", action="store_true", default=False)
     args = parser.parse_args()
     
-    evaluate_code_prompt(args.path)
+    evaluate_code_prompt(args.path, oracle=args.oracle)

@@ -2,11 +2,15 @@ from typing import Dict, List
 
 import torch
 
+import func_timeout
 from src.utils import OSFeedback, Prompt
 import pandas as pd
 from pathlib import Path
 from langchain.python import PythonREPL
 from src.utils import OSFeedback, LLMFeedback, FeedbackFactory, Feedback
+
+ 
+ 
 
 @FeedbackFactory.register("syntax")
 class PythonExecuter(Feedback):
@@ -18,9 +22,16 @@ class PythonExecuter(Feedback):
         self.repl = PythonREPL()
         self.type = "tool"
 
+    def runPythonWithTM(self, soln):
+        try:
+            return func_timeout.func_timeout(60, self.repl.run, args=(soln,))
+        except func_timeout.FunctionTimedOut:
+            print('Running python solution timed out')
+        return ""
+
     def __call__(self, solutions: List[str], **kwargs) -> List[str]:
         executable_solutions = [solution + "\n(solution())" for solution in solutions]
-        feedbacks = [{"feedback": self.repl.run(solution)} for solution in executable_solutions]
+        feedbacks = [{"feedback": self.runPythonWithTM(solution)} for solution in executable_solutions]
         return feedbacks
 
 @FeedbackFactory.register("self_refine")
