@@ -1,0 +1,132 @@
+def solution():
+    """Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?"""
+    budget = 65
+    bacon = 5
+    bacon_cost = 10
+    chicken = 6
+    chicken_cost = 2 * bacon_cost
+    strawberries = 3
+    strawberry_cost = 4
+    apples = 7
+    apple_cost = strawberry_cost / 2
+    total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
+    money_left = budget - total_cost
+    result = money_left
+    return result
+
+# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors.
+
+# Let us go through each variable step-by-step
+    budget = 65
+# looks good
+
+# Let's check other parts
+    bacon = 5
+    bacon_cost = 10
+# rename the variable bacon to bacon_packs because she buys 5 packs of bacon not 5 bacon.
+# assuming bacon_cost means cost of 5 bacon pack. rename the variable bacon_cost to bacon_total_cost.
+    bacon_packs = 5
+    bacon_total_cost = 10
+
+# Let's check other parts
+    chicken = 6
+    chicken_cost = 2 * bacon_cost
+# rename the variable chicken to chicken_packs because she buys 6 packs of chicken not 6 chicken.
+# assuming chicken_cost means cost of 1 pack of chicken
+    chicken_packs = 6
+    chicken_cost = 2 * bacon_cost
+
+# let's check other parts
+    strawberries = 3
+    strawberry_cost = 4
+# rename the variable strawberries to strawberry_packs because she buys 3 packs of strawberries not 3 strawberries.
+# assuming strawberry_cost means cost of 1 pack of strawberry
+    strawberry_packs = 3
+    strawberry_cost = 4
+
+# Let's check other parts
+    apples = 7
+    apple_cost = strawberry_cost / 2
+# rename the variable apples to apple_packs because she buys 7 packs of apples not 7 apples.
+# assuming apple_cost means cost of 1 pack of apple
+    apple_packs = 7
+    apple_cost = strawberry_cost / 2
+
+# Let's check other parts
+    total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
+    money_left = budget - total_cost
+    result = money_left
+# looks good
+
+### END ###
+
+def solution():
+    """Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Calculate the total cost of buying each cup."""
+    plates = 6
+    plate_cost = 6000
+    cups = 12 * 20
+    cup_cost = plate_cost
+    result = cup_cost
+    return result
+
+# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors.
+
+# Let us go through each variable step-by-step
+    plates = 6
+    plate_cost = 6000
+# looks good
+
+# Let's check other parts
+    cups = 12 * 20
+    cup_cost = plate_cost
+# rename the variable cup_cost to cups_total_cost because we are given information about total cost of cups.
+    cups = 12 * 20
+    cups_total_cost = plate_cost
+
+# Let's check other parts
+    result = cup_cost
+    return result
+# looks good
+
+### END ###
+
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
+    return result
+
+# Check each semantically complete block of code and identify the variables that are not named correctly or may cause confusion and fix the issues. State the assumptions you made when renaming the variables clearly. Ignore all the other type of errors.
+
+# Let us go through the variables step-by-step
+    cards_initial = 80
+# looks good
+
+# Let's check the other parts
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+# looks good
+
+# Let's check the other parts
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+# looks good
+
+# Let's check the other parts
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+# looks good
+
+# Let's check the other parts
+    result = cards_d
+    return result
+# looks good
+
+### END ###
+

@@ -1,0 +1,159 @@
+def solution():
+    """Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?"""
+    budget = 65
+    bacon_packs = 5
+    bacon_total_cost = 10
+    chicken_packs = 6
+    chicken_cost = 2 * bacon_total_cost
+    strawberry_packs = 3
+    strawberry_cost = 4
+    apple_packs = 7
+    apple_cost = strawberry_cost / 2
+    total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
+    money_left = budget - total_cost
+    result = money_left
+    return result
+
+# Check each semantically complete block of the code to check for any logical reasoning errors. Logical reasoning errors may include errors in the mathematical calculations, errors in the order of the steps, or errors in the assumptions made. State the assumptions you made clearly. Ignore all the other types of errors.
+
+# Let us go through the code step-by-step
+    budget = 65
+# looks good
+
+# Let's check other parts
+    bacon_packs = 5
+    bacon_total_cost = 10
+# looks good
+
+# Let's check other parts
+    chicken_packs = 6
+    chicken_cost = 2 * bacon_total_cost
+# wrong! according to the context, the cost of each packet of chicken is twice the cost of 1 packet of bacon. We should use bacon_cost in place of bacon_total_cost to calculate the chicken pack cost correctly. Let's fix it.
+
+# Let's check other parts
+    strawberry_packs
+    strawberry_cost = 4
+# looks good
+
+# Let's check other parts
+    apple_packs = 7
+    apple_cost = strawberry_cost / 2
+# looks good
+
+# Let's check other parts
+    total_cost = bacon_cost + chicken_cost + strawberry_cost + apple_cost
+    money_left = budget - total_cost
+    result = money_left
+    return result
+# wrong! we want to calculate the total cost of buying all the items so we should use the total cost of each item instead of cost of 1 pack of each item. Let's fix it.
+
+# Okay, here's the rewrite:
+def solution():
+    """Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?"""
+    budget = 65
+    bacon_packs = 5
+    bacon_total_cost = 10
+    chicken_packs = 6
+    chicken_cost = 2 * bacon_cost
+    strawberry_packs = 3
+    strawberry_cost = 4
+    apple_packs = 7
+    apple_cost = strawberry_cost / 2
+    total_cost = bacon_total_cost + chicken_total_cost + strawberry_total_cost + apple_total_cost
+    money_left = budget - total_cost
+    result = money_left
+    return result
+
+### END ###
+
+def solution():
+    """Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Calculate the total cost of buying each cup."""
+    plates = 0.5
+    plate_cost = 6000
+    cups = 12 * 20
+    cups_total_cost = plate_cost
+    result = cup_cost
+    return result
+
+# Check each semantically complete block of the code to check for any logical reasoning errors. Logical reasoning errors may include errors in the mathematical calculations, errors in the order of the steps, or errors in the assumptions made. State the assumptions you made clearly. Ignore all the other types of errors.
+
+# Let us go through the code step-by-step
+    plates = 0.5
+    plate_cost = 6000
+# wrong! The number of plates is wrong. The question mentions half a dozen plates. A dozen is 12. So half a dozen is 6. Let's fix it.
+
+# Let's check other parts
+    cups = 12 * 20
+    cup_total_cost = plate_cost
+# wrong! the questions mentions total cost of all cups is 1200 less than total cost of plates. So we should use plate_total_cost instead of plate_cost and subtract 1200 from it. Let's fix it.
+
+# Let's check other parts
+    result = cup_cost
+    return result
+# looks good
+
+# Okay, here's the rewrite:
+def solution():
+    """Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Calculate the total cost of buying each cup."""
+    plates = 6
+    plate_cost = 6000
+    cups = 12 * 20
+    cups_total_cost = plate_total_cost - 1200
+    result = cup_cost
+    return result
+
+### END ###
+
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
+    return result
+
+# Check each semantically complete block of the code to check for any logical reasoning errors. Logical reasoning errors may include errors in the mathematical calculations, errors in the order of the steps, or errors in the assumptions made. State the assumptions you made clearly. Ignore all the other types of errors.
+
+# Let us go through the code step-by-step
+    cards_initial = 80
+# looks good
+
+# Let's check the other parts
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+# looks good
+
+# Let's check the other parts
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+# looks good
+
+# Let's check the other parts
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+# looks good
+
+# Let's check the other parts
+    result = cards_d
+    return result
+# looks good
+
+# There are no logical reasoning errors in the code! It is correct! Here is the rewrite (for the sake of completeness):
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
+    return result
+
+### END ###
+

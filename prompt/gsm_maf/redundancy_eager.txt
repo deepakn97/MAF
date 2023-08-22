@@ -1,0 +1,153 @@
+def solution():
+    """Albert is wondering how much pizza he can eat in one day. He buys 2 large pizzas and 2 small pizzas. A large pizza has 16 slices and a small pizza has 8 slices. Albert also has 5 pieces of cake. If he eats it all, how many pieces does he eat that day?"""
+    large_pizzas = 2
+    small_pizzas = 2
+    large_pizza_slices = 16
+    small_pizza_slices = 8
+    cake_pieces = 5
+    total_slices = (large_pizzas * large_pizza_slices) + (small_pizzas * small_pizza_slices) + cake_pieces
+    return total_slices
+
+# Check each semantically complete block of code for any redundancy errors and suggest fixes. Redundancy errors are steps that contain redundant information, which even though might be factual, is not required to answer the question. Ignore all other types of errors.
+
+# Let's go through the code step-by-step
+    large_pizzas = 2
+    small_pizzas = 2
+# looks good
+
+# Let's check other parts
+    large_pizza_slices = 16
+    small_pizza_slices = 8
+# looks good
+
+# Let's check other parts
+    cake_pieces = 5
+# wrong! while this information is accurate, we do not need this to calculate the answer. Let's remove it
+
+# Let's check other parts
+    total_slices = (large_pizzas * large_pizza_slices) + (small_pizzas * small_pizza_slices) + cake_pieces
+# wrong! we should not add cake_pieces because we want to calculate the number of pizza pieces he can eat. Let's fix it
+
+# Okay, here's the rewrite:
+def solution():
+    """Albert is wondering how much pizza he can eat in one day. He buys 2 large pizzas and 2 small pizzas. A large pizza has 16 slices and a small pizza has 8 slices. Albert also has 5 pieces of cake. If he eats it all, how many pieces does he eat that day?"""
+    large_pizzas = 2
+    small_pizzas = 2
+    large_pizza_slices = 16
+    small_pizza_slices = 8
+    total_slices = (large_pizzas * large_pizza_slices) + (small_pizzas * small_pizza_slices)
+    return total_slices
+
+### END ###
+
+def solution():
+    """Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Two dozen party hats cost $400 less than the cost of half a dozen plates. Calculate the total cost of buying each cup."""
+    # logical reasoning
+    plates = 6
+    plate_cost = 6000
+    plate_total_cost = plate_cost * plates
+    party_hats = 12 * 2
+    party_hats_total_cost = plate_total_cost - 400
+    party_hat_cost = party_hats_total_cost / party_hats
+    cups = 12 * 20
+    cup_total_cost = plate_total_cost - 1200
+    cup_cost = cup_total_cost / cups
+    result = cup_cost
+    return result
+
+# Check each semantically complete block of code for any redundancy errors and suggest fixes. Redundancy errors are steps that contain redundant information, which even though might be factual, is not required to answer the question. Ignore all other types of errors.
+
+# Let's go through the code step-by-step
+    plates = 6
+    plate_cost = 6000
+# looks good
+
+# Let's check other parts
+    plate_total_cost = plate_cost * plates
+# looks good
+
+# Let's check other parts
+    party_hats = 12 * 2
+    party_hats_total_cost = plate_total_cost - 400
+    party_hat_cost = party_hats_total_cost / party_hats
+# wrong! we do not need to calculate the cost of party hats. Let's remove it
+
+# Let's check other parts
+    cups = 12 * 20
+    cup_total_cost = plate_total_cost - 1200
+    cup_cost = cup_total_cost / cups
+# looks good
+
+# Let's check other parts
+    result = cup_cost
+    return result
+# looks good
+
+# Okay, here's the rewrite:
+def solution():
+    """Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Two dozen party hats cost $400 less than the cost of half a dozen plates. Calculate the total cost of buying each cup."""
+    # logical reasoning
+    plates = 6
+    plate_cost = 6000
+    plate_total_cost = plate_cost * plates
+    cups = 12 * 20
+    cup_total_cost = plate_total_cost - 1200
+    cup_cost = cup_total_cost / cups
+    result = cup_cost
+    return result
+
+### END ###
+
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
+    return result
+
+# Check each semantically complete block of code for any redundancy errors and suggest fixes. Redundancy errors are steps that contain redundant information, which even though might be factual, is not required to answer the question. Ignore all other types of errors.
+
+# Let us go through the code step-by-step
+    cards_initial = 80
+# looks good
+
+# Let's check the other parts
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+# looks good
+
+# Let's check the other parts
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+# looks good
+
+# Let's check the other parts
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+# looks good
+
+# Let's check the other parts
+    result = cards_d
+    return result
+# looks good
+
+# There are no redundancy errors in the code! It is correct! Here is the rewrite (for the sake of completeness):
+def solution():
+    """Carly had 80 cards, 2/5 of the cards had the letter A on them, 1/2 of the remaining had the letter B, 5/8 of the rest had the letter C on them, and the others had the letter D. How many of the cards had the letter D on them?"""
+    cards_initial = 80
+    cards_a = cards_initial * 2 / 5
+    cards_left = cards_initial - cards_a
+    cards_b = cards_left * 1 / 2
+    cards_left = cards_left - cards_b
+    cards_c = cards_left * 5 / 8
+    cards_d = cards_left * 3 / 8
+    result = cards_d
+    return result
+    
+### END ###
+
