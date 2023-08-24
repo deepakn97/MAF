@@ -2,7 +2,7 @@ import math
 import os
 import sys
 import time
-from typing import Dict, List
+from typing import Dict, List, Any, Tuple
 import torch
 
 from tqdm import tqdm
@@ -11,6 +11,7 @@ import asyncio
 
 from fastchat.model.model_adapter import get_conversation_template
 from fastchat.serve.inference import load_model
+
 
 class GSMIterate(Prompt):
     def __init__(self, engine: str, prompt_examples: str, temperature: float, max_tokens: int = 300) -> None:
@@ -38,33 +39,34 @@ class GSMIterate(Prompt):
         query = f"{self.prompt}{self.intra_example_sep}{solution}{self.instruction}"
         return query
 
-    def __call__(self, solutions: List[str], feedbacks: Dict[str, List[str]], batch_size=10, concurrent=True) -> List[str]:
-            
+    def __call__(self, solutions: List[str], feedbacks: Dict[str, List[str]], batch_size=10, concurrent=True) -> Tuple[Any, List[str]]:
+
         generation_queries = []
         for i in range(len(solutions)):
             solution = solutions[i]
             feedback = {}
             for ft, fb in feedbacks.items():
                 feedback[ft] = fb[i]
-            generation_queries.append(self.make_query(solution=solution, feedback=feedback))
+            generation_queries.append(self.make_query(
+                solution=solution, feedback=feedback))
         # print("Refined generation 0: ", generation_queries[0])
         # print("Refined generation 1: ", generation_queries[1])
         if not concurrent:
             batch_size = 1
         async_responses = []
         # print(generation_queries[0])
-        for i in tqdm(range(0, len(generation_queries), batch_size), total=len(generation_queries)//batch_size):
+        for i in tqdm(range(0, len(generation_queries), batch_size), total=len(generation_queries) // batch_size):
             if concurrent:
                 batch_responses = asyncio.run(acall_gpt(
-                    generation_queries[i:i+batch_size], 
-                    self.engine, 
-                    self.temperature, 
+                    generation_queries[i:i + batch_size],
+                    self.engine,
+                    self.temperature,
                     self.max_tokens,
                     stop_token=self.inter_example_sep)
                 )
             else:
                 batch_responses = call_gpt(
-                    generation_queries[i:i+batch_size],
+                    generation_queries[i:i + batch_size],
                     self.engine,
                     self.temperature,
                     self.max_tokens,
@@ -72,8 +74,9 @@ class GSMIterate(Prompt):
                 )
             async_responses.extend(batch_responses)
         # print("Async responses 0:\n", async_responses[0])
-        
-        usage, entire_outputs = extract_answer_gpt(async_responses, self.engine)
+
+        usage, entire_outputs = extract_answer_gpt(
+            async_responses, self.engine)
         # print("Entire output 0:\n", entire_outputs[0])
 
         # print(f"Iterate Output: {entire_output}")
@@ -87,25 +90,26 @@ class GSMIterate(Prompt):
                 solution = "def solution():" + solution.rstrip()
             solutions.append(solution)
         return usage, solutions
-  
+
+
 class OSIterate(Prompt):
     def __init__(self,
-        prompt_examples: str = None,
-        engine: str = "vicuna", 
-        question_prefix: str = "",
-        answer_prefix: str = "",
-        intra_example_sep: str = "\n\n",
-        inter_example_sep: str = "\n\n",
-        stop_str:str = "### END",
-        model_device: str = "cuda",
-        cuda_visible_devices: str = "0,1,2",
-        max_gpu_memory: int = None,
-        load_8bit: bool = False,
-        cpu_offloading: bool = False,
-        debug: bool = False,
-        temperature: float = 0.0, 
-        max_tokens: int = 300,
-    ):
+                 prompt_examples: str = None,
+                 engine: str = "vicuna",
+                 question_prefix: str = "",
+                 answer_prefix: str = "",
+                 intra_example_sep: str = "\n\n",
+                 inter_example_sep: str = "\n\n",
+                 stop_str: str = "### END",
+                 model_device: str = "cuda",
+                 cuda_visible_devices: str = "0,1,2",
+                 max_gpu_memory: int = None,
+                 load_8bit: bool = False,
+                 cpu_offloading: bool = False,
+                 debug: bool = False,
+                 temperature: float = 0.0,
+                 max_tokens: int = 300,
+                 ):
         super().__init__(
             question_prefix=question_prefix,
             answer_prefix=answer_prefix,
@@ -125,13 +129,15 @@ class OSIterate(Prompt):
         elif engine == "alpaca":
             self.model_path = ALPACA_MODEL_PATH
         else:
-            raise ValueError("Model name {engine} not supported. Choose between vicuna and alpaca")
-        
+            raise ValueError(
+                "Model name {engine} not supported. Choose between vicuna and alpaca")
+
         os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
         num_gpus = len(cuda_visible_devices.strip().split(","))
 
         if max_gpu_memory is None:
-            max_gpu_memory = str(int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
+            max_gpu_memory = str(
+                int(math.ceil(get_gpu_memory(num_gpus) * 0.99))) + "GiB"
 
         self.model, self.tokenizer = load_model(
             self.model_path,
@@ -146,8 +152,8 @@ class OSIterate(Prompt):
     def setup_prompt_from_examples_file(self, examples_path: str, **kwargs) -> str:
         with open(examples_path, "r") as f:
             self.prompt = f.read()
-    
-    def make_query(self, solution:str = None, feedback:Dict[str, str] = None, **kwargs) -> str:
+
+    def make_query(self, solution: str = None, feedback: Dict[str, str] = None, **kwargs) -> str:
         solution = f"""{solution}{self.intra_example_sep}"""
         for feedback_type, feedback_text in feedback.items():
             # if feedback_text != "":
@@ -157,8 +163,8 @@ class OSIterate(Prompt):
         # conv.append_message(conv.roles[0], query)
         # conv.append_message(conv.roles[1], None)
         # query = conv.get_prompt()
-        return query 
-    
+        return query
+
     def __call__(self, solutions: List[str], feedbacks: Dict[str, List[str]], batch_size=10, concurrent=True) -> str:
         generation_queries = []
         for i in range(len(solutions)):
@@ -166,7 +172,8 @@ class OSIterate(Prompt):
             feedback = {}
             for ft, fb in feedbacks.items():
                 feedback[ft] = fb[i]
-            generation_queries.append(self.make_query(solution=solution, feedback=feedback))
+            generation_queries.append(self.make_query(
+                solution=solution, feedback=feedback))
         entire_outputs = []
 
         for i in tqdm(range(len(generation_queries)), total=len(generation_queries)):
@@ -197,8 +204,9 @@ class OSIterate(Prompt):
                 output_ids = output_ids[0]
             else:
                 output_ids = output_ids[0][len(input_ids[0]):]
-            
-            output = self.tokenizer.decode(output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
+
+            output = self.tokenizer.decode(
+                output_ids, skip_special_tokens=True, spaces_between_special_tokens=False)
             entire_outputs.append(output)
             del input_ids
             del output_ids
@@ -214,6 +222,7 @@ class OSIterate(Prompt):
                 solution = "def solution():" + solution.rstrip()
             solutions.append(solution)
         return solutions
+
 
 def test():
     task_iterate = GSMIterate(
@@ -234,7 +243,7 @@ def test():
     length = chips_left / chips_per_square_inch
     result = length
     return result""",
-    """def solution():
+                   """def solution():
     \"\"\"Kelly is grocery shopping at a supermarket and is making sure she has enough in her budget for the items in her cart. Her 5 packs of bacon cost $10 in total and she has 6 packets of chicken which each cost twice as much as a pack of bacon. She also has 3 packs of strawberries, priced at $4 each, and 7 packs of apples, each priced at half the price of a pack of strawberries. If Kelly’s budget is $65 then how much money, in dollars, does she have left in her budget?\"\"\"
     budget = 65
     bacon_packs = 5
@@ -249,15 +258,15 @@ def test():
     money_left = budget - total_cost
     result = money_left
     return result""",
-    "def solution():\n    \"\"\"Helga went shopping for a new pair of shoes. At the first store, she tried on 7 pairs of shoes. At the second store, she tried on 2 more pairs than at the first store. At the third store, she did not try on any shoes, but she did buy a scarf. But at the fourth store, she tried on twice as many pairs of shoes as she did at all three other stores combined, before finally choosing a pair to buy. Helga's neighbor tried on 20 pairs of pants than Helga. What is the total number of pairs of shoes Helga tried on before buying her new shoes?\"\"\"\n    shoes_first_store = 7\n    shoes_second_store = shoes_first_store + 2\n    shoes_third_store = 0\n    shoes_fourth_store = 2 * (shoes_first_store + shoes_second_store + shoes_third_store)\n    total_shoes_tried_on = shoes_first_store + shoes_second_store + shoes_third_store + shoes_fourth_store\n    neighbor_pants = total_shoes_tried_on + 20\n    result = total_shoes_tried_on\n    return result"
-    ]
+                   "def solution():\n    \"\"\"Helga went shopping for a new pair of shoes. At the first store, she tried on 7 pairs of shoes. At the second store, she tried on 2 more pairs than at the first store. At the third store, she did not try on any shoes, but she did buy a scarf. But at the fourth store, she tried on twice as many pairs of shoes as she did at all three other stores combined, before finally choosing a pair to buy. Helga's neighbor tried on 20 pairs of pants than Helga. What is the total number of pairs of shoes Helga tried on before buying her new shoes?\"\"\"\n    shoes_first_store = 7\n    shoes_second_store = shoes_first_store + 2\n    shoes_third_store = 0\n    shoes_fourth_store = 2 * (shoes_first_store + shoes_second_store + shoes_third_store)\n    total_shoes_tried_on = shoes_first_store + shoes_second_store + shoes_third_store + shoes_fourth_store\n    neighbor_pants = total_shoes_tried_on + 20\n    result = total_shoes_tried_on\n    return result"
+                   ]
     feedbacks = {
-    "Missing Step Feedback": [
-    """# Let's check other parts
+        "Missing Step Feedback": [
+            """# Let's check other parts
     chips_needed = height * chips_per_square_inch
     chips_available = bags * chips_per_bag
 # wrong! we need to caclulate the area of the mosaic which can be made by available chips. This can be calculated by dividing chips available with chips per square inch. Let's add it!""",
-    """# Let's check other parts
+            """# Let's check other parts
     chicken_packs = 6
     chicken_cost = 2 * bacon_cost
 # wrong! bacon_cost is missing. Let's add it.
@@ -272,8 +281,8 @@ def test():
     apple_packs = 7
     apple_cost = strawberry_cost / 2
 # wrong! we need the total cost of apples to calculate remaining budget. Let's add it."""
-    ],
-    "Logical Reasoning Feedback": ["""# Let's check other parts
+        ],
+        "Logical Reasoning Feedback": ["""# Let's check other parts
     chips_needed = height * chips_per_square_inch
     chips_available = bags * chips_per_bag
     # wrong! chips needed doesn't make sense here. remove it
@@ -285,7 +294,7 @@ def test():
     return result
     # wrong! chips_left doesn't make sense here. remove it
     # wrong! we want to divide the *area of the mosaic* by the height of the mosaic to get the length of the mosaic. Let's fix it!""",
-    """# Let's check other parts
+                                       """# Let's check other parts
     chicken_packs = 6
     chicken_cost = 2 * bacon_total_cost
 # wrong! according to the context, the cost of each packet of chicken is twice the cost of 1 packet of bacon. We should use bacon_cost in place of bacon_total_cost to calculate the chicken pack cost correctly. Let's fix it.
@@ -296,12 +305,12 @@ def test():
     result = money_left
     return result
 # wrong! we want to calculate the total cost of buying all the items so we should use the total cost of each item instead of cost of 1 pack of each item. Let's fix it.""",
-    """There are no logical reasoning errors in the code! It is correct!"""
-    ],
-    "Coherency Feedback": ["""""", """""", """"""],
-    "Hallucination Feedback": ["""# The code looks good, no hallucination errors found.""", """# The code looks good, no hallucination errors found.""", """# The code looks good, no hallucination errors found."""],
+                                       """There are no logical reasoning errors in the code! It is correct!"""
+                                       ],
+        "Coherency Feedback": ["""""", """""", """"""],
+        "Hallucination Feedback": ["""# The code looks good, no hallucination errors found.""", """# The code looks good, no hallucination errors found.""", """# The code looks good, no hallucination errors found."""],
 
-}
+    }
     # start = time.time()
     # print(task_iterate(wrong_solns, feedbacks))
     # end = time.time()

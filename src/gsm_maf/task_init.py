@@ -40,10 +40,19 @@ class GSMInit(Prompt):
         query = f"{self.prompt}{self.question_prefix}{solution}{self.intra_example_sep}{self.answer_prefix}"
         return query
 
+    
     def __call__(self, solutions: List[str], batch_size=10, concurrent=True) -> Tuple[int, List[str]]:
+        """
+        Args:
+            solutions (List[str]): A list of queries to be evaluated. Queries are processed by the make_query method.
+            batch_size (int, optional): The batch size for concurrent generation. Defaults to 10.
+            concurrent (bool, optional): Whether to use concurrent generation. Defaults to True.
+
+        Returns:
+            Tuple[int, List[str]]: The total number of tokens used and the list of generated solutions    
+        """
         generation_queries = [self.make_query(solution) for solution in solutions]
-        # print("initial generation query 0:\n", generation_queries[0])
-        # print("initial generation query 1:\n", generation_queries[1])
+
         if not concurrent:
             batch_size = 1
 

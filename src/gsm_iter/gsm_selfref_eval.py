@@ -20,6 +20,13 @@ def timeout(duration):
         signal.alarm(0)
 
 def read_json(path):
+    """
+    Reads a jsonl file into a pandas dataframe
+    Args:
+        path (str): Path to the jsonl file
+    Returns:
+        pd.DataFrame: The dataframe containing the jsonl file
+    """
     import json
     rows = []
     with open(path, "r") as f:
@@ -30,25 +37,39 @@ def read_json(path):
     return task_df
 
 def evaluate_code_prompt(path, num_gsm: int = 1319):
+    """
+    Computes aggregate statistics about the accuracy of the solutions at each attempt on the GSM dataset
+    Args:
+        path (str): Path to the jsonl file containing the GSM dataset (with run_logs)
+        num_gsm (int, optional): The number of GSM examples in the dataset. Defaults to 1319.
+    Returns:
+        list: A list of dictionaries, where each dictionary contains the previous solution, feedback, and next solution
+    """
     data = read_json(path)
     if "question" not in data.columns:
         data["question"] = data["input"]
     if "answer" not in data.columns:
         data["answer"] = data["target"]
-
+    # attempt_to_acc is a list of dictionaries, where each dictionary contains the accuracy of each attempt
     attempt_to_acc = []
     num_gsm = len(data)
+    # reports contains reports about iterations where the previous solution was incorrect but the next solution was correct
     reports = []  # Step 1
     for idx, row in tqdm(data.iterrows(), total=len(data)):
         # if idx < 20:
         #     continue
         # if idx > 10:
         #     break
+        # attempt_to_acc_[i] is the accuracy of the solution at attempt i (1 or 0)
         attempt_to_acc_ = {i: 0 for i in range(5)}
         attempt_to_acc_["question"] = row["question"]
         solutions = []
+
+        # if this row has no run_logs, it has not gone through the feedback loop, so skip it
         if row["run_logs"] is None:
             continue
+        
+        # use the run_logs to get the solutions and feedback
         for _, log in enumerate(row["run_logs"]):
             solutions.append(log["solution_curr"])
         solutions.append(row["run_logs"][-1]["solution_fixed"])
@@ -59,6 +80,8 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
         for iter_idx, soln in enumerate(solutions):
             soln = soln.split("\n\n\n")[0].strip() + "\n"
             soln = soln.replace("The answer is", "").strip() + "\n"
+
+            # write the proposed solution program to a temporary python file
             os.system("rm -rf __pycache__")
             os.system("rm -f temp_result.pyc")
 
@@ -67,11 +90,12 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
                 f.write(soln)
 
             try:
+                # import the temporary python file as a module and run the solution() function
                 import temp_result
                 reload(temp_result)
                 correct_solution = str(row["answer"])
 
-                exec(soln)
+                # exec(soln)
                 with timeout(1):
                     result = str(temp_result.solution())
                 is_corr = check_corr(result, correct_solution)
@@ -79,7 +103,6 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
 
                 is_corr = int(is_corr)
                 # Step 2
-                
                 if iter_idx > 0 and is_corr == 1 and prev_accuracy == 0:
                     report = {
                         "previous_solution": solutions[iter_idx - 1],
@@ -87,12 +110,16 @@ def evaluate_code_prompt(path, num_gsm: int = 1319):
                         "next_solution": solutions[iter_idx],
                     }
                     reports.append(report)  # Step 3
+
+                # if this iteration is correct, then all subsequent iterations are also marked correct
                 if is_corr == 1:
                     for j in range(iter_idx, 5):
                         attempt_to_acc_[j] = 1
+                    # break to end iteration early
                     break
-                attempt_to_acc_[iter_idx] = 0
-                prev_accuracy = is_corr
+                else:
+                    attempt_to_acc_[iter_idx] = 0
+                    prev_accuracy = is_corr
             except Exception as e:
                 print(e)
                 continue

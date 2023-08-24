@@ -50,6 +50,13 @@ class GSMFeedback(Prompt):
         return feedback
 
     def make_query(self, solution: str):
+        """
+        Constructs the LLM query for feedback
+        Args:
+            solution (str): The initial solution to get feedback on
+        Returns:
+            str: The query to be sent to the LLM
+        """
         solution = f"""{solution}{self.intra_example_sep}{self.instruction}"""
         return f"{self.prompt}{solution}"
     
